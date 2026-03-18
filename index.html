@@ -1,0 +1,2955 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Immersion OS</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+:root{ --bg:#0f1115; --card:#1a1d24; --header:#161a20; --text:#e6e6e6; --accent:#4cc9f0; --input:#222; --border:#333; --card-width: 220px; --card-height: 100px; }
+::-webkit-scrollbar { width: 12px; height: 12px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background-color: var(--border); border-radius: 10px; border: 4px solid transparent; background-clip: padding-box; }
+::-webkit-scrollbar-thumb:hover { background-color: var(--accent); }
+::-webkit-scrollbar-corner { background: transparent; }
+body{ margin:0; font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background:var(--bg); color:var(--text); transition: background 0.3s; overflow-x: hidden; }
+header{ padding:12px; background:var(--header); display:flex; gap:10px; align-items:center; box-shadow:0 2px 10px rgba(0,0,0,.4); z-index:10; }
+select,input,button{ background:var(--input); color:var(--text); border:1px solid var(--border); padding:6px; border-radius: 4px; font-family: inherit; }
+button{cursor:pointer; transition: 0.2s;} button:hover{ filter: brightness(1.2); }
+.layout{ display:flex; height:calc(100vh - 55px); width: 100vw; overflow: hidden; }
+
+/* CSS GLOWS FOR STREAKS & LEVELS */
+.glow-bronze { text-shadow: 0 0 10px #cd7f32, 0 0 20px #cd7f32; color: #fff; }
+.glow-silver { text-shadow: 0 0 10px #c0c0c0, 0 0 20px #c0c0c0; color: #fff; }
+.glow-gold { text-shadow: 0 0 15px #ffd700, 0 0 30px #ffd700; color: #fff; }
+.glow-ruby { text-shadow: 0 0 15px #e23636, 0 0 30px #e23636; color: #fff; }
+.glow-diamond { text-shadow: 0 0 15px #00ffff, 0 0 30px #00ffff; color: #fff; }
+.glow-mythic { text-shadow: 0 0 20px #9400d3, 0 0 40px #9400d3; color: #fff; }
+
+/* SIDEBAR SLIDE LOGIC */
+.left{ width:380px; min-width:380px; background:var(--card); padding:15px; overflow-y:auto; border-right: 1px solid var(--border); transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); }
+.left.collapsed { width:0; min-width:0; padding-left:0; padding-right:0; border-right:none; opacity:0; overflow:hidden; margin-left: -15px;}
+.right{ flex:1; padding:15px; overflow-y:auto; display: flex; flex-direction: column; position: relative; transition: 0.3s; min-width: 0; }
+
+/* ZEN MODE UI */
+#zenContainer { display: none; text-align: center; margin-bottom: 20px; padding: 20px 0; border-bottom: 1px solid var(--border); position: relative; }
+.zen-clock { font-size: 80px; font-weight: bold; color: var(--accent); font-family: monospace; letter-spacing: 2px; text-shadow: 0 0 20px rgba(76,201,240,0.3); margin: 0; }
+.zen-controls { display: flex; justify-content: center; gap: 15px; margin-top: 15px; }
+.zen-btn { font-size: 20px; padding: 12px 30px; background: var(--header); border: 2px solid var(--border); color: var(--text); border-radius: 8px; cursor: pointer; transition: 0.2s; font-weight: bold; }
+.zen-btn:hover { border-color: var(--accent); }
+.zen-btn.active { background: #ff4444; border-color: #ff4444; color: #fff; }
+.zen-hook-btn { font-size: 20px; padding: 12px; background: var(--header); border: 2px solid var(--border); border-radius: 8px; transition: 0.2s; }
+.zen-exit { position: absolute; top: 10px; right: 10px; background: transparent; border: none; font-size: 20px; opacity: 0.5; cursor: pointer; z-index: 9999; }
+.zen-exit:hover { opacity: 1; color: var(--accent); }
+.mid-blur-hover { filter: blur(9px); transition: filter 0.3s ease; }
+.mid-blur-hover:hover { filter: blur(0px); }
+.heavy-blur-hover { filter: blur(16px); opacity: 0.4; transition: all 0.3s ease; cursor: pointer; }
+.heavy-blur-hover:hover { filter: blur(0); opacity: 1; }
+body.zen-mode header { display: none; }
+body.zen-mode .left { display: none; }
+body.zen-mode .right { width: 100%; padding: 40px; }
+body.zen-mode #zenContainer { display: block; }
+body.zen-mode #libraryView, body.zen-mode #analyticsView, body.zen-mode #compareView { display: none !important; }
+
+/* WEBSOCKET HOOK UI */
+.hook-bar { display: flex; gap: 5px; margin-top: 4px; }
+.hook-btn { font-size: 11px; padding: 4px 8px; background: var(--header); border: 1px solid var(--border); border-radius: 4px; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
+.hook-btn.on { color: #0f0; border-color: #0f0; box-shadow: 0 0 8px rgba(0,255,0,0.2); }
+
+/* LIBRARY GRIDS & LIST VIEW */
+#libraryView, #analyticsView, #compareView { padding: 0 20px; display: flex; flex-direction: column; flex: 1; }
+.lib-toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 1px solid var(--border); padding-bottom: 8px; }
+.minimal-select { background: transparent; border: none; color: #888; font-weight: bold; cursor: pointer; font-size: 14px; outline: none; }
+.minimal-select:hover { color: var(--accent); }
+.minimal-select option { background: var(--header); color: var(--text); }
+.grid-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(var(--card-width), 1fr)); gap: 15px; margin-top: 10px; padding-bottom: 20px; }
+.list-container { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; padding-bottom: 20px; }
+
+.lib-card { background: var(--header); border: 1px solid var(--border); border-radius: 6px; padding: 15px; position: relative; transition: 0.2s; cursor: pointer; min-height: var(--card-height); display: flex; flex-direction: column; justify-content: flex-end; overflow: hidden; }
+.lib-card:hover { border-color: var(--accent); transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
+.lib-card.paused { opacity: 0.5; filter: grayscale(0.6); }
+.lib-card.completed { border-color: #ffd700; box-shadow: 0 4px 10px rgba(255, 215, 0, 0.1); }
+
+.badge-completed { position: absolute; top: 10px; left: 10px; background: linear-gradient(135deg, #ffd700, #daa520); color: #000; font-size: 10px; font-weight: bold; padding: 3px 8px; border-radius: 4px; box-shadow: 0 2px 5px rgba(0,0,0,0.5); z-index: 10; pointer-events: none; }
+.lib-card.dropped { opacity: 0.4; filter: grayscale(0.8); border-color: #ff4444; }
+.card-bg { position: absolute; inset: 0; z-index: 0; transition: filter 0.4s ease, transform 0.4s ease; }
+.card-gradient { position: absolute; inset: 0; z-index: 1; background: linear-gradient(to bottom, rgba(22,26,32,0.3), rgba(22,26,32,0.95)); pointer-events: none; }
+.card-content { position: relative; z-index: 2; display: flex; flex-direction: column; height: 100%; pointer-events: none; }
+.lib-actions { position: absolute; top: 8px; right: 8px; opacity: 0; display: flex; gap: 5px; transition: 0.2s; z-index: 5; pointer-events: auto; }
+.lib-card:hover .lib-actions { opacity: 1; }
+.lib-btn { background: rgba(0,0,0,0.8); border: 1px solid #555; padding: 4px 8px; border-radius: 4px; font-size: 11px; color: #fff; cursor: pointer; transition: 0.2s; pointer-events: auto; }
+.lib-btn:hover { border-color: var(--accent); color: var(--accent); }
+.blur-cover { filter: blur(12px); transform: scale(1.15); }
+.lib-card:hover .blur-cover { filter: blur(0); transform: scale(1); }
+
+.list-item { display: flex; align-items: center; justify-content: space-between; background: var(--header); border: 1px solid var(--border); padding: 10px 15px; border-radius: 6px; transition: 0.2s; position: relative; cursor: pointer; }
+.list-item:hover { border-color: var(--accent); background: var(--card); }
+.list-item .lib-actions { top: 50%; transform: translateY(-50%); opacity: 0; }
+.list-item:hover .lib-actions { opacity: 1; }
+
+.hover-reveal { opacity: 0; transition: opacity 0.3s ease; background: var(--accent); color: #000; font-weight: bold; border: none; padding: 6px 12px; border-radius: 4px; }
+#libraryView:hover .hover-reveal { opacity: 1; }
+
+/* MODULAR STATS DASHBOARD */
+@keyframes statPop { 0% { transform: scale(1); } 50% { transform: scale(1.1); color: #fff; } 100% { transform: scale(1); } }
+.stat-animate { animation: statPop 0.3s ease-out; }
+#timerBtn { background: #222; border-color: var(--accent); color: var(--accent); font-weight: bold; transition: 0.2s; }
+#timerBtn.active { background: #ff4444; color: white; border-color: #ff4444; animation: pulse 1.5s infinite; }
+@keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+.stats-grid{ display:grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap:10px; margin-bottom:5px; }
+.stat{ background:var(--card); padding:12px; border-radius:6px; border: 1px solid var(--border); position: relative; }
+.big{ font-size:22px; font-weight:bold; color: var(--accent); display: inline-block; cursor: pointer; transition: 0.2s; }
+.big:hover { color: #fff; }
+.breakdown-text { font-size: 11px; color: #aaa; margin-top: 8px; display: none; word-wrap: break-word; line-height: 1.4; border-top: 1px solid var(--border); padding-top: 5px; }
+#monthlyForecast { font-size: 12px; color: var(--accent); opacity: 0.8; margin-bottom: 15px; text-align: right; padding-right: 5px; font-style: italic; }
+
+/* ACTIVE SHELF */
+.shelf-item { display: flex; justify-content: space-between; align-items: center; font-size: 12px; padding: 8px 10px; background: var(--header); margin-bottom: 4px; border-radius: 4px; border-left: 2px solid var(--accent); transition: 0.2s; cursor: pointer; }
+.shelf-item:hover { background: var(--card); border-left-color: #fff; }
+.shelf-btn { background: transparent; border: 1px solid var(--border); padding: 4px; width: 100%; font-size: 11px; color: #888; border-radius: 4px; margin-top: 4px; cursor: pointer; }
+.shelf-btn:hover { border-color: var(--accent); color: var(--text); }
+
+.blur-hover { filter: blur(5px); transition: filter 0.3s ease; cursor: pointer; display: inline-block; }
+.blur-hover:hover { filter: blur(0); }
+.progress{ height:10px; background:#333; border-radius:6px; overflow:hidden; margin: 6px 0; }
+.progress-fill{ height:100%; background:var(--accent); width:0%; transition:width .4s ease; }
+.heatmap-container { display: flex; flex-wrap: wrap; gap: 3px; background: var(--header); padding: 10px; border-radius: 6px; }
+.heatmap-day { width: 12px; height: 12px; background: #1a1d24; border-radius: 2px; position: relative; }
+.heatmap-day:hover::after { content: attr(data-info); position: absolute; bottom: 15px; left: 50%; transform: translateX(-50%); background: #000; color: #fff; padding: 4px; border-radius: 4px; font-size: 10px; white-space: nowrap; z-index: 20; }
+.heatmap-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+#goalsHeader, #shelfHeader { display: flex; justify-content: space-between; align-items: center; margin-top:10px; }
+.goal-icons { opacity: 0; transition: 0.2s; display: flex; gap: 8px; }
+#goalsHeader:hover .goal-icons { opacity: 1; }
+.goal-card { background: var(--header); padding: 12px; margin-bottom: 10px; border-radius: 8px; border-left: 4px solid var(--accent); transition: 0.2s; }
+.goal-card.completed { border-left-color: #555; opacity: 0.6; filter: grayscale(0.5); }
+.goal-meta { font-size: 11px; opacity: 0.7; margin-top: 4px; }
+.goal-actions { opacity: 0; transition: opacity 0.2s ease; }
+.goal-card:hover .goal-actions { opacity: 1; }
+.goal-trajectory { display: none; font-size: 11px; font-weight: bold; margin-left: 8px; }
+.goal-card:hover .goal-trajectory { display: inline-block; animation: fadeInJustOpacity 0.2s ease-in; }
+
+/* OVERLAYS */
+.overlay{ position:fixed; inset:0; background:rgba(0,0,0,0.85); backdrop-filter:blur(5px); display:flex; align-items:center; justify-content:center; z-index:100; }
+.modal{ background:var(--card); padding:25px; border-radius:12px; width:400px; max-height: 90vh; overflow-y: auto; border: 1px solid var(--border); box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+.wide-modal { width: 800px; }
+.hidden{ display:none !important; }
+.flex-row { display: flex; gap: 10px; margin-bottom: 10px; }
+.flex-row div { flex: 1; }
+hr { border: 0; border-top: 1px solid var(--border); margin: 15px 0; }
+
+/* TOAST */
+#toast { position: fixed; top: 20px; right: 20px; padding: 15px 25px; z-index: 200; transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); transform: translateX(150%); font-weight:bold; display: flex; align-items: center; gap: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.6); }
+#toast.show { transform: translateX(0); }
+.toast-Overall { background: linear-gradient(135deg, #ffd700, #daa520); color: #000; border-radius: 8px; border: 2px solid #fff; }
+.toast-VN { background: #ff77a9; color: #fff; border-radius: 50px; border-bottom: 4px solid #c4004c; }
+.toast-Anime { background: #ff4757; color: #fff; border-radius: 0px 15px 0px 15px; border-left: 6px solid #ff0000; }
+.toast-Book { background: #8d6e63; color: #fff; border-radius: 2px 8px 8px 2px; border-left: 12px solid #4e342e; }
+.toast-Manga { background: #ffffff; color: #000; border-radius: 0; border: 3px dashed #000; }
+.toast-YouTube { background: #ff0000; color: #fff; border-radius: 8px; border: 2px solid #fff; }
+.toast-Other { background: #b5179e; color: #fff; border-radius: 8px; border-right: 6px solid #4cc9f0; }
+.toast-Alert { background: #0f0f0f; color: #fff; border-radius: 8px; border-left: 8px solid #cc0000; box-shadow: 0 5px 15px rgba(255, 68, 68, 0.4); }
+.chart-container { position: relative; flex: 1; min-height: 350px; width: 100%; }
+.chart-row { margin-top:20px; display: flex; gap: 15px; }
+
+/* TABBED SETTINGS */
+.settings-layout { display: flex; height: 500px; width: 100%; margin: 0; }
+.settings-nav { width: 200px; background: var(--header); border-right: 1px solid var(--border); display: flex; flex-direction: column; overflow-y: auto;}
+.set-tab-btn { background: transparent; border: none; color: #888; padding: 15px 20px; text-align: left; font-weight: bold; cursor: pointer; border-left: 3px solid transparent; transition: 0.2s; font-size: 14px; outline: none; }
+.set-tab-btn:hover { background: rgba(255,255,255,0.05); color: #fff; }
+.set-tab-btn.active { background: var(--card); color: var(--accent); border-left-color: var(--accent); }
+.settings-body { flex: 1; padding: 30px; overflow-y: auto; background: var(--card); }
+.set-section { display: none; animation: fadeIn 0.2s ease; }
+.set-section.active { display: block; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes fadeInJustOpacity { from { opacity: 0; } to { opacity: 1; } }
+
+/* TAB BUTTONS & SWITCHER */
+.tab-btn { background: transparent; border: 1px solid transparent; padding: 8px 15px; font-weight: bold; font-size: 14px; color: #888; border-radius: 6px; }
+.tab-btn:hover { background: var(--card); color: var(--text); }
+.tab-btn.active { background: var(--card); border: 1px solid var(--border); color: var(--accent); box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+#headerFilters { display: flex; gap: 10px; transition: 0.2s; align-items: center; }
+</style>
+</head>
+<body>
+
+<header>
+    <button id="sidebarToggleBtn" onclick="toggleSidebar()" onmouseenter="playAudio('hover.wav')" style="font-size:16px; font-weight:bold; padding: 6px 12px; margin-right: 5px;">☰</button>
+    
+    <div style="display:flex; gap: 5px; background: var(--input); padding: 4px; border-radius: 8px; border: 1px solid var(--border);">
+        <button id="tabLibrary" class="tab-btn active" onclick="switchView('library')" onmouseenter="playAudio('hover.wav')">📚 Library</button>
+        <button id="tabAnalytics" class="tab-btn" onclick="switchView('analytics')" onmouseenter="playAudio('hover.wav')">📊 Analytics</button>
+    </div>
+
+    <div style="flex:1"></div>
+
+    <div id="headerFilters" class="hidden">
+        <select id="rangeSelect" onchange="handleRangeChange()">
+            <option value="today">Today</option>
+            <option value="7">7 Days</option>
+            <option value="30" selected>30 Days</option>
+            <option value="90">90 Days</option>
+            <option value="365">Yearly (YTD)</option>
+            <option value="all">Total</option>
+            <option value="custom">📅 Custom Date...</option>
+        </select>
+        
+        <div id="customDateUI" class="hidden" style="display:flex; gap:5px; align-items:center; background: var(--card); padding: 2px 6px; border-radius: 4px; border: 1px solid var(--border);">
+            <input type="date" id="customStartDate" onchange="updateAll()" style="font-size:11px; padding:4px; border:none;">
+            <span style="font-size:12px; color:#888;">to</span>
+            <input type="date" id="customEndDate" onchange="updateAll()" style="font-size:11px; padding:4px; border:none;">
+        </div>
+
+        <select id="mediaFilter" onchange="handleMediaFilterChange()">
+            <option value="all">All Media</option>
+        </select>
+    </div>
+
+    <div id="utilBtns" style="display:flex; gap:10px;">
+        <button onclick="takeScreenshot()" onmouseenter="playAudio('hover.wav')">📸 Snap</button>
+        <button onclick="openHistory()" onmouseenter="playAudio('hover.wav')">📜 History</button>
+    </div>
+
+    <button onclick="openSettings()" onmouseenter="playAudio('hover.wav')">⚙️ Settings</button>
+    <button id="zenToggleBtn" onclick="toggleZenMode()" onmouseenter="playAudio('hover.wav')" title="Zen Screensaver" style="background:transparent; border:none; font-size:18px; padding:4px 8px; opacity:0.6;">⤢</button>
+</header>
+
+<div id="toast"></div>
+<div id="confirmOverlay" class="overlay hidden" style="z-index: 9999;">
+    <div class="modal" style="width: 320px; text-align: center;">
+        <h3 style="color: #ff4444; margin-top: 0;">⚠️ Confirm Action</h3>
+        <div id="confirmMessage" style="font-size: 13px; margin-bottom: 20px; opacity: 0.9;"></div>
+        <div class="flex-row">
+            <button id="confirmYesBtn" style="background:#ff4444; color:#fff; width:100%; font-weight:bold;">CONFIRM</button>
+            <button onclick="closeModal('confirmOverlay')" style="width:100%;">CANCEL</button>
+        </div>
+    </div>
+</div>
+<div class="layout" id="mainLayout">
+    <div class="left" id="sidebar">
+        <h3>Log Immersion</h3>
+        <div class="flex-row">
+            <div>Date<br><input type="date" id="logDate" style="width:90%"></div>
+            <div>Type<br><select id="logType" onchange="populateMedia()" style="width:100%"></select></div>
+        </div>
+        Media<br>
+        <div class="flex-row">
+            <select id="mediaSelect" style="flex:4" onchange="handleMediaSelectChange()"></select>
+            <button onclick="openAddMediaModal()" style="flex:1" title="Add Media">+</button>
+        </div>
+        
+        <div id="timeFields">
+            <div class="flex-row" id="hoursMinFields">
+                <div>Hours<br><input type="number" id="logHours" step="0.1" placeholder="0" style="width:80%"></div>
+                <div>Min<br><input type="number" id="logMinutes" placeholder="0" style="width:80%"></div>
+            </div>
+            
+            <div class="flex-row">
+                <div id="charField">Characters<br><input type="number" id="logChars" placeholder="0" style="width:80%"></div>
+                <div id="unitField"><span id="unitLabelText">Units</span><br><input type="number" id="logUnits" placeholder="0" style="width:80%"></div>
+                <div id="ankiField">Mined<br><input type="number" id="logMined" placeholder="0" style="width:80%" title="Anki Cards Added"></div>
+            </div>
+            
+            <div class="hook-bar" style="margin-bottom: 10px;">
+                <button id="mainHookBtn" class="hook-btn" onclick="toggleHooker()" title="Toggle Ghost Listener">🔌</button>
+                <button class="hook-btn" onclick="openAuditModal()" title="View Hooked Lines">📋</button>
+            </div>
+            
+            <div id="epLengthField" class="hidden" style="margin-top:-5px; margin-bottom:10px; font-size:11px;">
+                Min per Unit: <input type="number" id="epLength" style="width:40px; padding:2px; font-size:11px;">
+            </div>
+        </div>
+        
+        <div class="flex-row" style="margin-top:15px; align-items:center;">
+            <button onclick="addEntry()" id="saveBtn" style="flex:4; padding:10px; background:var(--accent); color:#000; font-weight:bold; border:none">SAVE ENTRY</button>
+            <button id="timerBtn" onclick="toggleTimer()" oncontextmenu="pauseTimer(event)" style="flex:1; padding:10px;" title="Left-Click: Start/Stop | Right-Click: Pause">▶</button>
+        </div>
+        <div id="shortcutHint" style="font-size:10px; opacity:0.6; text-align:center; margin-top:-5px; margin-bottom:10px;"></div>
+
+        <hr>
+        <div id="goalsHeader">
+            <h3>Goals</h3>
+            <div class="goal-icons">
+                <span style="cursor:pointer; padding: 0 4px;" onclick="openArchiveModal()" title="Archived Goals">🗄️</span>
+                <span style="cursor:pointer; padding: 0 4px;" onclick="openGoalModal()" title="Add Goal">➕</span>
+            </div>
+        </div>
+        <div id="goalsContainer"></div>
+        <div id="shelfHeader"><h3>Active Shelf</h3></div>
+        <div id="activeMediaContainer"></div>
+        
+        <hr>
+        <button onclick="openLinkModal()" style="width:100%; font-weight:bold; background:var(--header); border:1px solid var(--border); margin-bottom:10px;">🔗 Quick Links</button>
+    </div>
+
+    <div class="right" id="dashboardRight">
+        
+        <div id="zenContainer">
+            <button class="zen-exit" onclick="toggleZenMode()">✕</button>
+            <button onclick="toggleZenSettings()" style="position:absolute; top:10px; right:40px; background:transparent; border:none; font-size:20px; opacity:0.5; cursor:pointer; z-index:9999;">⚙️</button>
+            
+            <div id="zenSettingsPanel" class="hidden" style="position:absolute; top:40px; right:10px; background:var(--card); padding:15px; border:1px solid var(--border); border-radius:8px; text-align:left; font-size:12px; z-index:10000; box-shadow: 0 10px 30px rgba(0,0,0,0.8);">
+                <label style="display:block; margin-bottom:5px;"><input type="checkbox" id="zsShowTimer" onchange="updateZenDisplay()"> Show Timer</label>
+                <label style="display:block; margin-bottom:5px;"><input type="checkbox" id="zsBlurTimer" onchange="updateZenDisplay()"> Blur Timer</label>
+                <label style="display:block; margin-bottom:5px;"><input type="checkbox" id="zsShowChars" onchange="updateZenDisplay()"> Show Characters</label>
+                <label style="display:block; margin-bottom:5px;"><input type="checkbox" id="zsBlurChars" onchange="updateZenDisplay()"> Blur Characters</label>
+                <label style="display:block; margin-bottom:5px;"><input type="checkbox" id="zsShowSpeed" onchange="updateZenDisplay()"> Show Speed (C/hr)</label>
+                <label style="display:block;"><input type="checkbox" id="zsBlurSpeed" onchange="updateZenDisplay()"> Blur Speed</label>
+            </div>
+
+            <div id="zenClock" class="zen-clock heavy-blur-hover">00:00:00</div>
+            <div id="zenCharDisplay" class="mid-blur-hover" style="font-size:30px; font-weight:bold; color:#fff; margin-top:10px;">0 chars</div>
+            <div id="zenSpeedDisplay" class="blur-hover" style="font-size:16px; color:var(--accent); margin-top:5px; opacity:0.8;">0 chars/hr</div>
+            
+            <div class="zen-controls" style="position:relative; z-index:10;">
+                <button id="zenTimerBtn" class="zen-btn" onclick="toggleTimer()" oncontextmenu="pauseTimer(event)">▶ START</button>
+                <button id="zenHookBtn" class="zen-hook-btn" onclick="toggleHooker()">🔌</button>
+                <button class="zen-hook-btn" onclick="openAuditModal()">📋</button>
+            </div>
+        </div>
+
+        <div id="libraryView">
+            <div class="lib-toolbar">
+                <h2 id="libTitle" style="margin:0;">📚 Media Collection</h2>
+                <div style="display:flex; gap: 15px; align-items: center;">
+                    <select id="libFilterMain" class="minimal-select" onchange="renderLibrary()">
+                        <option value="all">Filter: All Media</option>
+                    </select>
+					<select id="libStatusFilter" class="minimal-select" onchange="renderLibrary()">
+					<option value="default">👁️ Default</option>
+					<option value="active">🟢 Active</option>
+					<option value="paused">⏸️ Paused</option>
+					<option value="completed">⭐ Completed</option>
+					<option value="dropped">❌ Dropped</option>
+					<option value="wishlist">📝 Wishlist</option>
+					</select>
+                    <select id="libSortMain" class="minimal-select" onchange="renderLibrary()">
+                        <option value="status">⇅ Sort: Status</option>
+                        <option value="recent">⇅ Sort: Recent</option>
+                        <option value="alpha">⇅ Sort: A-Z</option>
+                    </select>
+                    <button id="libViewToggle" onclick="toggleLibView()" class="minimal-select" style="font-size:16px;">🖼️</button>
+                </div>
+            </div>
+            <div id="mainLibraryContainer" class="grid-container"></div>
+        </div>
+
+        <div id="analyticsView" class="hidden">
+            <div id="statsGridContainer" class="stats-grid"></div>
+            <div id="monthlyForecast"></div>
+            
+            <div class="flex-row chart-row">
+                <div style="flex:1; display:flex; flex-direction:column; min-width:0;">
+                    <h3>Distribution</h3>
+                    <div class="chart-container"><canvas id="pieChart"></canvas></div>
+                </div>
+                <div style="flex:2; display:flex; flex-direction:column; min-width:0;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                        <h3 style="margin:0;">Trend</h3>
+                        <div style="display:flex; gap:15px; align-items:center;">
+                            <select id="trendMetric" onchange="updateCharts()" style="font-size:12px; height:28px;"></select>
+                            <button onclick="openComparePage()" style="font-size:13px; font-weight:bold; height:28px; padding:0 10px; background:var(--card); border:1px solid var(--border); border-radius:4px; color:var(--text); cursor:pointer;" title="Deep Dive Compare">⚖️ Compare</button>
+                        </div>
+                    </div>
+                    <div class="chart-container"><canvas id="lineChart"></canvas></div>
+                </div>
+            </div>
+
+            <div class="stat" style="margin-top:20px;">
+                <div class="heatmap-header">
+                    <h3 style="margin:0;">Activity Heatmap</h3>
+                    <div style="font-size:12px; display:flex; gap:15px; align-items:center;">
+                        <span id="heatmapContext" style="color:var(--accent); font-weight:bold;"></span>
+                        <div><button onclick="changeYear(-1)">◀</button> <span id="heatmapYear">2026</span> <button onclick="changeYear(1)">▶</button></div>
+                    </div>
+                </div>
+                <div id="heatmap" class="heatmap-container"></div>
+            </div>
+        </div> <div id="compareView" class="hidden" style="display: flex; flex-direction: column; height: 100%; animation: fadeIn 0.2s;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px;">
+                <div style="display:flex; gap:15px; align-items:center;">
+                    <button onclick="closeComparePage()" style="padding: 8px 15px; font-weight:bold; background:var(--header); border:1px solid var(--border); color:var(--text); border-radius:4px; cursor:pointer;" title="Go back to Analytics">🔙 Back</button>
+                    <h2 style="margin:0;">Media Leaderboards</h2>
+                </div>
+                <select id="compareMetric" onchange="updateCompareChart()" style="font-size: 14px; padding: 6px; background:var(--input); color:var(--text); border:1px solid var(--border); border-radius:4px;">
+                    <option value="hours">Metric: Total Hours</option>
+                    <option value="chars">Metric: Characters</option>
+                    <option value="units">Metric: Units (Eps/Pages)</option>
+                    <option value="cph">Metric: Speed (CPH)</option>
+                </select>
+            </div>
+            
+            <div class="stats-grid" style="margin-bottom: 20px;">
+                <div class="stat"><div style="font-size:12px;opacity:0.7;font-weight:bold;margin-bottom:4px;">Top by Volume</div><div id="lbBlackHole" class="big">-</div><div id="lbBlackHoleSub" style="font-size:11px;opacity:0.6;margin-top:4px;">Most total time</div></div>
+                <div class="stat"><div style="font-size:12px;opacity:0.7;font-weight:bold;margin-bottom:4px;">Peak Speed</div><div id="lbSpeed" class="big">-</div><div id="lbSpeedSub" style="font-size:11px;opacity:0.6;margin-top:4px;">Highest reading rate</div></div>
+                <div class="stat"><div style="font-size:12px;opacity:0.7;font-weight:bold;margin-bottom:4px;">Highest Consistency</div><div id="lbHabit" class="big">-</div><div id="lbHabitSub" style="font-size:11px;opacity:0.6;margin-top:4px;">Most days active</div></div>
+                <div class="stat"><div style="font-size:12px;opacity:0.7;font-weight:bold;margin-bottom:4px;">Longest Session</div><div id="lbMarathon" class="big">-</div><div id="lbMarathonSub" style="font-size:11px;opacity:0.6;margin-top:4px;">Max hours in one day</div></div>
+            </div>
+
+            <div style="flex:1; min-height:0; position:relative; background:var(--card); padding:20px; border-radius:8px; border:1px solid var(--border);">
+                <canvas id="compareChart"></canvas>
+            </div>
+        </div> </div>
+</div>
+
+<div id="libEditOverlay" class="overlay hidden" style="z-index: 120;">
+    <div class="modal" style="width: 320px;">
+        <h3>Edit Media</h3>
+        <strong id="libEditCurrentName" style="color:var(--accent)"></strong><br><br>
+        <div style="margin-bottom:10px;">Name<br><input type="text" id="libEditNewName" style="width:95%"></div>
+        <div style="margin-bottom:10px;">Cover Art (URL)<br><input type="text" id="libEditImg" placeholder="https://..." style="width:95%"></div>
+        <div class="flex-row">
+		<div>Status<br><select id="libEditStatus" style="width:100%"><option value="active">🟢 Active</option><option value="paused">⏸️ Paused</option><option value="completed">⭐ Completed</option><option value="dropped">❌ Dropped</option><option value="wishlist">📝 Wishlist</option></select></div>
+            <div>Target & Override<span style="font-size:10px;opacity:0.6"></span><br>
+			<div style="display:flex; gap:2px;">
+				<input type="number" id="libEditTarget" placeholder="e.g. 64" style="width:50%">
+				<select id="libEditOverride" style="width:50%; font-size:11px; padding:2px;">
+					<option value="default">Default</option>
+					<option value="units">Units</option>
+					<option value="chars">Chars</option>
+					<option value="hours">Hours</option>
+				</select>
+			</div>
+		</div>
+    </div>
+    <label style="display:flex; align-items:center; gap:8px; margin-top:8px; font-size: 12px; opacity: 0.9;">
+        <input type="checkbox" id="libEditAuto"> Auto-Complete when target reached
+    </label>
+    <label style="display:flex; align-items:center; gap:8px; margin-top:5px; font-size: 12px; opacity: 0.9;">
+        <input type="checkbox" id="libEditBlur"> Blur Cover Art (NSFW / Spoilers)
+    </label>
+        <label style="display:flex; align-items:center; gap:8px; margin-top:5px; margin-bottom: 10px; font-size: 12px; opacity: 0.9; color: #ffaa00;">
+            <input type="checkbox" id="libEditHidden"> 👁️ Hide from Library
+        </label>
+        <hr>
+        <div style="margin-bottom:10px;">
+            <strong>Launch Paths (Optional)</strong><br><span style="font-size:10px; opacity:0.7;">Fill these out to enable the 🚀 Launch button.</span><br>
+            <input type="text" id="libEditApp1" placeholder="Directory or Executable..." style="width:95%; font-size:11px; margin-top:5px; margin-bottom:4px;"><br>
+            <input type="text" id="libEditApp2" placeholder="App 2 (e.g. Textractor)..." style="width:95%; font-size:11px; margin-bottom:4px;"><br>
+            <input type="text" id="libEditApp3" placeholder="App 3 (e.g. Anki)..." style="width:95%; font-size:11px;">
+        </div>
+        <hr>
+        <div style="margin-bottom:10px;">
+            <strong>Notes</strong><br>
+            <textarea id="libEditNotes" style="width:95%; height:60px; font-family:inherit; font-size:11px; background:var(--input); color:var(--text); border:1px solid var(--border); padding:6px; border-radius:4px;" placeholder="Review, vocab, or thoughts..."></textarea>
+        </div>
+        <hr>
+        <div class="flex-row">
+            <button onclick="saveLibraryEdit()" style="background:var(--accent); color:#000; width:100%; font-weight:bold;">SAVE</button>
+            <button onclick="deleteLibraryMedia()" style="background:#ff4444; color:#fff; width:100%; font-weight:bold;">DELETE</button>
+        </div>
+        <button onclick="closeModal('libEditOverlay')" style="width:100%; margin-top:5px;">CANCEL</button>
+    </div>
+</div>
+
+<div id="auditOverlay" class="overlay hidden" style="z-index: 120;">
+    <div class="modal">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+            <h3>📋 Hooked Lines</h3>
+            <button onclick="clearAuditLog()" style="background:#ff4444; color:#fff; font-size:10px; padding:4px 8px;">Clear All</button>
+        </div>
+        <div id="auditList" style="max-height: 300px; overflow-y: auto; margin-top:10px; font-size:12px; background:var(--header); padding:10px; border-radius:6px;"></div>
+        <button onclick="closeModal('auditOverlay')" style="width:100%; margin-top:15px;">CLOSE</button>
+    </div>
+</div>
+
+<div id="addMediaOverlay" class="overlay hidden" style="z-index: 120;">
+    <div class="modal" style="width: 320px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+            <h3 style="margin:0;">Add New Media</h3>
+            <button onclick="triggerAutoFillSearch()" style="font-size:11px; padding:4px 8px; background:var(--accent); color:#000; font-weight:bold;">🔍 Auto-Fill</button>
+        </div>
+        
+        <div id="apiSearchContainer" class="hidden" style="margin-bottom:15px; max-height:200px; overflow-y:auto; background:var(--header); border:1px solid var(--border); border-radius:4px;"></div>
+        
+        Name<br><input type="text" id="newMediaInput" style="width:95%; margin-bottom:10px;" placeholder="Media Title..." onkeypress="if(event.key === 'Enter') triggerAutoFillSearch()">
+        Cover Art (URL)<br><input type="text" id="newMediaImg" style="width:95%; margin-bottom:10px;" placeholder="https://...">
+        Target <span style="font-size:10px;opacity:0.6">(Optional)</span><br><input type="number" id="newMediaTarget" style="width:95%; margin-bottom:15px;" placeholder="e.g. 64 or 1000000">
+        
+        <label style="display:flex; align-items:center; gap:8px; margin-bottom:15px; font-size: 12px; opacity: 0.9;">
+            <input type="checkbox" id="newMediaAuto" checked> Auto-Complete when target reached
+        </label>
+        
+        <div class="flex-row">
+            <button onclick="confirmAddMedia()" style="background:var(--accent); color:#000; width:100%; font-weight:bold;">ADD</button>
+            <button onclick="closeModal('addMediaOverlay')" style="width:100%;">CANCEL</button>
+        </div>
+    </div>
+</div>
+
+<div id="goalOverlay" class="overlay hidden">
+    <div class="modal">
+        <h3 id="goalModalTitle">New Goal</h3>
+        Name <input id="gName" style="width:95%"><br>
+        <div class="flex-row" style="margin-top:10px">
+            <div>Metric<br><select id="gMetric" style="width:100%">
+                <option value="hours">Hours</option>
+                <option value="chars">Characters</option>
+                <option value="units">Units</option>
+            </select></div>
+            <div>Target<br><input type="number" id="gTarget" style="width:85%"></div>
+        </div>
+        <div class="flex-row">
+            <div>Media<br><select id="gType" style="width:100%"><option value="all">All</option></select></div>
+            <div>Repeat<br><select id="gFrame" style="width:100%"><option value="none">None (One-time)</option><option value="daily">Daily</option><option value="weekly">Weekly</option><option value="monthly">Monthly</option><option value="yearly">Yearly</option></select></div>
+        </div>
+        <hr><strong>Timeframe (Optional)</strong>
+        <div class="flex-row" style="margin-top:5px">
+            <div>Start Date<br><input type="date" id="gStartDate" style="width:90%"></div>
+            <div>End Date<br><input type="date" id="gDeadline" style="width:90%"></div>
+        </div>
+        <div class="flex-row" style="margin-top:5px">
+            <div>Preset<br><select id="gDeadlinePreset" style="width:100%" onchange="calculateDeadline()">
+                <option value="custom">Custom Date</option>
+                <option value="week">1 Week</option>
+                <option value="month">1 Month</option>
+                <option value="year">1 Year (YTD)</option>
+            </select></div>
+            <div></div>
+        </div>
+        <br><button onclick="saveGoal()" style="background:var(--accent); color:#000; width:100%">SAVE GOAL</button><br><br>
+        <button onclick="closeModal('goalOverlay')" style="width:100%">CANCEL</button>
+    </div>
+</div>
+
+<div id="mediaTypeEditorOverlay" class="overlay hidden" style="z-index: 160;">
+    <div class="modal">
+        <h3 id="mtEditorTitle">Edit Media Type</h3>
+        Name<br><input type="text" id="mtName" style="width:95%; margin-bottom:15px;">
+        
+        <div style="display:flex; gap:10px; margin-bottom:15px;">
+            <div style="flex:3;">
+                Custom Unit Name<br>
+                <input type="text" id="mtUnitName" style="width:100%;" placeholder="Units">
+            </div>
+            <div style="flex:1;">
+                Emoji<br>
+                <input type="text" id="mtEmoji" style="width:100%; text-align:center;" placeholder="📦">
+            </div>
+        </div>
+        <div style="display:flex; gap:10px; margin-bottom:15px;">
+            <div style="flex:1;">
+                Time Weight Multiplier <span style="font-size:10px; opacity:0.6;">(0.5 = 50%)</span><br>
+                <input type="number" id="mtWeight" step="0.1" value="1.0" style="width:100%; background:var(--header); border:1px solid var(--border); color:var(--text); padding:6px; border-radius:4px;">
+            </div>
+            <div style="flex:1;">
+                AFK Timeout Override <span style="font-size:10px; opacity:0.6;">(Secs, 0=Global)</span><br>
+                <input type="number" id="mtAfk" placeholder="e.g. 120" style="width:100%; background:var(--header); border:1px solid var(--border); color:var(--text); padding:6px; border-radius:4px;">
+            </div>
+        </div>
+		<h4 style="margin-top:15px; margin-bottom:5px;">Preset Launch Paths</h4>
+        <label style="font-size: 12px; display: flex; align-items: center; gap: 8px;">
+            <input type="checkbox" id="mtUsePresetPaths" onchange="document.getElementById('mtPresetPathsContainer').classList.toggle('hidden', !this.checked)"> Enable default paths for new media
+        </label>
+        <div id="mtPresetPathsContainer" class="hidden" style="margin-top: 8px; margin-bottom: 15px; background:var(--header); padding:10px; border-radius:6px; border:1px solid var(--border);">
+            <input type="text" id="mtPath1" placeholder="Path 1 (e.g. Textractor.exe)" style="width:100%; font-size:11px; margin-bottom:5px; background:var(--input); color:var(--text); border:1px solid var(--border); padding:4px; border-radius:4px;">
+            <input type="text" id="mtPath2" placeholder="Path 2 (e.g. Anki.exe)" style="width:100%; font-size:11px; margin-bottom:5px; background:var(--input); color:var(--text); border:1px solid var(--border); padding:4px; border-radius:4px;">
+            <input type="text" id="mtPath3" placeholder="Path 3..." style="width:100%; font-size:11px; background:var(--input); color:var(--text); border:1px solid var(--border); padding:4px; border-radius:4px;">
+        </div>
+        <h4>Log Inputs</h4>
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px; margin-bottom:15px; background:var(--header); padding:10px; border-radius:6px; border:1px solid var(--border);">
+            <label><input type="checkbox" id="mtInpChars"> Characters</label>
+            <label><input type="checkbox" id="mtInpUnits"> Units (Count)</label>
+            <label style="grid-column: 1 / -1; border-top: 1px solid var(--border); padding-top: 8px; margin-top: 4px; color: var(--accent);">
+                <input type="checkbox" id="mtAutoHook"> 🔌 Auto-Connect Text Hooker on Launch
+            </label>
+            <label style="grid-column: 1 / -1; color: #ffaa00;">
+                <input type="checkbox" id="mtAutoSubmit"> 🛑 Auto-Save Entry when Path 1 closes
+            </label>
+        </div>
+
+        <h4 style="margin-top:15px; margin-bottom:5px;">Progress Bar Target</h4>
+        <select id="mtProgressMetric" style="width:100%; margin-bottom:15px; background:var(--header); border:1px solid var(--border); color:var(--text); padding:8px; border-radius:6px;">
+            <option value="units">Units / Eps / Pages</option>
+            <option value="chars">Characters</option>
+            <option value="hours">Hours</option>
+        </select>
+
+        <h4 style="margin-bottom:5px;">Dashboard Stats (Order 0-9)</h4>
+        <div id="mtStatsList" style="display:flex; flex-direction:column; gap:8px; background:var(--header); padding:10px; border-radius:6px; border:1px solid var(--border);">
+            <div style="display:flex; justify-content:space-between;"><label><input type="checkbox" id="mtStatHours"> Total Hours</label> <input type="number" id="mtOrdHours" style="width:40px; padding:2px;" value="0"></div>
+            <div style="display:flex; justify-content:space-between;"><label><input type="checkbox" id="mtStatUnits"> Total Units</label> <input type="number" id="mtOrdUnits" style="width:40px; padding:2px;" value="1"></div>
+            <div style="display:flex; justify-content:space-between;"><label><input type="checkbox" id="mtStatChars"> Total Characters</label> <input type="number" id="mtOrdChars" style="width:40px; padding:2px;" value="2"></div>
+            <div style="display:flex; justify-content:space-between;"><label><input type="checkbox" id="mtStatPace"> Pace (Amt/Day)</label> <input type="number" id="mtOrdPace" style="width:40px; padding:2px;" value="3"></div>
+            <div style="display:flex; justify-content:space-between;"><label><input type="checkbox" id="mtStatSpeed"> Speed (Amt/Hr)</label> <input type="number" id="mtOrdSpeed" style="width:40px; padding:2px;" value="4"></div>
+            <div style="display:flex; justify-content:space-between;"><label><input type="checkbox" id="mtStatDays"> Consistency (Days)</label> <input type="number" id="mtOrdDays" style="width:40px; padding:2px;" value="5"></div>
+        </div>
+
+        <div class="flex-row" style="margin-top:20px;">
+            <button onclick="saveMediaType()" style="background:var(--accent); color:#000; width:100%; font-weight:bold;">SAVE TYPE</button>
+            <button id="mtDeleteBtn" onclick="deleteMediaType()" style="background:#ff4444; color:#fff; width:100%; font-weight:bold;">DELETE</button>
+        </div>
+        <button onclick="closeModal('mediaTypeEditorOverlay')" style="width:100%;">CANCEL</button>
+    </div>
+</div>
+
+<div id="archiveOverlay" class="overlay hidden">
+    <div class="modal wide-modal">
+        <h3>🗄️ Archived Goals</h3>
+        <div id="archivedGoalsContainer" style="max-height: 400px; overflow-y: auto; padding-right: 5px;"></div>
+        <br><button onclick="closeModal('archiveOverlay')" style="width:100%">CLOSE</button>
+    </div>
+</div>
+
+<div id="historyOverlay" class="overlay hidden">
+    <div class="modal wide-modal">
+        <h3>Immersion Logs</h3>
+        <div class="flex-row">
+            <input type="date" id="histStart"> <input type="date" id="histEnd">
+            <select id="histType"><option value="all">All Types</option></select>
+            <button onclick="renderHistory()">Filter</button>
+        </div>
+        <div style="max-height:400px; overflow-y:auto; margin-top:10px">
+            <table id="historyTable" style="width:100%; border-collapse:collapse;">
+                <thead><tr style="text-align:left; color:var(--accent)"><th>Date</th><th>Type</th><th>Media</th><th>Amount</th><th>Action</th></tr></thead>
+                <tbody></tbody>
+            </table>
+        </div>
+        <br><button onclick="closeModal('historyOverlay')" style="width:100%">CLOSE</button>
+    </div>
+</div>
+
+<div id="hiddenMediaOverlay" class="overlay hidden" style="z-index: 160;">
+    <div class="modal">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+            <h3>👁️ Hidden Media</h3>
+            <label style="font-size:12px; cursor:pointer;"><input type="checkbox" id="showDroppedCheck" onchange="openHiddenMediaModal()"> Show Dropped</label>
+        </div>
+        <p style="font-size: 11px; opacity: 0.7; margin-top: -5px;">These items are hidden from your library grid but still count towards your stats.</p>
+        <div id="hiddenMediaList" style="max-height: 300px; overflow-y: auto; margin-bottom: 15px; background: var(--header); padding: 10px; border-radius: 6px;"></div>
+        <button onclick="closeModal('hiddenMediaOverlay')" style="width:100%;">CLOSE</button>
+    </div>
+</div>
+
+<div id="linkOverlay" class="overlay hidden" style="z-index: 130;">
+    <div class="modal" style="width: 280px; padding: 15px 20px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 10px;">
+            <h3 style="margin:0; font-size:16px;">🔗 Bookmarks</h3>
+            <button onclick="toggleLinkEditMode()" style="font-size:11px; padding: 2px 8px; background: transparent; border: 1px solid var(--border); color: #888;">Edit</button>
+        </div>
+        <div id="linkList" style="max-height:250px; overflow-y:auto;"></div>
+        <div id="linkAddSection" class="hidden" style="display:flex; flex-direction:column; gap:8px; margin-top:10px; border-top: 1px solid var(--border); padding-top: 12px;">
+            <input type="text" id="newLinkName" placeholder="Name (e.g. Jimaku)" style="width:100%; box-sizing:border-box;">
+            <input type="text" id="newLinkUrl" placeholder="URL (e.g. jimaku.cc)" style="width:100%; box-sizing:border-box;">
+            <button onclick="addLink()" style="background:var(--accent); color:#000; font-weight:bold; width:100%;">+ Add Link</button>
+        </div>
+    </div>
+</div>
+
+<div id="settingsOverlay" class="overlay hidden" style="z-index: 150;">
+    <div class="modal wide-modal" style="padding: 0; overflow: hidden;">
+        <div class="settings-layout">
+            <div class="settings-nav">
+                <div style="padding: 20px 15px; font-weight:bold; font-size:18px; border-bottom:1px solid var(--border);">⚙️ Settings</div>
+                <button class="set-tab-btn active" onclick="switchSetTab('set-app')">🎨 Appearance</button>
+                <button class="set-tab-btn" onclick="switchSetTab('set-media')">📝 Media Types</button>
+                <button class="set-tab-btn" onclick="switchSetTab('set-pref')">⚙️ Preferences</button>
+                <button class="set-tab-btn" onclick="switchSetTab('set-int')">🔌 Connections</button>
+                <button class="set-tab-btn" onclick="switchSetTab('set-data')">💾 Data</button>
+            </div>
+            <div class="settings-body">
+                <div id="set-app" class="set-section active">
+                    <h3>Appearance</h3>
+                    <label style="display:flex; align-items:center; gap:8px; margin-bottom:20px; background:var(--header); padding:10px; border-radius:6px; border:1px solid var(--border);">
+                        <input type="checkbox" id="setBlurCph" onchange="saveSettingsFast()"> <strong>Blur Reading Speed</strong>
+                    </label>
+                    <div style="background:var(--header); padding:15px; border-radius:6px; border:1px solid var(--border); margin-bottom:15px;">
+                        <strong style="display:block; margin-bottom:8px;">Theme Selection</strong>
+                        <div class="flex-row">
+                            <select id="themeSelect" style="flex:2; height: 34px;"></select>
+                            <button onclick="openCustomTheme()" style="flex:2; padding: 6px;">🎨 Custom Theme</button>
+                            <button onclick="deleteCurrentTheme()" style="flex:1; background:#ff4444; color:#fff; padding: 6px;">🗑️ Delete</button>
+                        </div>
+                    </div>
+                    
+                    <strong style="display:block; margin-bottom:8px; margin-top:20px;">Trend Chart Settings</strong>
+                    <div class="flex-row" style="background:var(--header); padding:15px; border-radius:6px; border:1px solid var(--border); margin-bottom:15px;">
+                        <div style="flex:1">Chart Style<br><select id="chartStyleSelect" style="width:100%" onchange="saveSettingsFast()"><option value="line">Line Graph</option><option value="bar">Bar Graph</option></select></div>
+                        <div style="flex:1">Line Curve<br><select id="setTrendCurve" style="width:100%" onchange="saveSettingsFast()"><option value="smooth">Smooth (Curved)</option><option value="straight">Straight (Angular)</option></select></div>
+                        <div style="flex:1">Chart Fill<br><select id="setTrendFill" style="width:100%" onchange="saveSettingsFast()"><option value="true">Filled Area</option><option value="false">Transparent</option></select></div>
+                    </div>
+
+                    <div style="margin-top: 15px; margin-bottom: 10px;">
+                        Library Card Width<br><input type="range" id="cardWidthSlider" min="120" max="600" value="220" oninput="updateCardSize('width', this.value)" style="width: 100%;">
+                        Library Card Height<br><input type="range" id="cardHeightSlider" min="60" max="600" value="100" oninput="updateCardSize('height', this.value)" style="width: 100%;">
+                        <label style="font-size: 11px; opacity: 0.8;"><input type="checkbox" id="cardFixedRatio" checked> Lock Aspect Ratio</label>
+                    </div>
+                    
+                    <hr>
+                    <strong style="display:block; margin-bottom:8px;">Goal Tracking</strong>
+                    <label style="display:flex; align-items:center; gap:8px; margin-bottom:8px; font-size:12px; opacity:0.9;">
+                        <input type="checkbox" id="setGoalPace" onchange="data.prefs.showGoalPace = this.checked; save(); renderGoals();"> Show Required Daily Pace
+                    </label>
+                    <label style="display:flex; align-items:center; gap:8px; margin-bottom:8px; font-size:12px; opacity:0.9;">
+                        <input type="checkbox" id="setGoalHistory" onchange="data.prefs.showGoalHistory = this.checked; save(); renderGoals();"> Show Clears/Total for Repeating Goals
+                    </label>
+                    <label style="display:flex; align-items:center; gap:8px; margin-bottom:15px; font-size:12px; opacity:0.9;">
+                        <input type="checkbox" id="setGoalTrajectory" onchange="data.prefs.showTrajectory = this.checked; save(); renderGoals();"> Show Goal Trajectory (Ahead/Behind Pace)
+                    </label>
+                </div>
+
+                <div id="set-media" class="set-section">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                        <h3 style="margin:0;">Media Types</h3>
+                        <button onclick="openMediaTypeEditor(null)" style="background:var(--accent); color:#000; font-weight:bold; padding:4px 12px;">+ Add Type</button>
+                    </div>
+                    <div id="mediaTypeContainer"></div>
+                </div>
+
+                <div id="set-pref" class="set-section">
+                    <h3>Preferences</h3>
+                    <div class="flex-row">
+                        <div style="flex:1">Reset Hour (0-23)<br><input type="number" id="resetHour" min="0" max="23" style="width:90%" onchange="data.prefs.resetHour = parseInt(this.value)||0; save();"></div>
+                        <div style="flex:1">Global AFK Pause (Sec)<br><input type="number" id="afkInput" placeholder="0 to disable" style="width:90%" onchange="updateAFK(this.value)"></div>
+                    </div>
+                    <div style="margin-top: 10px;">
+                        OS Volume<br><input type="range" id="volSlider" min="0" max="1" step="0.05" oninput="saveSettingsFast()" style="width:100%">
+                    </div>
+                    <label style="display:flex; align-items:center; gap:8px; margin-top:15px; margin-bottom:15px;">
+                        <input type="checkbox" id="muteSounds" onchange="data.prefs.mute = this.checked; save();"> Mute OS Sounds
+                    </label>
+                    <hr>
+                    <h4>Global Hotkeys (Electron)</h4>
+                    <div style="margin-top: 5px;">
+                        Save Entry<br>
+                        <div style="display:flex; gap:5px; align-items:center;">
+                            <input id="hkSave" style="flex:1; cursor:pointer;" placeholder="Click and press keys..." readonly onkeydown="recordBind(event, 'save')">
+                            <button onclick="clearBind('save')" style="background:#ff4444; color:#fff; padding:6px 10px; border:none; font-weight:bold;">X</button>
+                        </div>
+                    </div>
+                    <div style="margin-top: 5px;">
+                        Toggle Timer<br>
+                        <div style="display:flex; gap:5px; align-items:center;">
+                            <input id="hkTimer" style="flex:1; cursor:pointer;" placeholder="Click and press keys..." readonly onkeydown="recordBind(event, 'timer')">
+                            <button onclick="clearBind('timer')" style="background:#ff4444; color:#fff; padding:6px 10px; border:none; font-weight:bold;">X</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="set-int" class="set-section">
+                    <h3>Connections</h3>
+                    WebSocket URL (Textractor) <input id="wsUrl" style="width:100%; margin-bottom:10px;" placeholder="ws://localhost:55001" onchange="data.prefs.wsUrl = this.value; save();">
+                    <div style="margin-top: 15px;">
+                        Anime Player (.exe) <br>
+                        <div style="display:flex; gap:5px;">
+                            <input type="text" id="animePlayerPath" readonly style="flex:1; background:var(--header);" placeholder="Select player...">
+                            <button onclick="document.getElementById('animePlayerFile').click()">Browse</button>
+                            <input type="file" id="animePlayerFile" class="hidden" accept=".exe" onchange="setAnimePlayer(this)">
+                        </div>
+                    </div>
+                    <hr>
+                    <h4 style="margin-top:15px; margin-bottom:5px;">AnkiConnect Integration</h4>
+                    <label style="font-size: 12px; display: flex; align-items: center; gap: 8px;">
+                        <input type="checkbox" id="setAnkiEnabled"> Enable Anki Poller
+                    </label>
+                    <label style="font-size: 12px; display: flex; align-items: center; gap: 8px; margin-top:5px; margin-bottom:15px;">
+                        <input type="checkbox" id="setAnkiAlways"> Track even if OS timer is stopped
+                    </label>
+                </div>
+
+                <div id="set-data" class="set-section">
+                    <h3>Data Management</h3>
+                    <button onclick="openHiddenMediaModal()" style="width:100%; margin-bottom: 15px; background: var(--header); border: 1px solid var(--border); padding: 10px;">👁️ Manage Hidden Media</button>
+                    
+                    <div class="flex-row" style="margin-bottom: 15px;">
+                        <button onclick="exportData()" style="flex:1; padding:10px; background:var(--header); border:1px solid var(--border);">📤 Export Data</button>
+                        <button onclick="document.getElementById('importFile').click()" style="flex:1; padding:10px; background:var(--header); border:1px solid var(--border);">📥 Import Data</button>
+                        <input type="file" id="importFile" class="hidden" accept=".json" onchange="importData(event)">
+                    </div>
+
+                    <button onclick="wipeData()" style="background:#ff4444; color:white; width:100%; padding: 10px; font-weight:bold;">☢️ WIPE ALL DATA</button>
+                </div>
+            </div>
+        </div>
+        <div style="padding: 15px; border-top: 1px solid var(--border); background: var(--header); text-align: right;">
+            <button onclick="closeSettings()" style="background:var(--accent); color:#000; font-weight:bold; padding: 8px 25px;">Done</button>
+        </div>
+    </div>
+</div>
+
+<div id="customThemeOverlay" class="overlay hidden">
+    <div class="modal">
+        <h3>Custom Theme</h3>
+        Name <input id="ctName" style="width:95%"><br><br>
+        JSON Configuration<br><textarea id="ctJSON" style="width:95%; height:120px; font-family:monospace;"></textarea>
+        <div class="flex-row">
+            <button onclick="copyThemeTemplate()">Copy Current</button>
+            <button onclick="saveCustomTheme()" style="background:var(--accent); color:#000">Save</button>
+            <button onclick="closeCustomTheme()">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<script>
+/* ===============================
+CORE DATA INITIALIZATION
+=============================== */
+const defaultMediaConfig = {
+    "Anime": { inputs: ['hours', 'eps'], stats: ['hours', 'eps', 'pace', 'days'], unitName: 'Eps' },
+    "Book": { inputs: ['hours', 'chars', 'pages'], stats: ['hours', 'chars', 'pages', 'speed'], unitName: 'Pages' },
+    "Manga": { inputs: ['hours', 'pages'], stats: ['hours', 'pages', 'speed', 'days'], unitName: 'Pages' },
+    "VN": { inputs: ['hours', 'chars'], stats: ['hours', 'chars', 'speed', 'days'], unitName: 'Chars' },
+    "Audiobook": { inputs: ['hours', 'pages'], stats: ['hours', 'pages', 'pace', 'days'], unitName: 'Chaps' },
+    "YouTube": { inputs: ['hours', 'pages'], stats: ['hours', 'pages', 'pace', 'days'], unitName: 'Vids' },
+    "Other": { inputs: ['hours', 'pages'], stats: ['hours', 'pages', 'pace', 'days'], unitName: 'Units' }
+};
+
+let data = JSON.parse(localStorage.getItem("immersionOSv13"));
+if (!data) data = { entries: [], media: {}, xp: {}, goals: [], archivedGoals: [], achievements: [], prefs: {theme:"Dark", defaultEpLength:20, lastType:"VN", customThemes: {}, resetHour: 0, hotkeys: {save: "", timer: ""}, mute: false, wsUrl: "ws://localhost:55001", cardSize: 220, volume: 0.5, chartStyle: 'line', trendCurve: 'smooth', trendFill: true, animePlayer: 'mpv', afkTimer: 30}, links: [] };
+
+if (!data.mediaConfig) data.mediaConfig = defaultMediaConfig;
+if (!data.general) data.general = {};
+if (!data.mediaData) data.mediaData = {};
+if (data.prefs.blurCph === undefined) data.prefs.blurCph = false;
+if (data.prefs.trendCurve === undefined) data.prefs.trendCurve = 'smooth';
+if (data.prefs.trendFill === undefined) data.prefs.trendFill = true;
+if (data.prefs.showTrajectory === undefined) data.prefs.showTrajectory = true;
+if (data.prefs.theme === "dark") data.prefs.theme = "Dark"; // Auto-fix casing for old saves
+
+Object.keys(data.mediaConfig).forEach(t => { 
+    if(!data.media[t]) data.media[t] = [];  
+    (data.media[t] || []).forEach(m => { if(!data.mediaData[m]) data.mediaData[m] = { type: t, status: 'active', target: null, img: "", paths: ["","",""], blur: false, hidden: false }; });
+});
+
+function save() { localStorage.setItem("immersionOSv13", JSON.stringify(data)); }
+
+/* ===============================
+NATIVE AUDIO ENGINE & UTILS
+=============================== */
+function playAudio(filename) {
+    if (data.prefs.mute) return;
+    try { let snd = new Audio(`assets/${filename}`); snd.volume = data.prefs.volume !== undefined ? data.prefs.volume : 0.5; snd.play().catch(e=>{}); } catch(e) {}
+}
+
+function showToast(msg, type = "Overall") {
+    let toast = document.getElementById("toast");
+    if (!toast) return;
+    toast.className = "toast-" + type;
+    toast.innerHTML = msg;
+    toast.classList.add("show");
+    setTimeout(() => toast.classList.remove("show"), 3000);
+}
+
+function nukeFocus() { if (document.activeElement && document.activeElement.tagName !== 'BODY') document.activeElement.blur(); }
+document.addEventListener('mousedown', (e) => { if (e.target.classList.contains('overlay')) closeModal(e.target.id); });
+function openModal(id) { document.getElementById(id).classList.remove("hidden"); playAudio('open.wav'); }
+function closeModal(id) { document.getElementById(id).classList.add("hidden"); playAudio('close.wav'); nukeFocus(); }
+function getLocalDateStr(d = new Date()) { let shiftedTime = d.getTime() - ((data.prefs.resetHour || 0) * 3600000); let local = new Date(shiftedTime - new Date(shiftedTime).getTimezoneOffset() * 60000); return local.toISOString().split("T")[0]; }
+function formatDDMMYYYY(ymd) { if(!ymd) return ""; let parts = ymd.split('-'); if(parts.length !== 3) return ymd; return `${parts[2]}/${parts[1]}/${parts[0]}`; }
+
+logDate.value = getLocalDateStr(); 
+epLength.value = data.prefs.defaultEpLength || 20;
+let currentDiffs = { hours: "", metric2: "", metric3: "" }; 
+let breakdownsExpanded = false;
+
+// Anki globals
+let ankiBaseline = -1;
+
+window.addEventListener('keydown', (e) => { if (e.key === "Escape") { document.querySelectorAll('.overlay').forEach(el => el.classList.add('hidden')); playAudio('close.wav'); nukeFocus(); } });
+
+/* ===============================
+MAIN STAGE CONTROLS & MODES
+=============================== */
+
+function toggleSidebar(forceOpen) {
+    let sidebar = document.getElementById('sidebar');
+    if (forceOpen === true) sidebar.classList.remove('collapsed'); else if (forceOpen === false) sidebar.classList.add('collapsed'); else sidebar.classList.toggle('collapsed');
+    playAudio('slide.wav');
+    if (forceOpen === undefined) { data.prefs.sidebarOpen = !sidebar.classList.contains('collapsed'); save(); }
+    
+    setTimeout(() => { 
+        if (document.getElementById('tabAnalytics').classList.contains('active')) {
+            updateCharts(); 
+        }
+    }, 0);
+}
+
+function switchView(viewName, silent = false) {
+    let libBtn = document.getElementById('tabLibrary'); let anaBtn = document.getElementById('tabAnalytics');
+    let libView = document.getElementById('libraryView'); let anaView = document.getElementById('analyticsView'); 
+    let filters = document.getElementById('headerFilters');
+    let compView = document.getElementById('compareView');
+
+    if (viewName === 'library') {
+        if (!silent) playAudio('tab_lib.wav');
+        libBtn.classList.add('active'); anaBtn.classList.remove('active');
+        libView.classList.remove('hidden'); anaView.classList.add('hidden'); filters.classList.add('hidden');
+        if (compView) compView.classList.add('hidden');
+        data.prefs.lastView = 'library'; if (typeof save === 'function') save(); 
+        renderLibrary();
+    } else {
+        if (anaBtn.classList.contains('active') && (!compView || compView.classList.contains('hidden'))) {
+            document.getElementById('mediaFilter').value = 'all';
+            if (typeof handleMediaFilterChange === 'function') handleMediaFilterChange();
+            return;
+        }
+        if (!silent) playAudio('tab_ana.wav');
+        anaBtn.classList.add('active'); libBtn.classList.remove('active');
+        anaView.classList.remove('hidden'); libView.classList.add('hidden');
+        filters.classList.remove('hidden');
+        if (compView) compView.classList.add('hidden');
+        data.prefs.lastView = 'analytics'; if (typeof save === 'function') save();
+        updateAll(); 
+        setTimeout(() => { if(typeof pie !== 'undefined' && pie) pie.resize(); if(typeof line !== 'undefined' && line) line.resize(); }, 100);
+    }
+}
+
+function handleRangeChange() {
+    if (document.getElementById("rangeSelect").value === "custom") {
+        document.getElementById("customDateUI").classList.remove("hidden");
+        if(!customStartDate.value || !customEndDate.value) { let d = new Date(); d.setDate(d.getDate()-7); customStartDate.value = getLocalDateStr(d); customEndDate.value = getLocalDateStr(); }
+    } else { document.getElementById("customDateUI").classList.add("hidden"); }
+    updateAll();
+}
+
+function handleMediaFilterChange() { 
+    updateTrendOptions(); updateAll(); 
+    let opts = document.querySelectorAll('.ghost-opt'); let mf = document.getElementById('mediaFilter');
+    if (mf.value !== opts[0]?.value) opts.forEach(o => o.remove());
+}
+
+function updateTrendOptions() { 
+    let tSelect = document.getElementById("trendMetric"); let media = mediaFilter.value; let oldVal = tSelect.value; tSelect.innerHTML = ""; 
+    const addOp = (val, text) => { let o = document.createElement("option"); o.value=val; o.textContent=text; tSelect.appendChild(o); }; 
+    addOp("hours", "Hours"); 
+    
+    let typeToCheck = media;
+    if (media !== "all" && data.mediaData[media]) typeToCheck = data.mediaData[media].type;
+    let config = data.mediaConfig[typeToCheck] || { inputs: ['hours', 'chars', 'units'], unitName: 'Units' };
+    if (media === "all") config = { inputs: ['hours', 'chars', 'units'], unitName: 'Units' };
+
+    if (config.inputs.includes('chars')) { addOp("chars", "Characters"); addOp("cph", "Speed"); }
+    if (config.inputs.includes('units') || config.inputs.includes('eps') || config.inputs.includes('pages')) { 
+        addOp("units", config.unitName || "Units"); 
+    }
+    if(Array.from(tSelect.options).some(o => o.value === oldVal)) tSelect.value = oldVal; else tSelect.value = "hours";
+}
+
+/* ===============================
+PHASE 3: DYNAMIC SIDEBAR & LOGGING
+=============================== */
+function checkAutoComplete(mediaName) {
+    if (!mediaName) return;
+    let profile = data.mediaData[mediaName];
+    if (!profile || !profile.target || profile.autoComplete === false || profile.status === 'completed') return;
+
+    let conf = data.mediaConfig[profile.type] || { progressMetric: 'units' };
+    let activeMetric = profile.metricOverride && profile.metricOverride !== 'default' ? profile.metricOverride : (conf.progressMetric || 'units');
+    
+    let amt = 0;
+    data.entries.filter(e => e.media === mediaName).forEach(e => {
+        if (activeMetric === 'chars') amt += (e.chars || 0);
+        else if (activeMetric === 'hours') amt += (e.hours || 0);
+        else amt += (e.units || e.eps || e.pages || 0);
+    });
+
+    if (amt >= profile.target) {
+        profile.status = 'completed';
+        showToast(`🎉 Auto-Completed: ${mediaName}!`, "Overall");
+        playAudio('achieve.wav');
+    }
+}
+
+function populateDropdowns() {
+    let currentLog = logType.value || data.prefs.lastType;
+    let currentLib = libFilterMain.value;
+    let currentMed = mediaFilter.value;
+    let currentHist = document.getElementById("histType").value;
+    let currentGoal = document.getElementById("gType").value;
+
+    logType.innerHTML = "";
+    libFilterMain.innerHTML = '<option value="all">Filter: All Media</option>';
+    mediaFilter.innerHTML = '<option value="all">All Media</option>';
+    document.getElementById("histType").innerHTML = '<option value="all">All Types</option>';
+    document.getElementById("gType").innerHTML = '<option value="all">All</option>';
+    
+    // Ignore the meta 'All Media' config when building standard dropdowns
+    let types = Object.keys(data.mediaConfig).filter(t => t !== 'All Media');
+    
+    types.forEach(t => {
+        let o = `<option value="${t}">${t}</option>`;
+        logType.innerHTML += o; libFilterMain.innerHTML += o; mediaFilter.innerHTML += o;
+        document.getElementById("histType").innerHTML += o; document.getElementById("gType").innerHTML += o;
+    });
+
+    if (types.includes(currentLog)) logType.value = currentLog;
+    if (currentLib === 'all' || types.includes(currentLib)) libFilterMain.value = currentLib;
+    if (currentMed === 'all' || types.includes(currentMed)) mediaFilter.value = currentMed;
+    if (currentHist === 'all' || types.includes(currentHist)) document.getElementById("histType").value = currentHist;
+    if (currentGoal === 'all' || types.includes(currentGoal)) document.getElementById("gType").value = currentGoal;
+}
+
+function populateMedia() { 
+    let t = document.getElementById("logType").value; 
+    let ms = document.getElementById("mediaSelect");
+    if(ms) ms.innerHTML = ""; 
+    
+    if (!data.media[t]) data.media[t] = [];
+    data.media[t].forEach(m => { 
+        if(data.mediaData[m] && data.mediaData[m].status !== 'active') return; 
+        let o = document.createElement("option"); o.textContent = m; 
+        if(ms) ms.appendChild(o); 
+    }); 
+    
+    let config = data.mediaConfig[t] || { inputs: ['hours'], unitName: 'Units' };
+    
+    document.getElementById("hoursMinFields")?.classList.toggle("hidden", !config.inputs.includes('hours')); 
+    document.getElementById("charField")?.classList.toggle("hidden", !config.inputs.includes('chars')); 
+    
+    let hasUnits = config.inputs.includes('units') || config.inputs.includes('eps') || config.inputs.includes('pages');
+    let unitContainer = document.getElementById("unitField");
+    if(unitContainer) {
+        unitContainer.classList.toggle("hidden", !hasUnits); 
+        let uLabel = document.getElementById("unitLabelText");
+        if(uLabel) uLabel.textContent = config.unitName || 'Units';
+    }
+    
+    document.getElementById("epLengthField")?.classList.toggle("hidden", !hasUnits);
+    data.prefs.lastType = t; save(); 
+    handleMediaSelectChange(); // Force it to update the Min per Unit box
+}
+
+function handleMediaSelectChange() {
+    let m = document.getElementById("mediaSelect").value;
+    let t = document.getElementById("logType").value;
+    let epInput = document.getElementById("epLength");
+
+    if (!m || !epInput) return;
+
+    let profile = data.mediaData[m];
+    let conf = data.mediaConfig[t] || {};
+    
+    // Dynamic AFK Threshold per media type
+    if (window.electronAPI) {
+        window.electronAPI.setAfkThreshold(conf.afk || data.prefs.afkTimer || 30);
+    }
+
+    if (profile && profile.lastUnitMin !== undefined) {
+        // Use the remembered memory for this specific media
+        epInput.value = profile.lastUnitMin;
+    } else if (t === 'Anime') {
+        // Fallback for new Anime
+        epInput.value = 20;
+    } else {
+        // Fallback for everything else
+        epInput.value = 0;
+    }
+}
+
+async function addEntry() {
+    let t = logType.value, date = logDate.value; 
+    let h=0, c=0, u=0;
+    let config = data.mediaConfig[t] || { inputs: [] };
+
+    // INSTANT SYNC: Force a final Anki check before saving
+    if (data.prefs.ankiEnabled) await pollAnki();
+
+    if (config.inputs.includes('hours')) { h += (parseFloat(document.getElementById('logHours').value)||0) + (parseFloat(document.getElementById('logMinutes').value)||0)/60; }
+    
+    let hasUnits = config.inputs.includes('units') || config.inputs.includes('eps') || config.inputs.includes('pages');
+    if (hasUnits) { 
+        u = parseInt(document.getElementById('logUnits').value)||0; 
+        if (u > 0 && h === 0) h += (u * (parseFloat(document.getElementById('epLength').value)||20))/60; 
+    }
+    
+    if (config.inputs.includes('chars')) c = parseInt(document.getElementById('logChars').value)||0;
+    let weight = config.weight !== undefined ? config.weight : 1.0;
+    h = h * weight;
+    
+    let mined = parseInt(document.getElementById('logMined').value)||0;
+
+    if (h <= 0 && u <= 0 && c <= 0 && mined <= 0) { showToast("⚠️ ALERT: Please enter a valid amount.", "Alert"); return; }
+    
+    data.entries.push({date, type:t, hours:h, chars:c, units:u, cards: mined, media:mediaSelect.value}); 
+
+    if (hasUnits && mediaSelect.value && data.mediaData[mediaSelect.value]) {
+        data.mediaData[mediaSelect.value].lastUnitMin = parseFloat(document.getElementById('epLength').value) || 0;
+    }
+    hookedLines = []; save(); updateAll(); playAudio('save.wav'); 
+    document.querySelectorAll('.big').forEach(el => { el.classList.remove('stat-animate'); void el.offsetWidth; el.classList.add('stat-animate'); }); 
+    ["logHours","logMinutes","logChars","logUnits","logMined"].forEach(id => { let el = document.getElementById(id); if(el) el.value = ""; }); 
+    checkAutoComplete(mediaSelect.value); renderLibrary();
+    nukeFocus();
+}
+
+/* ===============================
+PHASE 4: MODULAR ANALYTICS & DASHBOARD
+=============================== */
+function updateAll() { 
+    try { updateStats(); } catch(e) {} try { updateCharts(); } catch(e) {} try { renderGoals(); } catch(e) {} try { renderShelf(); } catch(e) {} try { renderHeatmap(); } catch(e) {} try { renderLibrary(); } catch(e) {} try { if (!document.getElementById('compareView').classList.contains('hidden')) updateCompareChart(); } catch(e) {}
+    if(breakdownsExpanded) forceBreakdownRerender(); 
+    else { 
+        document.querySelectorAll('.breakdown-text').forEach(el => el.style.display = 'none'); 
+        document.querySelectorAll('.diff-text').forEach(el => el.style.display = 'none'); 
+    } 
+}
+let shelfExpanded = false;
+function toggleShelf() { shelfExpanded = !shelfExpanded; renderShelf(); }
+
+function renderShelf() { 
+    const container = document.getElementById("activeMediaContainer"); container.innerHTML = ""; 
+    let ent = getFilteredEntries(document.getElementById("rangeSelect").value); 
+    let mediaSums = {}; 
+    
+    // 1. Gather all stats accurately (like the Library does)
+    ent.forEach(e => { 
+        if (!e.media) return; 
+        let profile = data.mediaData[e.media];
+        if (profile && profile.status !== 'active') return; 
+        
+        if (!mediaSums[e.media]) mediaSums[e.media] = { type: e.type, hours: 0, chars: 0, units: 0 }; 
+        
+        mediaSums[e.media].hours += (e.hours || 0); 
+        mediaSums[e.media].chars += (e.chars || 0);
+        mediaSums[e.media].units += (e.units || e.eps || e.pages || 0);
+    }); 
+    
+    let topMedia = Object.entries(mediaSums).sort((a,b) => b[1].hours - a[1].hours); 
+    if (topMedia.length === 0) { container.innerHTML = "<div style='font-size:12px; opacity:0.6'>No active media in this period.</div>"; return; } 
+    
+    let displayCount = shelfExpanded ? topMedia.length : 4;
+    topMedia.slice(0, displayCount).forEach(([name, d]) => { 
+        let profile = data.mediaData[name] || {};
+        let conf = data.mediaConfig[d.type] || {unitName:'Units'};
+        
+        // 2. Smart metric detection (Overrides > Default Config > Units)
+        let activeMetric = profile.metricOverride && profile.metricOverride !== 'default' ? profile.metricOverride : (conf.progressMetric || 'units');
+        
+        let amt = 0; 
+        let amtStr = conf.unitName || 'Units';
+        
+        if (activeMetric === 'chars') { amt = d.chars; amtStr = 'Chars'; }
+        else if (activeMetric === 'hours') { amt = d.hours; amtStr = 'Hours'; }
+        else { amt = d.units; }
+        
+        // 3. Beautiful formatting (232.3k)
+        let dispAmt = amt;
+        if (activeMetric === 'chars' && amt >= 1000) dispAmt = (amt/1000).toFixed(1) + 'k';
+        else if (activeMetric === 'hours') dispAmt = amt.toFixed(1);
+        else dispAmt = amt.toLocaleString();
+
+        let item = document.createElement("div"); item.className = "shelf-item"; 
+        item.onclick = () => viewSpecificAnalytics(name);
+        item.innerHTML = `<span><strong>${name}</strong> <span style="opacity:0.6; font-size:10px">(${d.type})</span></span> <span>${d.hours.toFixed(1)}h | ${dispAmt} ${amtStr}</span>`; 
+        container.appendChild(item); 
+    }); 
+
+    if (topMedia.length > 4) {
+        let btn = document.createElement("button"); btn.className = "shelf-btn";
+        btn.textContent = shelfExpanded ? "▲ Collapse" : `▼ Show ${topMedia.length - 4} More`;
+        btn.onclick = toggleShelf; container.appendChild(btn);
+    }
+}
+
+function getFilteredEntries(rangeVal) { 
+    let ent = data.entries; let media = mediaFilter.value; 
+    if(media !== "all" && !data.mediaData[media]) ent = ent.filter(e => e.type === media);
+    if(media !== "all" && data.mediaData[media]) ent = ent.filter(e => e.media === media);
+    
+    if(rangeVal === "today") { let todayStr = getLocalDateStr(); ent = ent.filter(e => e.date === todayStr); } 
+    else if (rangeVal === "custom") { let s = document.getElementById("customStartDate").value; let e = document.getElementById("customEndDate").value; if(s && e) ent = ent.filter(x => x.date >= s && x.date <= e); } 
+    else if(rangeVal !== "all") { let cut = new Date(); if(rangeVal === "365") cut = new Date(new Date().getFullYear(), 0, 1); else cut.setDate(cut.getDate() - parseInt(rangeVal)); ent = ent.filter(e => new Date(e.date) >= cut); } 
+    return ent; 
+}
+
+function updateStats() { 
+    let range = rangeSelect.value; let media = mediaFilter.value; 
+    let currentPeriodEnt = getFilteredEntries(range); let previousPeriodEnt = []; 
+    
+    if(range === "today") { let yesterday = new Date(); yesterday.setDate(yesterday.getDate() - 1); let yStr = getLocalDateStr(yesterday); previousPeriodEnt = data.entries.filter(e => { return (media === "all" || e.type === media || e.media === media) && e.date === yStr; }); } 
+    else if(range !== "all" && range !== "365" && range !== "custom") { let cutCurrent = new Date(); cutCurrent.setDate(cutCurrent.getDate() - parseInt(range)); let cutPrev = new Date(); cutPrev.setDate(cutPrev.getDate() - (parseInt(range)*2)); previousPeriodEnt = data.entries.filter(e => { let matchesMedia = media === "all" || e.type === media || e.media === media; let d = new Date(e.date); return matchesMedia && d >= cutPrev && d < cutCurrent; }); } 
+    
+    let h=0, c=0, u=0; let ph=0, pc=0, pu=0; let daysActive = new Set();
+    let cphH = 0; let pcphH = 0; // Tracks valid hours for accurate reading speed
+    
+    currentPeriodEnt.forEach(x => { 
+        h += x.hours; c += (x.chars || 0); 
+        u += (x.units || x.eps || x.pages || 0); 
+        if (x.chars > 0 && x.hours > 0) cphH += x.hours; // Only count hours if chars were logged
+        daysActive.add(x.date); 
+    }); 
+    previousPeriodEnt.forEach(x => { 
+        ph += x.hours; pc += (x.chars || 0); 
+        pu += (x.units || x.eps || x.pages || 0); 
+        if (x.chars > 0 && x.hours > 0) pcphH += x.hours;
+    }); 
+    
+    let typeToCheck = media;
+    if (media !== "all" && data.mediaData[media]) typeToCheck = data.mediaData[media].type;
+    let config = data.mediaConfig[typeToCheck] || { stats: ['hours', 'chars', 'units', 'days'], unitName: 'Units' };
+    if (media === 'all') config = data.mediaConfig['All Media'] || { stats: ['hours', 'chars', 'units', 'days'], unitName: 'Units' };
+
+    let grid = document.getElementById("statsGridContainer"); grid.innerHTML = "";
+    let totalRange = range === 'all' ? Math.max(new Set(data.entries.map(x=>x.date)).size, 1) : (range === 'today' ? 1 : (range === 'custom' ? Math.max(1, Math.ceil((new Date(customEndDate.value) - new Date(customStartDate.value))/86400000)+1) : parseInt(range)||1));
+    if (range === '365') totalRange = 365;
+
+    config.stats.forEach(st => {
+        let val = 0, label = ""; let bc = ""; let bdown = ""; let dc = "";
+        
+        if (st === 'hours') { val = h.toFixed(1); label = "Total Hours"; bdown = "hours"; dc = calculateDiffString(h, ph); }
+        if (st === 'chars') { val = c.toLocaleString(); label = "Total Characters"; bdown = "metric2"; dc = calculateDiffString(c, pc); }
+        if (st === 'units' || st === 'eps' || st === 'pages') { val = u.toLocaleString(); label = `Total ${config.unitName || "Units"}`; bdown = "metric3"; dc = calculateDiffString(u, pu); }
+        if (st === 'speed') { 
+            val = cphH > 0 ? Math.floor(c/cphH).toLocaleString() : 0; 
+            label = "Speed (Chars/Hr)"; 
+            if(data.prefs.blurCph) bc="blur-hover"; // Uses the standard 5px blur
+        }
+        if (st === 'pace') { val = (u / totalRange).toFixed(1); label = `Pace (${config.unitName || 'Units'}/Day)`; }
+        if (st === 'days') { val = `${daysActive.size} <span style="font-size:12px;opacity:0.6">/ ${totalRange}d</span>`; label = "Consistency"; }
+        
+        let diffHtml = (range !== "all" && range !== "custom" && dc) ? `<div class="diff-text" style="display:${breakdownsExpanded ? 'block' : 'none'}; font-size:10px; margin-top:6px; padding-top:4px; border-top:1px solid var(--border);">${dc}</div>` : "";
+        let bdHtml = bdown ? `<div id="breakdown-${bdown}" class="breakdown-text"></div>` : "";
+        grid.innerHTML += `<div class="stat" onclick="if('${bdown}') toggleAllBreakdowns()">${label}<br><div class="big ${bc}">${val}</div>${bdHtml}${diffHtml}</div>`;
+    });
+    
+    updateMonthlyForecast(currentPeriodEnt, range); 
+
+    let longStreak = 0; let curStr = 0; let lastDate = null; let curRealStreak = calculateStreak();
+    let sortedDates = [...new Set(data.entries.map(x=>x.date))].sort();
+    sortedDates.forEach(d => { 
+        if(!lastDate) curStr = 1; 
+        else {
+            let diffDays = Math.round((new Date(d + 'T00:00:00Z') - new Date(lastDate + 'T00:00:00Z')) / 86400000);
+            if (diffDays === 1) curStr++; else if (diffDays > 1) curStr = 1;
+        }
+        if (curStr > longStreak) longStreak = curStr; 
+        lastDate = d; 
+    });
+    let avgH = currentPeriodEnt.length ? (h / totalRange).toFixed(1) : 0;
+    
+    let hideGame = data.prefs.noGame;
+    let streakHtml = `Current Streak: <span style="color:#ff9800">${curRealStreak}</span> | Longest: ${longStreak}`;
+    let hmContext = document.getElementById('heatmapContext');
+    if (hmContext) hmContext.innerHTML = `${streakHtml} | Avg Daily: <strong>${avgH}h</strong> ⏱️`;
+}
+
+function toggleAllBreakdowns() { 
+    breakdownsExpanded = !breakdownsExpanded; 
+    forceBreakdownRerender(); 
+}
+
+function forceBreakdownRerender() { 
+    let rangeVal = rangeSelect.value; let ent = getFilteredEntries(rangeVal); let isSpecificMedia = mediaFilter.value !== "all"; let groupKey = isSpecificMedia ? "media" : "type"; let days = 1; 
+    if(rangeVal === '7') days = 7; else if(rangeVal === '30') days = 30; else if(rangeVal === '90') days = 90; else if(rangeVal === '365') days = 365; else if(rangeVal === 'custom') { let s = new Date(document.getElementById("customStartDate").value); let e = new Date(document.getElementById("customEndDate").value); days = Math.max(1, Math.ceil((e - s) / (1000 * 60 * 60 * 24)) + 1); } else if(rangeVal === 'all' && data.entries.length > 0) { let firstDate = new Date(Math.min(...data.entries.map(e => new Date(e.date)))); let today = new Date(); days = Math.max(1, Math.ceil((today - firstDate) / (1000 * 60 * 60 * 24))); } 
+    
+    ['hours', 'metric2', 'metric3'].forEach(cardType => { 
+        let el = document.getElementById(`breakdown-${cardType}`); if(!el) return; if (!breakdownsExpanded) { el.style.display = "none"; return; } 
+        
+        let sums = {}; 
+        ent.forEach(e => { 
+            let key = e[groupKey] || "Unknown"; 
+            let val = 0;
+            if(cardType === 'hours') val = e.hours || 0; 
+            else if (cardType === 'metric2') val = e.chars || 0; 
+            else if (cardType === 'metric3') val = (e.units || e.eps || e.pages || 0); // Universally searches for any unit type
+            
+            if(val > 0) sums[key] = (sums[key] || 0) + val; 
+        }); 
+        
+        let totalVal = Object.values(sums).reduce((a,b) => a+b, 0); let avg = totalVal / days; let avgStr = ""; 
+        if (cardType === 'hours') avgStr = avg.toFixed(1) + "h / day"; 
+        else if (cardType === 'metric2') avgStr = Math.floor(avg).toLocaleString() + " / day"; 
+        else if (cardType === 'metric3') avgStr = avg.toFixed(1) + " / day"; 
+        
+        let avgHtml = `<div style="color:var(--accent); margin-bottom:8px; padding-bottom:4px; border-bottom:1px solid var(--border);"><strong>Daily Avg:</strong> ${avgStr}</div>`; 
+        let parts = Object.entries(sums).filter(x => x[1] > 0).sort((a,b)=>b[1]-a[1]).map(x => { let val = x[1]; if (cardType === 'hours') val = val.toFixed(1) + 'h'; else if (cardType === 'metric2') val = val > 1000 ? (val/1000).toFixed(1) + 'k' : val; return `<strong>${x[0]}</strong>: ${val}`; }); 
+        el.innerHTML = avgHtml + (parts.length > 0 ? parts.join(" | ") : "No data"); el.style.display = "block"; 
+    }); 
+    
+    // Unhide all percentages if expanded
+    document.querySelectorAll('.diff-text').forEach(el => el.style.display = breakdownsExpanded ? 'block' : 'none');
+}
+
+function calculateDiffString(cur, prev) { if (prev === 0 || isNaN(prev)) return ""; let diff = ((cur - prev) / prev) * 100; if (diff === 0) return "Same as prev"; return `<span style="color:${diff > 0 ? '#4cc9f0' : '#ff4444'}">${diff > 0 ? "📈 +" : "📉 "}${diff.toFixed(1)}% vs prev</span>`; }
+function calculateStreak() { let now = new Date(); let adjustedNow = new Date(now.getTime() - (data.prefs.resetHour || 0) * 60 * 60 * 1000); let dates = [...new Set(data.entries.map(e => e.date))].sort().reverse(); if(dates.length === 0) return 0; let s = 0; let latestLogDate = new Date(dates[0]); let daysSinceLastLog = Math.floor((adjustedNow - latestLogDate) / (1000 * 60 * 60 * 24)); if (daysSinceLastLog <= 1) { for(let i=0; i<dates.length; i++) { if(i===0 || (new Date(dates[i-1])-new Date(dates[i]))/86400000 <= 1) s++; else break; } } return s; }
+function updateMonthlyForecast(ent, range) { let forecastDiv = document.getElementById("monthlyForecast"); if (range === "all" || range === "365" || range === "today" || range === "custom" || ent.length === 0) { forecastDiv.textContent = ""; return; } let days = parseInt(range); let totalH = ent.reduce((s, e) => s + e.hours, 0); let totalC = ent.reduce((s, e) => s + (e.chars||0), 0); let avgH = totalH / days; let avgC = totalC / days; let d = new Date(); let daysInMonth = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate(); let projH = (avgH * daysInMonth).toFixed(1); let projC = Math.floor(avgC * daysInMonth); let text = `Monthly Forecast: On track for ${projH}h`; if (avgC > 0) text += ` and ${projC.toLocaleString()} chars`; forecastDiv.textContent = text + " this month."; }
+
+/* ===============================
+LIBRARY SYSTEM & PHASE 5 LIST VIEW
+=============================== */
+let editLibMediaName = ""; let editLibMediaType = "";
+
+function toggleLibView() { data.prefs.libView = data.prefs.libView === 'grid' ? 'list' : 'grid'; document.getElementById('libViewToggle').textContent = data.prefs.libView === 'grid' ? '🖼️' : '☰'; save(); renderLibrary(); }
+
+function renderLibrary() {
+    const container = document.getElementById("mainLibraryContainer");
+    let mode = data.prefs.libView || 'grid';
+    container.className = mode === 'grid' ? 'grid-container' : 'list-container';
+    container.innerHTML = "";
+
+    let filter = document.getElementById("libFilterMain").value; 
+    let sort = document.getElementById("libSortMain").value;
+    let statusFilter = document.getElementById("libStatusFilter") ? document.getElementById("libStatusFilter").value : "default";
+
+    // Track all metrics so overrides can pull from the right pool
+    let mediaStats = {};
+    data.entries.forEach(e => {
+        if(!e.media) return; 
+        if(!mediaStats[e.media]) mediaStats[e.media] = { hours: 0, chars: 0, units: 0, last: 0 };
+        
+        mediaStats[e.media].hours += e.hours;
+        mediaStats[e.media].chars += (e.chars || 0);
+        mediaStats[e.media].units += (e.units || e.eps || e.pages || 0);
+        
+        let dTime = new Date(e.date).getTime(); 
+        if (dTime > mediaStats[e.media].last) mediaStats[e.media].last = dTime;
+    });
+
+    let items = [];
+    Object.keys(data.mediaData).forEach(name => {
+        let profile = data.mediaData[name];
+        let stat = profile.status || 'active';
+
+        if (filter === "all" && profile.type === "YouTube") return; 
+        if (profile.hidden && filter !== profile.type) return; 
+        if (profile.hidden && filter === "YouTube") return; 
+        if (filter !== "all" && profile.type !== filter) return;
+
+        if (statusFilter === "default") {
+            if (stat === "wishlist") return; 
+        } else {
+            if (stat !== statusFilter) return;
+        }
+
+        items.push({ 
+            name: name, type: profile.type, status: stat, target: profile.target, 
+            metricOverride: profile.metricOverride, 
+            img: profile.img || "", paths: profile.paths || ["","",""], 
+            blur: profile.blur || false, stats: mediaStats[name] || { hours: 0, chars: 0, units: 0, last: 0 } 
+        });
+    });
+
+    const sortVal = { 'active': 1, 'paused': 2, 'wishlist': 3, 'completed': 4, 'dropped': 5 };
+    if (sort === 'status') {
+        items.sort((a,b) => (sortVal[a.status] - sortVal[b.status]) || a.name.localeCompare(b.name));
+    } else if (sort === 'alpha') {
+        items.sort((a,b) => a.name.localeCompare(b.name));
+    } else if (sort === 'recent') {
+        items.sort((a,b) => {
+            let aDone = (a.status === 'completed' || a.status === 'dropped') ? 1 : 0;
+            let bDone = (b.status === 'completed' || b.status === 'dropped') ? 1 : 0;
+            if (aDone !== bDone) return aDone - bDone;
+            return b.stats.last - a.stats.last;
+        });
+    }
+
+    if (mode === 'list' && items.length > 0) {
+        container.innerHTML += `<div style="display:flex; padding: 0 15px 8px 15px; font-size:11px; opacity:0.6; text-transform:uppercase; font-weight:bold; align-items:center;">
+            <div style="flex:1;">Media Title</div>
+            <div style="display:flex; gap:15px; align-items:center;">
+                <div style="width:130px; text-align:center;">Actions</div>
+                <div style="width:120px; text-align:right;">Progress</div>
+                <div style="width:90px; text-align:right;">Total</div>
+                <div style="width:60px; text-align:right;">Time</div>
+            </div>
+        </div>`;
+    }
+
+    items.forEach(item => {
+        let conf = data.mediaConfig[item.type] || {unitName:'Units', inputs:[], progressMetric: 'units', emoji: '📦'};
+        
+        // Resolve exactly which metric to display
+        let activeMetric = item.metricOverride && item.metricOverride !== 'default' ? item.metricOverride : (conf.progressMetric || 'units');
+        let amt = 0; let amtStr = conf.unitName || 'Units';
+        
+        if (activeMetric === 'chars') { amt = item.stats.chars; amtStr = 'Chars'; }
+        else if (activeMetric === 'hours') { amt = item.stats.hours; amtStr = 'Hours'; }
+        else { amt = item.stats.units; }
+        
+        let dispAmt = amt;
+        let dispTarget = item.target;
+        
+        if (activeMetric === 'chars') {
+            if (amt >= 1000) dispAmt = (amt/1000).toFixed(1) + 'k';
+            if (item.target >= 1000) dispTarget = (item.target/1000).toFixed(1) + 'k';
+        } else if (activeMetric === 'hours') {
+            dispAmt = amt.toFixed(1);
+            if (item.target > 0) dispTarget = item.target.toFixed(1);
+        } else {
+            dispAmt = amt.toLocaleString();
+            if (item.target > 0) dispTarget = item.target.toLocaleString();
+        }
+
+        let pct = item.target > 0 ? Math.min((amt / item.target) * 100, 100).toFixed(0) : 0;
+        let emoji = conf.emoji || '📦';
+        
+        let statsBtn = `<button class="lib-btn" onclick="event.stopPropagation(); viewSpecificAnalytics('${item.name}')" title="Media Analytics">📊</button>`;
+        let quickAdd = (item.type === 'Anime' || conf.unitName === 'Eps') ? `<button class="lib-btn" onclick="event.stopPropagation(); quickAddEpisode('${item.name}')">+1</button>` : '';
+        let launchBtn = item.paths.some(p => p.trim() !== "") ? `<button class="lib-btn" onclick="event.stopPropagation(); selectFromLibrary('${item.type}', '${item.name}'); fireMediaLaunch('${item.name}');" style="background:var(--accent); color:#000;">🚀</button>` : '';
+
+        let statusIcon = item.status === 'completed' ? '⭐' : (item.status === 'paused' ? '⏸️' : (item.status === 'dropped' ? '❌' : (item.status === 'wishlist' ? '📝' : '🟢')));
+
+        if (mode === 'grid') {
+            let card = document.createElement("div"); card.className = `lib-card ${item.status}`; card.onmouseenter = () => playAudio('hover.wav');
+            card.onclick = (e) => { if(e.target.tagName !== 'BUTTON') { selectFromLibrary(item.type, item.name); fireMediaLaunch(item.name); } };
+            let bgHtml = item.img ? `<div class="card-bg ${item.blur ? 'blur-cover' : ''}" style="background: url('${item.img}') center/cover;"></div>` : `<div class="card-bg"></div>`;
+			let middleHtml = item.target > 0 ? `<div class="progress" style="margin: 8px 0 4px 0; background:rgba(0,0,0,0.5); pointer-events:auto;"><div class="progress-fill" style="width:${pct}%"></div></div><div style="font-size:11px; display:flex; justify-content:space-between; opacity:0.9;"><span>${dispAmt} / ${dispTarget}</span><span style="font-weight:bold; color:var(--accent);">${pct}%</span></div>` : `<span style="position:absolute; bottom:12px; right:12px; font-size:10px; font-weight:bold; color:var(--accent); opacity:0.8; pointer-events:none;">ONGOING</span>`;
+            let badgeHtml = item.status === 'completed' ? '<div class="badge-completed">⭐ COMPLETED</div>' : '';
+            card.innerHTML = `${bgHtml}<div class="card-gradient"></div>${badgeHtml}<div class="card-content"><div class="lib-actions">${launchBtn}${statsBtn}${quickAdd}<button class="lib-btn" onclick="event.stopPropagation(); openLibEdit('${item.name}')">✎</button></div><div style="font-size:16px; font-weight:bold; padding-right:110px; word-wrap:break-word; text-shadow:0 2px 4px rgba(0,0,0,0.8);">${item.name}</div><div style="font-size:11px; opacity:0.8; margin-bottom:5px; text-shadow:0 1px 2px rgba(0,0,0,0.8);">${statusIcon} ${item.type}</div><div style="flex:1"></div>${middleHtml}<div style="font-size:11px; opacity:0.9; margin-top:8px; display:flex; gap:10px; text-shadow:0 1px 2px rgba(0,0,0,0.8);"><span>⏱️ ${item.stats.hours.toFixed(1)}h</span><span>${emoji} ${dispAmt} ${amtStr}</span></div></div>`;
+            container.appendChild(card);
+        } else {
+			let middleHtml = item.target > 0 ? `<div style="width:120px; display:flex; align-items:center; justify-content:flex-end;"><span style="font-size:11px; color:var(--accent); margin:0;">${pct}% (${dispAmt}/${dispTarget})</span></div>` : `<div style="width:120px; display:flex; align-items:center; justify-content:flex-end;"><span style="font-size:11px; opacity:0.6; margin:0;">Ongoing</span></div>`;            let dispAmtHtml = `<div style="width:90px; display:flex; align-items:center; justify-content:flex-end; font-size:12px; margin:0;">${emoji} ${dispAmt} ${amtStr}</div>`;
+            let timeHtml = `<div style="width:60px; display:flex; align-items:center; justify-content:flex-end; font-size:12px; margin:0;">${item.stats.hours.toFixed(1)}h</div>`;
+            
+            container.innerHTML += `<div class="list-item ${item.status}" onclick="selectFromLibrary('${item.type}', '${item.name}'); fireMediaLaunch('${item.name}');" style="display: flex; align-items: center; justify-content: space-between; height: 100%;">
+                <div style="flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; padding-right: 15px; display: flex; align-items: center;">
+                    <strong style="margin:0;">${item.name}</strong> <span style="font-size:10px; opacity:0.6; margin-left:8px;">(${item.type})</span>
+                </div>
+                <div style="display:flex; align-items:center; gap:15px; height: 100%;">
+                    <div style="width:130px; display:flex; gap:5px; justify-content:center; align-items:center; opacity:0; transition: opacity 0.2s ease;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0" onclick="event.stopPropagation()">
+                        ${launchBtn}${statsBtn}${quickAdd}<button class="lib-btn" onclick="openLibEdit('${item.name}')">✎</button>
+                    </div>
+                    ${middleHtml}
+                    ${dispAmtHtml}
+                    ${timeHtml}
+                </div>
+            </div>`;
+        }
+    });
+    if (items.length === 0) container.innerHTML = "<div style='opacity:0.6; grid-column:1/-1;'>No media found matching these filters.</div>";
+}
+
+function viewSpecificAnalytics(mediaName) { 
+    let mf = document.getElementById('mediaFilter'); 
+    let exists = Array.from(mf.options).some(o => o.value === mediaName); 
+    if (!exists) { 
+        let o = document.createElement("option"); o.value = mediaName; o.textContent = mediaName; o.className = "ghost-opt"; mf.appendChild(o); 
+    } 
+
+    let anaBtn = document.getElementById('tabAnalytics');
+    let compView = document.getElementById('compareView');
+
+    // 1. If we are NOT on the analytics tab, safely switch to it
+    if (!anaBtn.classList.contains('active')) {
+        switchView('analytics'); 
+    } 
+    // 2. If we are in the Compare page, close it to see the specific analytics
+    else if (compView && !compView.classList.contains('hidden')) {
+        closeComparePage();
+    }
+
+    // 3. Set the filter AFTER view switching to avoid triggering the 'Reset' feature
+    mf.value = mediaName; 
+    
+    // 4. Update the UI and charts
+    handleMediaFilterChange(); 
+}
+let autoHookInterval = null;
+let autoHookAttempts = 0;
+
+function startAutoHookScanner() {
+    if (wsConnected) return; // Stop if already connected
+    if (autoHookInterval) clearInterval(autoHookInterval);
+    
+    autoHookAttempts = 0;
+    showToast("🔍 Auto-scanner looking for hooks (60s)...", "Overall");
+    
+    autoHookInterval = setInterval(() => {
+        autoHookAttempts++;
+        if (wsConnected) {
+            clearInterval(autoHookInterval);
+            showToast("🔌 Hook connected automatically!", "success");
+            return;
+        }
+        if (autoHookAttempts >= 30) { // 30 attempts * 2 sec = 60 seconds
+            clearInterval(autoHookInterval);
+            showToast("⚠️ Scanner timeout. No hooks detected.", "Alert");
+            return;
+        }
+        // Attempt connection quietly in the background
+        if (!wsConnected) connectWebSocket(); 
+    }, 2000);
+    
+    connectWebSocket(); // Try immediately on launch
+}
+
+function fireMediaLaunch(name) { 
+    let profile = data.mediaData[name]; 
+    if (profile && profile.paths && profile.paths.some(p => p.trim() !== "")) { 
+        
+        // Check if this media type is set to auto-hook
+        let conf = data.mediaConfig[profile.type] || {};
+        if (conf.autoHook && !wsConnected) {
+            startAutoHookScanner();
+        }
+
+        let processedPaths = profile.paths.map((p, index) => { 
+            let cmd = p.trim(); 
+            if (index === 0 && profile.type === 'Anime' && cmd !== "") { 
+                let player = data.prefs.animePlayer || 'mpv'; 
+                if (!cmd.toLowerCase().startsWith(player)) { 
+                    if (!cmd.startsWith('"')) cmd = `"${cmd}"`; cmd = `"${player}" ${cmd}`; 
+                } 
+            } return cmd; 
+        }); 
+        if (window.electronAPI) { 
+            playAudio('launch.wav'); 
+            window.electronAPI.launchApps(processedPaths, { mediaName: name, autoSubmit: !!conf.autoSubmit }); 
+        } else { 
+            showToast("Launcher requires Desktop App.", "Overall"); 
+        } 
+    } 
+}
+function quickAddEpisode(mediaName) { 
+    let profile = data.mediaData[mediaName] || {};
+    let mediaType = profile.type || 'Anime';
+    
+    // Check memory -> fallback to default Anime -> fallback to 0
+    let epLen = profile.lastUnitMin !== undefined ? profile.lastUnitMin : (mediaType === 'Anime' ? 20 : 0);
+    
+    let h = epLen / 60; 
+    let conf = data.mediaConfig[mediaType] || {};
+    let weight = conf.weight !== undefined ? conf.weight : 1.0;
+    h = h * weight;
+    
+    data.entries.push({ date: getLocalDateStr(), type: mediaType, hours: h, chars: 0, units: 1, media: mediaName }); 
+    
+    save(); updateAll(); renderLibrary(); playAudio('save.wav'); 
+    showToast(`+1 Logged for ${mediaName}!`, mediaType); 
+    checkAutoComplete(mediaName); renderLibrary();
+}
+
+function selectFromLibrary(type, name) { document.getElementById('logType').value = type; populateMedia(); document.getElementById('mediaSelect').value = name; }
+function openLibEdit(name) {
+    editLibMediaName = name;
+    let profile = data.mediaData[name];
+    editLibMediaType = profile.type;
+
+    document.getElementById("libEditCurrentName").textContent = name;
+    document.getElementById("libEditNewName").value = name;
+    document.getElementById("libEditImg").value = profile.img || "";
+    document.getElementById("libEditStatus").value = profile.status || 'active';
+    document.getElementById("libEditTarget").value = profile.target || "";
+    
+    // Load the metric override
+    let overrideDropdown = document.getElementById("libEditOverride");
+    if (overrideDropdown) overrideDropdown.value = profile.metricOverride || 'default';
+    
+    document.getElementById("libEditHidden").checked = profile.hidden === true;
+    document.getElementById("libEditBlur").checked = profile.blur || false;
+    document.getElementById("libEditAuto").checked = profile.autoComplete !== false;
+
+    let paths = profile.paths || ["", "", ""];
+    document.getElementById("libEditApp1").value = paths[0] || "";
+    document.getElementById("libEditApp2").value = paths[1] || "";
+    document.getElementById("libEditApp3").value = paths[2] || "";
+    
+    document.getElementById("libEditNotes").value = profile.notes || "";
+    
+    openModal("libEditOverlay");
+}
+
+function saveLibraryEdit() { 
+    let oldName = editLibMediaName; 
+    let newName = document.getElementById("libEditNewName").value.trim(); 
+    if (!newName) return; 
+    
+    let newImg = document.getElementById("libEditImg").value.trim(); 
+    let newStatus = document.getElementById("libEditStatus").value; 
+    let newTarget = parseInt(document.getElementById("libEditTarget").value) || null; 
+    
+    // Save the metric override
+    let overrideDropdown = document.getElementById("libEditOverride");
+    let newOverride = overrideDropdown ? overrideDropdown.value : 'default';
+    
+    let newBlur = document.getElementById("libEditBlur").checked; 
+    let newHidden = document.getElementById("libEditHidden").checked; 
+    let newAuto = document.getElementById("libEditAuto").checked;
+    let newNotes = document.getElementById("libEditNotes").value;
+    let newPaths = [ document.getElementById("libEditApp1").value, document.getElementById("libEditApp2").value, document.getElementById("libEditApp3").value ]; 
+    
+    let profile = data.mediaData[oldName]; 
+    if (newName !== oldName) { 
+        let idx = data.media[profile.type].indexOf(oldName); 
+        if (idx > -1) data.media[profile.type][idx] = newName; 
+        data.entries.forEach(e => { if(e.type === profile.type && e.media === oldName) e.media = newName; }); 
+        
+        data.mediaData[newName] = { type: profile.type, status: newStatus, target: newTarget, metricOverride: newOverride, img: newImg, paths: newPaths, blur: newBlur, hidden: newHidden, autoComplete: newAuto, notes: newNotes }; 
+        delete data.mediaData[oldName]; 
+    } else { 
+        profile.status = newStatus; 
+        profile.target = newTarget; 
+        profile.metricOverride = newOverride; 
+        profile.img = newImg; 
+        profile.paths = newPaths; 
+        profile.blur = newBlur; 
+        profile.hidden = newHidden;
+        profile.autoComplete = newAuto; 
+        profile.notes = newNotes;
+    } 
+    save(); populateMedia(); updateAll(); renderLibrary(); closeModal('libEditOverlay'); 
+}
+function openAddMediaModal() { 
+    document.getElementById("newMediaInput").value = ""; 
+    document.getElementById("newMediaImg").value = ""; 
+    document.getElementById("newMediaTarget").value = ""; 
+    
+    // Reset the search container UI
+    let container = document.getElementById("apiSearchContainer");
+    if (container) {
+        container.innerHTML = "";
+        container.classList.add("hidden");
+    }
+
+    openModal("addMediaOverlay"); 
+    setTimeout(() => document.getElementById("newMediaInput").focus(), 100); 
+}
+document.getElementById("newMediaInput").addEventListener("keypress", function(e) { if (e.key === "Enter") confirmAddMedia(); });
+function confirmAddMedia() { 
+    let n = document.getElementById("newMediaInput").value.trim(); 
+    let img = document.getElementById("newMediaImg").value.trim(); 
+    let target = parseInt(document.getElementById("newMediaTarget").value) || null; 
+    let t = logType.value; 
+    
+    if(n) { 
+        if (!data.media[t].includes(n)) { 
+            data.media[t].push(n); 
+            let auto = document.getElementById("newMediaAuto").checked; 
+            
+            // Inject the preset paths from the config directly into the new media
+            let defaultPaths = ["", "", ""];
+            let conf = data.mediaConfig[t];
+            if (conf && conf.usePresetPaths && conf.presetPaths) {
+                defaultPaths = [...conf.presetPaths];
+            }
+
+            data.mediaData[n] = { type: t, status: 'active', target: target, img: img, paths: defaultPaths, blur: false, hidden: false, autoComplete: auto }; 
+        } 
+        save(); populateMedia(); renderLibrary(); 
+    } 
+    closeModal('addMediaOverlay'); 
+}
+function updateCardSize(type, val) { let isLocked = document.getElementById("cardFixedRatio").checked; let wSlider = document.getElementById("cardWidthSlider"); let hSlider = document.getElementById("cardHeightSlider"); if (isLocked) { if (type === 'width') hSlider.value = Math.round(val * 0.45); else wSlider.value = Math.round(val / 0.45); } document.documentElement.style.setProperty('--card-width', wSlider.value + 'px'); document.documentElement.style.setProperty('--card-height', hSlider.value + 'px'); data.prefs.cardWidth = parseInt(wSlider.value); data.prefs.cardHeight = parseInt(hSlider.value); save(); }
+
+/* ===============================
+QUICK LINKS MANAGER
+=============================== */
+let isLinkEditMode = false;
+function toggleLinkEditMode() { isLinkEditMode = !isLinkEditMode; let addSec = document.getElementById("linkAddSection"); if (isLinkEditMode) { addSec.classList.remove("hidden"); } else { addSec.classList.add("hidden"); } renderLinkManager(); }
+function openLinkModal() { isLinkEditMode = false; document.getElementById("linkAddSection").classList.add("hidden"); renderLinkManager(); openModal('linkOverlay'); }
+function openWebLink(url) { playAudio('launch.wav'); if (window.electronAPI) { window.electronAPI.launchApps([url]); } else { window.open(url, '_blank'); } closeModal('linkOverlay'); }
+function renderLinkManager() { let c = document.getElementById("linkList"); c.innerHTML = ""; data.links.forEach((lk, i) => { let div = document.createElement("div"); div.style.display = "flex"; div.style.alignItems = "center"; div.style.justifyContent = "space-between"; div.style.borderRadius = "4px"; div.style.marginBottom = "2px"; div.style.transition = "background 0.2s"; div.onmouseover = () => div.style.background = "rgba(255,255,255,0.05)"; div.onmouseout = () => div.style.background = "transparent"; let linkHtml = `<a href="#" onclick="event.preventDefault(); openWebLink('${lk.url}');" style="color:var(--text); font-size:14px; text-decoration:none; cursor:pointer; flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; padding: 8px 5px;" title="${lk.url}" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--text)'">${lk.name}</a>`; let controlsHtml = ""; if (isLinkEditMode) { controlsHtml = `<div style="display:flex; gap:5px; padding-right:5px;"><button onclick="moveLink(${i}, -1)" style="padding:2px 6px; font-size:10px; background:var(--header);">▲</button><button onclick="moveLink(${i}, 1)" style="padding:2px 6px; font-size:10px; background:var(--header);">▼</button><button onclick="deleteLink(${i})" style="padding:2px 6px; font-size:10px; background:#ff4444; color:#fff;">✕</button></div>`; } div.innerHTML = linkHtml + controlsHtml; c.appendChild(div); }); if (data.links.length === 0) c.innerHTML = "<div style='opacity:0.5; font-size:12px; text-align:center; padding:10px;'>No links added yet. Click Edit to add one.</div>"; }
+function addLink() { let n = document.getElementById("newLinkName").value.trim(); let u = document.getElementById("newLinkUrl").value.trim(); if (n && u) { if (!u.startsWith('http')) u = 'https://' + u; data.links.push({name:n, url:u}); save(); renderLinkManager(); document.getElementById("newLinkName").value = ""; document.getElementById("newLinkUrl").value = ""; } }
+function moveLink(i, dir) { if (i + dir < 0 || i + dir >= data.links.length) return; let temp = data.links[i]; data.links[i] = data.links[i+dir]; data.links[i+dir] = temp; save(); renderLinkManager(); }
+function deleteLink(i) { 
+    showConfirm("Delete this link?", () => { 
+        data.links.splice(i, 1); save(); renderLinkManager(); 
+    }); 
+}
+
+/* ===============================
+LEVELS, GOALS & ARCHIVING
+=============================== */
+
+function calculateDeadline() { 
+    let preset = document.getElementById('gDeadlinePreset').value; 
+    if(preset === "custom") return; 
+    
+    let d = new Date();
+    let start = new Date(d);
+    let end = new Date(d);
+    
+    if (preset === "week") {
+        let day = start.getDay() || 7; 
+        start.setDate(start.getDate() - (day - 1)); 
+        start.setHours(12, 0, 0, 0); // Force noon to prevent timezone shift
+        end = new Date(start);
+        end.setDate(end.getDate() + 6); 
+    } else if (preset === "month") {
+        // Adding 12, 0, 0 forces the date to noon
+        start = new Date(d.getFullYear(), d.getMonth(), 1, 12, 0, 0);
+        end = new Date(d.getFullYear(), d.getMonth() + 1, 0, 12, 0, 0); 
+    } else if (preset === "year") {
+        start = new Date(d.getFullYear(), 0, 1, 12, 0, 0);
+        end = new Date(d.getFullYear(), 11, 31, 12, 0, 0);
+    }
+    
+    document.getElementById('gStartDate').value = getLocalDateStr(start); 
+    document.getElementById('gDeadline').value = getLocalDateStr(end); 
+}
+let editIdx = null; function openGoalModal(idx=null) { 
+    editIdx = idx; 
+    if(idx !== null) { 
+        let g = data.goals[idx]; 
+        document.getElementById('gName').value = g.name; document.getElementById('gMetric').value = g.metric; 
+        document.getElementById('gTarget').value = g.target; document.getElementById('gType').value = g.type; 
+        document.getElementById('gFrame').value = g.frame; 
+        document.getElementById('gDeadline').value = g.deadline || ""; 
+        document.getElementById('gStartDate').value = g.startDate || g.createdAt || ""; 
+        document.getElementById('gDeadlinePreset').value = "custom"; 
+    } else { 
+        document.getElementById('gName').value = ""; document.getElementById('gTarget').value = ""; 
+        document.getElementById('gFrame').value = "none"; document.getElementById('gDeadline').value = ""; 
+        document.getElementById('gStartDate').value = getLocalDateStr(); 
+        document.getElementById('gDeadlinePreset').value = "custom"; 
+    } 
+    openModal("goalOverlay"); 
+}
+function saveGoal() { 
+    let g = { name: document.getElementById('gName').value || "Goal", metric: document.getElementById('gMetric').value, target: parseFloat(document.getElementById('gTarget').value)||1, type: document.getElementById('gType').value, frame: document.getElementById('gFrame').value, deadline: document.getElementById('gDeadline').value, startDate: document.getElementById('gStartDate').value, createdAt: getLocalDateStr(), achieved: false }; 
+    if(editIdx !== null) { g.createdAt = data.goals[editIdx].createdAt || getLocalDateStr(); g.achieved = data.goals[editIdx].achieved; data.goals[editIdx] = g; } 
+    else { data.goals.push(g); } 
+    save(); closeModal('goalOverlay'); renderGoals(); 
+}
+
+function getGoalProgress(g) {
+    let prog = 0; let logs = data.entries;
+    if(g.type !== "all") logs = logs.filter(e => e.type === g.type);
+    if(!g.deadline && !g.startDate) {
+        let todayStr = getLocalDateStr(); let now = new Date();
+        if(g.frame === "daily") logs = logs.filter(e => e.date === todayStr);
+        if(g.frame === "weekly") { let d = new Date(); d.setHours(-24 * ((d.getDay()||7) - 1)); let mon = getLocalDateStr(d); logs = logs.filter(e => e.date >= mon); }
+        if(g.frame === "monthly") { let m = now.getMonth(), y = now.getFullYear(); logs = logs.filter(e => { let d = new Date(e.date); return d.getMonth() === m && d.getFullYear() === y; }); }
+        if(g.frame === "yearly") { let y = now.getFullYear(); logs = logs.filter(e => new Date(e.date).getFullYear() === y); }
+    } else {
+        let start = g.startDate || g.createdAt || "2000-01-01"; 
+        let end = g.deadline || "2099-12-31";
+        logs = logs.filter(e => e.date >= start && e.date <= end);
+    }
+    
+    logs.forEach(e => {
+        if (g.metric === 'units') {
+            prog += (e.units || e.eps || e.pages || 0);
+        } else {
+            prog += (e[g.metric] || 0);
+        }
+    }); 
+    return prog;
+}
+function renderGoals() { 
+    const container = document.getElementById("goalsContainer"); container.innerHTML = ""; 
+    let todayStr = getLocalDateStr(); let needsSave = false; 
+    
+    for(let i = data.goals.length - 1; i >= 0; i--) { 
+        let g = data.goals[i]; let prog = getGoalProgress(g);
+        if(g.deadline && g.deadline < todayStr) { g.finalProgress = prog; data.archivedGoals.push(g); data.goals.splice(i, 1); needsSave = true; } 
+    } 
+    if (needsSave) save(); 
+    
+    data.goals.forEach((g, i) => { 
+        let prog = getGoalProgress(g); let pct = Math.min((prog / g.target) * 100, 100); let done = prog >= g.target; 
+        if(done && !g.achieved) { playAudio('goal.wav'); g.achieved = true; save(); } else if (!done) { g.achieved = false; } 
+        
+        let timeRemaining = ""; let paceHtml = ""; let historyHtml = ""; let trajectoryHtml = "";
+        
+        if(g.deadline && !done) { 
+            let diffDays = Math.max(1, Math.ceil((new Date(g.deadline) - new Date(todayStr)) / 86400000)); 
+            timeRemaining = ` | ${diffDays} days left`; 
+            
+            let paceReq = (g.target - prog) / diffDays;
+            let pFormat = g.metric === 'hours' ? paceReq.toFixed(1) : Math.ceil(paceReq);
+            let pLabel = g.metric === 'hours' ? 'h' : (g.metric === 'chars' ? 'c' : 'u');
+            
+            if (data.prefs.showGoalPace !== false) {
+                paceHtml = `<span style="opacity: 0.6; font-size: 11px;">(${pFormat}${pLabel}/d)</span>`;
+            }
+
+            if (data.prefs.showTrajectory !== false) {
+                let start = new Date(g.startDate || g.createdAt || todayStr);
+                let end = new Date(g.deadline);
+                let today = new Date(todayStr);
+                
+                let totalDays = Math.max(1, Math.ceil((end - start) / 86400000));
+                let daysElapsed = Math.max(0, Math.floor((today - start) / 86400000));
+                
+                let expectedProg = (g.target / totalDays) * daysElapsed;
+                let diff = prog - expectedProg;
+                let diffStr = Math.abs(diff).toFixed(g.metric==='hours'?1:0);
+                
+                if (diff >= 0) {
+                    trajectoryHtml = `<span class="goal-trajectory" style="color:var(--accent);">📈 Ahead by ${diffStr}${pLabel}</span>`;
+                } else {
+                    trajectoryHtml = `<span class="goal-trajectory" style="color:#ff4444;">📉 Behind by ${diffStr}${pLabel}</span>`;
+                }
+            }
+        } 
+        
+        if (g.frame !== 'none' && !g.deadline) { historyHtml = getGoalHistoryStr(g); }
+        
+        let dispProg = g.metric === "hours" ? prog.toFixed(1) : Math.floor(prog); 
+        let dispTgt = g.metric === "hours" ? g.target.toFixed(1) : Math.floor(g.target); 
+        
+        let card = document.createElement("div"); card.className = `goal-card ${done ? 'completed' : ''}`; 
+        card.innerHTML = `
+            <div style="display:flex; justify-content:space-between"><strong>${g.name} ${done?'✅':''}</strong><div class="goal-actions"><button onclick="archiveGoalEarly(${i})" title="Archive Early">📦</button> <button onclick="openGoalModal(${i})">✎</button> <button onclick="deleteGoal(${i})">✕</button></div></div>
+            <div class="progress"><div class="progress-fill" style="width:${pct}%"></div></div>
+            <div style="display:flex; justify-content:space-between; font-size:12px"><span>${dispProg} / ${dispTgt} ${g.metric}</span><span>${done ? 'Finished!' : (g.target - prog).toFixed(g.metric==='hours'?1:0) + ' left' + timeRemaining}</span></div>
+            <div class="goal-meta" style="display:flex; align-items:center; justify-content:space-between; margin-top:8px;">
+                <span>${g.frame !== 'none' ? g.frame.toUpperCase() + ' • ' : ''}${g.type}${trajectoryHtml}${historyHtml}</span>
+                ${paceHtml}
+            </div>
+        `; 
+        container.appendChild(card); 
+    }); 
+}
+function getGoalHistoryStr(g, endOverride = null) {
+    if (data.prefs.showGoalHistory === false || g.frame === 'none') return ""; 
+    
+    let start = new Date(g.createdAt || getLocalDateStr()); start.setHours(12,0,0,0);
+    let now = new Date(endOverride || getLocalDateStr()); now.setHours(12,0,0,0);
+    let logs = data.entries; if(g.type !== "all") logs = logs.filter(e => e.type === g.type);
+    let clears = 0; let total = 0;
+
+    if (g.frame === 'daily') {
+        total = Math.floor((now - start) / 86400000);
+        for(let i=0; i<total; i++) {
+            let d = new Date(start); d.setDate(d.getDate() + i);
+            let dayLogs = logs.filter(e => e.date === getLocalDateStr(d));
+            let prog = dayLogs.reduce((acc, e) => acc + (g.metric==='units' ? (e.units||e.eps||e.pages||0) : (e[g.metric]||0)), 0);
+            if (prog >= g.target) clears++;
+        }
+    } else if (g.frame === 'weekly') {
+        let startMon = new Date(start); startMon.setDate(startMon.getDate() - ((startMon.getDay()||7) - 1));
+        let nowMon = new Date(now); nowMon.setDate(nowMon.getDate() - ((nowMon.getDay()||7) - 1));
+        total = Math.floor((nowMon - startMon) / (86400000 * 7));
+        for(let i=0; i<total; i++) {
+            let wStart = new Date(startMon); wStart.setDate(wStart.getDate() + (i*7));
+            let wEnd = new Date(wStart); wEnd.setDate(wEnd.getDate() + 6);
+            let sStr = getLocalDateStr(wStart); let eStr = getLocalDateStr(wEnd);
+            let wLogs = logs.filter(e => e.date >= sStr && e.date <= eStr);
+            let prog = wLogs.reduce((acc, e) => acc + (g.metric==='units' ? (e.units||e.eps||e.pages||0) : (e[g.metric]||0)), 0);
+            if (prog >= g.target) clears++;
+        }
+    } else if (g.frame === 'monthly') {
+        total = (now.getFullYear() - start.getFullYear()) * 12 + (now.getMonth() - start.getMonth());
+        for(let i=0; i<total; i++) {
+            let mStart = new Date(start.getFullYear(), start.getMonth() + i, 1, 12, 0, 0);
+            let m = mStart.getMonth(); let y = mStart.getFullYear();
+            let mLogs = logs.filter(e => { let d = new Date(e.date); return d.getMonth() === m && d.getFullYear() === y; });
+            let prog = mLogs.reduce((acc, e) => acc + (g.metric==='units' ? (e.units||e.eps||e.pages||0) : (e[g.metric]||0)), 0);
+            if (prog >= g.target) clears++;
+        }
+    }
+    
+    if (total <= 0) return `<span style="font-size:10px; opacity:0.6; margin-left:8px;" title="History evaluates at end of period">⏳ 0/0</span>`;
+    let color = (clears/total) >= 0.8 ? '#0f0' : ((clears/total) >= 0.5 ? '#ffaa00' : '#ff4444');
+    return `<span style="font-size:10px; margin-left:8px; border: 1px solid var(--border); padding: 2px 4px; border-radius: 4px; opacity:0.8;" title="${clears} clears out of ${total} past periods">🎯 <span style="color:${color}; font-weight:bold;">${clears}</span>/${total}</span>`;
+}
+
+function deleteGoal(i) { 
+    showConfirm("Delete goal entirely?", () => { 
+        data.goals.splice(i,1); save(); renderGoals(); 
+    }); 
+}
+
+function archiveGoalEarly(i) { 
+    showConfirm("Archive this goal early?", () => { 
+        let g = data.goals[i]; g.finalProgress = getGoalProgress(g); g.deadline = getLocalDateStr(); 
+        data.archivedGoals.push(g); data.goals.splice(i, 1); save(); renderGoals(); 
+    }); 
+}
+
+function openArchiveModal() { 
+    let container = document.getElementById("archivedGoalsContainer"); container.innerHTML = ""; 
+    if (data.archivedGoals.length === 0) { 
+        container.innerHTML = "<div style='opacity:0.6'>No archived goals yet.</div>"; 
+    } else { 
+        data.archivedGoals.forEach((g, idx) => { 
+            let start = g.createdAt ? formatDDMMYYYY(g.createdAt) : "Unknown"; 
+            let end = g.deadline ? formatDDMMYYYY(g.deadline) : "Unknown"; 
+            let prog = g.finalProgress !== undefined ? g.finalProgress : 0; 
+            let dispProg = g.metric === "hours" ? prog.toFixed(1) : Math.floor(prog); 
+            let dispTgt = g.metric === "hours" ? g.target.toFixed(1) : Math.floor(g.target); 
+            let isCleared = prog >= g.target; 
+            let badge = isCleared ? `<span style="background:rgba(0,255,0,0.1); color:#0f0; padding:2px 6px; border-radius:4px; font-size:10px; border:1px solid #0f0; font-weight:bold;">✅ CLEARED</span>` : `<span style="background:rgba(255,0,0,0.1); color:#ff4444; padding:2px 6px; border-radius:4px; font-size:10px; border:1px solid #ff4444; font-weight:bold;">❌ FAILED</span>`; 
+            
+            let historyHtml = ""; if (g.frame !== 'none') historyHtml = getGoalHistoryStr(g, g.deadline);
+
+            let cardStyle = isCleared ? `border-left: 4px solid #ffd700; background: rgba(255, 215, 0, 0.05);` : `border-left: 4px solid #555; opacity:0.7; filter:grayscale(0.5);`; 
+            let div = document.createElement("div"); div.className = "stat"; div.style.cssText = `margin-bottom: 8px; position:relative; ${cardStyle}`; 
+            div.innerHTML = `<div style="display:flex; justify-content:space-between; align-items:center;"><div><strong style="font-size:16px;">${g.name}</strong> <span style="margin-left: 10px;">${badge}</span>${historyHtml}</div><button onclick="deleteArchivedGoal(${idx})" style="background:transparent; border:none; color:#ff4444; font-size:16px; cursor:pointer;" title="Delete Permanently">🗑️</button></div><span style="font-size:12px; opacity:0.8; display:block; margin-top:8px;">Start: <strong>${start}</strong> - End: <strong>${end}</strong> | Progress: <strong>${dispProg} / ${dispTgt}</strong> ${g.metric}</span>`; 
+            container.appendChild(div); 
+        }); 
+    } 
+    openModal("archiveOverlay"); 
+}
+function deleteArchivedGoal(idx) { 
+    showConfirm("Permanently delete this archived goal?", () => { 
+        data.archivedGoals.splice(idx,1); save(); openArchiveModal(); 
+    }); 
+}
+
+/* ===============================
+HEATMAP & CHARTS
+=============================== */
+// Tiny helper to convert Hex Theme colors to RGBA for the charts
+function hexToRgb(hex) {
+    if (!hex || !hex.startsWith('#')) return "76, 201, 240"; // Fallback
+    let c = hex.substring(1).split('');
+    if(c.length === 3) c = [c[0], c[0], c[1], c[1], c[2], c[2]];
+    c = '0x' + c.join('');
+    return [(c>>16)&255, (c>>8)&255, c&255].join(',');
+}
+
+let currentHeatmapYear = new Date().getFullYear(); 
+function changeYear(dir) { currentHeatmapYear += dir; renderHeatmap(); }
+
+function renderHeatmap() { 
+    const heatmap = document.getElementById("heatmap"); heatmap.innerHTML = ""; 
+    document.getElementById("heatmapYear").textContent = currentHeatmapYear; 
+    let startDate = new Date(currentHeatmapYear, 0, 1); let endDate = new Date(currentHeatmapYear, 11, 31); 
+    let dayHours = {}; 
+    
+    data.entries.forEach(e => { let d = new Date(e.date); if(d.getFullYear() === currentHeatmapYear) { dayHours[e.date] = (dayHours[e.date] || 0) + e.hours; } }); 
+    
+    // Dynamically grab the current theme's accent color!
+    let accentHex = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#4cc9f0';
+    let rgbVal = hexToRgb(accentHex);
+
+    for(let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) { 
+        let dateStr = getLocalDateStr(d); let totalH = dayHours[dateStr] || 0; 
+        let dayDiv = document.createElement("div"); dayDiv.className = "heatmap-day"; 
+        
+        // Applies the theme color with dynamic opacity based on hours logged
+        if(totalH > 0) dayDiv.style.background = `rgba(${rgbVal}, ${0.2 + Math.min(totalH / 5, 1) * 0.8})`; 
+        
+        dayDiv.setAttribute("data-info", `${formatDDMMYYYY(dateStr)}: ${totalH.toFixed(1)}h`); 
+        heatmap.appendChild(dayDiv); 
+    } 
+}
+
+let pie, line; 
+
+function updateCharts() { 
+    if (typeof Chart === 'undefined') return; 
+    let ent = getFilteredEntries(rangeSelect.value); 
+    let selectedMetric = document.getElementById("trendMetric").value || "hours"; 
+    
+    // Grab the full active theme object!
+    let currTheme = {...themes, ...data.prefs.customThemes}[data.prefs.theme] || themes.Dark;
+    
+    // --- DYNAMIC PIE CHART COLORS ---
+    let dist = {}; ent.forEach(e => { dist[e.type] = (dist[e.type] || 0) + e.hours; }); 
+    let filteredDist = {}; for (const [key, val] of Object.entries(dist)) { if (val > 0) filteredDist[key] = val; }
+    
+    let pieLabels = Object.keys(filteredDist);
+    // Looks for the exact media type in the theme JSON. If missing, safely falls back to stringToColor!
+    let pieColors = pieLabels.map(label => currTheme[label.toLowerCase()] || stringToColor(label)); 
+
+    if(pie) pie.destroy(); 
+    pie = new Chart(document.getElementById("pieChart"), { 
+        type:'doughnut', 
+        data:{ 
+            labels: pieLabels, 
+            datasets:[{data:Object.values(filteredDist), backgroundColor: pieColors, borderColor: 'rgba(0,0,0,0.2)', borderWidth: 2}] 
+        }, 
+        options:{ 
+            responsive: true, maintainAspectRatio: false, 
+            plugins:{legend:{position:'bottom', labels: {color: '#888', font: {size: 11}}}}, 
+            onClick: (e, activeEls) => { 
+                if (activeEls.length > 0) { 
+                    let clickedIndex = activeEls[0].index; let label = pie.data.labels[clickedIndex]; 
+                    let mf = document.getElementById('mediaFilter'); 
+                    if(Array.from(mf.options).some(o => o.value === label)) { mf.value = label; updateAll(); } 
+                } 
+            } 
+        } 
+    });
+    
+    let rangeVal = rangeSelect.value; let startDate = new Date(); let endDate = new Date();
+    if (ent.length === 0 && rangeVal === 'all') { if(line) line.destroy(); return; }
+    if (rangeVal === '7') { startDate.setDate(startDate.getDate() - 7); } else if (rangeVal === '30') { startDate.setDate(startDate.getDate() - 30); } else if (rangeVal === '90') { startDate.setDate(startDate.getDate() - 90); } else if (rangeVal === '365') { startDate = new Date(new Date().getFullYear(), 0, 1); } else if (rangeVal === 'custom') { startDate = new Date(document.getElementById("customStartDate").value); endDate = new Date(document.getElementById("customEndDate").value); } else { if (ent.length > 0) { startDate = new Date(Math.min(...ent.map(e => new Date(e.date)))); endDate = new Date(Math.max(...ent.map(e => new Date(e.date)))); } }
+    startDate.setHours(0,0,0,0); endDate.setHours(23,59,59,999);
+    let dateArray = []; for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) { dateArray.push(getLocalDateStr(d)); } dateArray = [...new Set(dateArray)]; 
+
+    let dayData = {}; dateArray.forEach(d => dayData[d] = {c:0, h:0, metric:0, validCphHours: 0});
+
+    ent.forEach(e => {
+        if(!dayData[e.date]) return; 
+        dayData[e.date].c += e.chars || 0; dayData[e.date].h += e.hours || 0; 
+        if (e.chars > 0 && e.hours > 0) { dayData[e.date].validCphHours += e.hours; }
+        
+        let val = e.hours; 
+        if(selectedMetric === "chars") val = e.chars || 0; 
+        if(selectedMetric === "units" || selectedMetric === "eps" || selectedMetric === "pages") val = (e.units || e.eps || e.pages || 0); 
+        dayData[e.date].metric += val;
+    });
+
+    let labels = dateArray.map(d => formatDDMMYYYY(d));
+    let chartData = dateArray.map(d => { 
+        if (selectedMetric === "cph") return dayData[d].validCphHours > 0 ? Math.floor(dayData[d].c / dayData[d].validCphHours) : 0; 
+        return dayData[d].metric; 
+    });
+    
+    // --- DYNAMIC TREND LINE COLORS ---
+    let cType = data.prefs.chartStyle || 'line';
+    let lineTension = data.prefs.trendCurve === 'straight' ? 0 : 0.3;
+    let lineFill = data.prefs.trendFill !== false;
+    
+    // Grab the theme color
+    let accentHex = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#4cc9f0';
+    let rgbVal = hexToRgb(accentHex);
+
+    if(line) line.destroy(); line = new Chart(document.getElementById("lineChart"), { 
+        type: cType, 
+        data:{ 
+            labels:labels, 
+            datasets:[{
+                label: selectedMetric.toUpperCase(), 
+                data:chartData, 
+                borderColor: accentHex, 
+                tension: lineTension, 
+                fill: lineFill, 
+                backgroundColor: cType === 'bar' ? `rgba(${rgbVal}, 0.5)` : (lineFill ? `rgba(${rgbVal}, 0.1)` : 'transparent')
+            }] 
+        }, 
+        options: { 
+            responsive: true, maintainAspectRatio: false, 
+            plugins: { legend: { display: false } },
+            scales: { 
+                x: { ticks: { color: '#888' }, grid: { display: false } }, 
+                y: { 
+                    ticks: { color: '#888', maxTicksLimit: 8 }, 
+                    grid: { color: 'rgba(255,255,255,0.05)' } 
+                } 
+            }
+        } 
+    }); 
+}
+
+/* ===============================
+FULL-PAGE COMPARE SYSTEM
+=============================== */
+let compareChartInstance = null;
+
+function stringToColor(str) {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+        hash = str.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    let h = Math.abs((hash * 137.508) % 360);
+    return `hsl(${h}, 75%, 60%)`;
+}
+
+function openComparePage() {
+    document.getElementById('libraryView').classList.add('hidden');
+    document.getElementById('analyticsView').classList.add('hidden');
+    document.getElementById('compareView').classList.remove('hidden');
+    updateCompareChart();
+}
+
+function closeComparePage() {
+    document.getElementById('compareView').classList.add('hidden');
+    document.getElementById('analyticsView').classList.remove('hidden');
+    document.getElementById('headerFilters').classList.remove('hidden');
+    setTimeout(() => { if(pie) pie.resize(); if(line) line.resize(); }, 100);
+}
+
+function updateCompareChart() {
+    if (typeof Chart === 'undefined') return;
+    let metric = document.getElementById('compareMetric').value;
+    
+    // Respect active filters
+    let ent = getFilteredEntries(document.getElementById('rangeSelect').value);
+    
+    let mediaAgg = {};
+    ent.forEach(e => {
+        if (!e.media) return;
+        if (!mediaAgg[e.media]) mediaAgg[e.media] = { hours: 0, chars: 0, units: 0, validCphHours: 0, days: new Set() };
+        
+        mediaAgg[e.media].hours += e.hours || 0;
+        mediaAgg[e.media].chars += e.chars || 0;
+        mediaAgg[e.media].units += (e.units || e.eps || e.pages || 0);
+        mediaAgg[e.media].days.add(e.date);
+        
+        if (e.chars > 0 && e.hours > 0) mediaAgg[e.media].validCphHours += e.hours;
+    });
+
+    // --- LEADERBOARD LOGIC ---
+    let maxHours = {val: 0, name: "-"};
+    let maxCph = {val: 0, name: "-"};
+    let maxDays = {val: 0, name: "-"};
+    let maxSession = {val: 0, name: "-"};
+
+    Object.keys(mediaAgg).forEach(m => {
+        if(mediaAgg[m].hours > maxHours.val) { maxHours.val = mediaAgg[m].hours; maxHours.name = m; }
+        
+        let cph = mediaAgg[m].validCphHours > 0 ? Math.floor(mediaAgg[m].chars / mediaAgg[m].validCphHours) : 0;
+        if(cph > maxCph.val) { maxCph.val = cph; maxCph.name = m; }
+        
+        if(mediaAgg[m].days.size > maxDays.val) { maxDays.val = mediaAgg[m].days.size; maxDays.name = m; }
+    });
+
+    ent.forEach(e => {
+        if(e.media && e.hours > maxSession.val) { maxSession.val = e.hours; maxSession.name = e.media; }
+    });
+
+    document.getElementById('lbBlackHole').textContent = maxHours.name;
+    document.getElementById('lbBlackHoleSub').textContent = maxHours.val > 0 ? maxHours.val.toFixed(1) + " total hours" : "-";
+
+    document.getElementById('lbSpeed').textContent = maxCph.val > 0 ? maxCph.name : "-";
+    document.getElementById('lbSpeedSub').textContent = maxCph.val > 0 ? maxCph.val.toLocaleString() + " CPH" : "No chars logged";
+
+    document.getElementById('lbHabit').textContent = maxDays.val > 0 ? maxDays.name : "-";
+    document.getElementById('lbHabitSub').textContent = maxDays.val > 0 ? maxDays.val + " days active" : "-";
+
+    document.getElementById('lbMarathon').textContent = maxSession.val > 0 ? maxSession.name : "-";
+    document.getElementById('lbMarathonSub').textContent = maxSession.val > 0 ? maxSession.val.toFixed(1) + "h in one day" : "-";
+
+    // --- CHART LOGIC ---
+    let chartLabels = [];
+    let chartData = [];
+    let chartColors = [];
+    
+    let currTheme = {...themes, ...data.prefs.customThemes}[data.prefs.theme] || themes.Dark;
+
+    Object.keys(mediaAgg).forEach(m => {
+        let val = 0;
+        if (metric === 'hours') val = mediaAgg[m].hours;
+        if (metric === 'chars') val = mediaAgg[m].chars;
+        if (metric === 'units') val = mediaAgg[m].units;
+        if (metric === 'cph') val = mediaAgg[m].validCphHours > 0 ? Math.floor(mediaAgg[m].chars / mediaAgg[m].validCphHours) : 0;
+        
+        if (val > 0) {
+            chartLabels.push(m);
+            chartData.push(metric === 'hours' ? parseFloat(val.toFixed(1)) : val);
+            
+            let mType = data.mediaData[m] ? data.mediaData[m].type : '';
+            let tColor = currTheme[mType.toLowerCase()];
+            chartColors.push(tColor || stringToColor(m));
+        }
+    });
+
+    let combined = chartLabels.map((lbl, i) => ({ lbl, val: chartData[i], col: chartColors[i] }));
+    combined.sort((a, b) => b.val - a.val);
+    chartLabels = combined.map(c => c.lbl);
+    chartData = combined.map(c => c.val);
+    chartColors = combined.map(c => c.col);
+
+    let ctx = document.getElementById('compareChart').getContext('2d');
+    if (compareChartInstance) compareChartInstance.destroy();
+
+    compareChartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: chartLabels,
+            datasets: [{
+                label: metric.toUpperCase(),
+                data: chartData,
+                backgroundColor: chartColors,
+                borderWidth: 1,
+                borderColor: 'rgba(0,0,0,0.3)',
+                barPercentage: 1.0,      // Removes gap inside categories
+                categoryPercentage: 1.0  // Removes gap between categories
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                y: { 
+                    ticks: { color: '#888', maxTicksLimit: 6 }, 
+                    grid: { color: 'rgba(255,255,255,0.05)' } 
+                },
+                x: { ticks: { color: '#888' }, grid: { display: false } }
+            }
+        }
+    });
+}
+
+/* ===============================
+HISTORY, GHOST HOOKER & SETTINGS
+=============================== */
+function openHistory() { openModal("historyOverlay"); let now = new Date(); let localNow = new Date(now.getTime() - now.getTimezoneOffset() * 60000); let today = localNow.toISOString().split("T")[0]; let firstDayStr = `${localNow.getFullYear()}-${String(localNow.getMonth() + 1).padStart(2, '0')}-01`; histStart.value = firstDayStr; histEnd.value = today; renderHistory(); }
+function renderHistory() { 
+    const tbody = document.querySelector("#historyTable tbody"); tbody.innerHTML = ""; 
+    data.entries.filter(e => (e.date >= histStart.value && e.date <= histEnd.value) && (histType.value === "all" || e.type === histType.value)).reverse().forEach(e => { 
+        let idx = data.entries.indexOf(e); 
+        let conf = data.mediaConfig[e.type] || {inputs:[]}; 
+        let amt = conf.inputs.includes('eps') ? e.eps + 'e' : e.hours.toFixed(1) + 'h'; 
+        if (conf.inputs.includes('chars') && e.chars > 0) amt += ` (${e.chars} chars)`; 
+        if (e.cards > 0) amt += ` <span style="color:var(--accent);">[${e.cards} cards]</span>`;
+        
+        let tr = document.createElement("tr"); 
+        tr.innerHTML = `<td>${formatDDMMYYYY(e.date)}</td><td>${e.type}</td><td>${e.media || "-"}</td><td>${amt}</td><td><button onclick="deleteEntry(${idx})">X</button></td>`; 
+        tbody.appendChild(tr); 
+    }); 
+}
+function deleteEntry(i) { 
+    showConfirm("Delete entry?", () => { 
+        data.entries.splice(i,1); 
+        save(); 
+        updateAll(); 
+        renderHistory(); 
+    }); 
+}
+
+let ws = null; let wsConnected = false; let hookedLines = [];
+function toggleHooker() { if (wsConnected) { if (ws) ws.close(); wsConnected = false; document.getElementById("mainHookBtn").classList.remove("on"); document.getElementById("zenHookBtn").style.color = ""; document.getElementById("zenHookBtn").style.borderColor = ""; } else { connectWebSocket(); playAudio('connect.wav'); } nukeFocus(); }
+function connectWebSocket() { try { let url = data.prefs.wsUrl || "ws://localhost:55001"; ws = new WebSocket(url); ws.onopen = () => { wsConnected = true; document.getElementById("mainHookBtn").classList.add("on"); document.getElementById("zenHookBtn").style.color = "#0f0"; document.getElementById("zenHookBtn").style.borderColor = "#0f0"; }; ws.onmessage = (e) => { let rawData = e.data.trim(); let actualText = rawData; try { let parsed = JSON.parse(rawData); if (parsed.sentence) actualText = parsed.sentence; else if (parsed.data && parsed.data.text) actualText = parsed.data.text; else if (parsed.message) actualText = parsed.message; } catch (err) {} if(actualText) { let recentLines = hookedLines.slice(-10); if (recentLines.some(l => l.text === actualText)) return; let cleanText = actualText.replace(/[^\p{L}\p{N}]/gu, ''); let charCount = [...cleanText].length; if (charCount > 0) { hookedLines.push({ id: Date.now(), text: actualText, length: charCount }); updateCharInputFromHook(); } } }; ws.onclose = () => { wsConnected = false; document.getElementById("mainHookBtn").classList.remove("on"); document.getElementById("zenHookBtn").style.color = ""; document.getElementById("zenHookBtn").style.borderColor = ""; }; ws.onerror = (err) => { wsConnected = false; }; } catch(e) {} }
+function updateCharInputFromHook() { document.getElementById("logChars").value = hookedLines.reduce((acc, l) => acc + l.length, 0); }
+function openAuditModal() { let container = document.getElementById("auditList"); if (hookedLines.length === 0) container.innerHTML = "<div style='opacity:0.6; text-align:center;'>No lines hooked yet.</div>"; else renderAuditList(); playAudio('audit.wav'); document.getElementById("auditOverlay").classList.remove("hidden"); }
+function renderAuditList() { let container = document.getElementById("auditList"); container.innerHTML = ""; [...hookedLines].reverse().forEach(line => { let div = document.createElement("div"); div.style.display = "flex"; div.style.justifyContent = "space-between"; div.style.borderBottom = "1px solid var(--border)"; div.style.padding = "4px 0"; div.innerHTML = `<div style="flex:1; word-break: break-all; margin-right:10px;">${line.text}</div><div style="color:var(--accent); width:30px; text-align:right;">${line.length}</div><button onclick="deleteHookLine(${line.id})" style="background:transparent; border:none; color:#ff4444; margin-left:10px;">✕</button>`; container.appendChild(div); }); }
+function deleteHookLine(id) { hookedLines = hookedLines.filter(l => l.id !== id); updateCharInputFromHook(); renderAuditList(); if(hookedLines.length === 0) document.getElementById("auditList").innerHTML = "<div style='opacity:0.6; text-align:center;'>No lines hooked yet.</div>"; }
+function clearAuditLog() { 
+    showConfirm("Clear all hooked lines?", () => { 
+        hookedLines = []; updateCharInputFromHook(); document.getElementById("auditList").innerHTML = "<div style='opacity:0.6; text-align:center;'>No lines hooked yet.</div>"; 
+    }); 
+}
+
+// --- ANKI POLLER BACKGROUND WORKER ---
+async function pollAnki() {
+    if (!data.prefs.ankiEnabled) return;
+    try {
+        let res = await fetch('http://127.0.0.1:8765', {
+            method: 'POST', body: JSON.stringify({action: "findCards", version: 6, params: {query: "added:1"}})
+        });
+        let json = await res.json();
+        if (json.error) return;
+        
+        let totalToday = json.result.length;
+        if (ankiBaseline === -1) { ankiBaseline = totalToday; return; }
+
+        if (totalToday > ankiBaseline) {
+            let diff = totalToday - ankiBaseline;
+            ankiBaseline = totalToday;
+
+            let isTimerActive = (timerInterval !== null || isTimerPaused); 
+            if (isTimerActive || data.prefs.ankiAlways) {
+                let logMined = document.getElementById('logMined');
+                if (logMined) {
+                    logMined.value = (parseInt(logMined.value) || 0) + diff;
+                }
+            }
+        }
+    } catch (e) { /* Anki not running */ }
+}
+setInterval(pollAnki, 15000);
+
+// --- SETTINGS LOGIC ---
+function switchSetTab(id) { document.querySelectorAll('.set-section').forEach(el => el.classList.remove('active')); document.querySelectorAll('.set-tab-btn').forEach(el => el.classList.remove('active')); document.getElementById(id).classList.add('active'); event.target.classList.add('active'); }
+
+function openSettings() { 
+    openModal("settingsOverlay"); populateThemeSelect(); renderMediaTypesSettings();
+    document.getElementById("setBlurCph").checked = data.prefs.blurCph || false;
+	document.getElementById("setGoalPace").checked = data.prefs.showGoalPace !== false;
+    document.getElementById("setGoalHistory").checked = data.prefs.showGoalHistory !== false;
+    document.getElementById("setGoalTrajectory").checked = data.prefs.showTrajectory !== false;
+    document.getElementById("resetHour").value = data.prefs.resetHour || 0; 
+    document.getElementById("cardWidthSlider").value = data.prefs.cardWidth || 220;
+    document.getElementById("cardHeightSlider").value = data.prefs.cardHeight || 100;
+    
+    // Load Trend Settings
+    document.getElementById("chartStyleSelect").value = data.prefs.chartStyle || "line";
+    document.getElementById("setTrendCurve").value = data.prefs.trendCurve || "smooth";
+    document.getElementById("setTrendFill").value = data.prefs.trendFill !== false ? "true" : "false";
+
+    document.getElementById("animePlayerPath").value = data.prefs.animePlayer || "";
+    document.getElementById("volSlider").value = data.prefs.volume !== undefined ? data.prefs.volume : 0.5;
+    document.getElementById("afkInput").value = data.prefs.afkTimer !== undefined ? data.prefs.afkTimer : 30;
+    document.getElementById("hkSave").value = data.prefs.hotkeys.save || ""; 
+    document.getElementById("hkTimer").value = data.prefs.hotkeys.timer || ""; 
+    document.getElementById("wsUrl").value = data.prefs.wsUrl || "ws://localhost:55001"; 
+    document.getElementById("muteSounds").checked = data.prefs.mute;
+    
+    // Load Anki Settings
+    document.getElementById("setAnkiEnabled").checked = data.prefs.ankiEnabled === true;
+    document.getElementById("setAnkiAlways").checked = data.prefs.ankiAlways === true;
+}
+
+function saveSettingsFast() { 
+    data.prefs.chartStyle = document.getElementById("chartStyleSelect").value; 
+    data.prefs.trendCurve = document.getElementById("setTrendCurve").value;
+    data.prefs.trendFill = document.getElementById("setTrendFill").value === "true";
+    data.prefs.volume = parseFloat(document.getElementById("volSlider").value); 
+    data.prefs.blurCph = document.getElementById("setBlurCph").checked; 
+    
+    data.prefs.ankiEnabled = document.getElementById('setAnkiEnabled').checked;
+    data.prefs.ankiAlways = document.getElementById('setAnkiAlways').checked;
+    
+    save(); 
+    updateCharts(); 
+    updateAll(); 
+}
+
+function closeSettings() { saveSettingsFast(); save(); closeModal("settingsOverlay"); updateElectronHotkeys(); updateAll(); nukeFocus(); }
+
+function populateThemeSelect() { let themeSelect = document.getElementById("themeSelect"); themeSelect.innerHTML = ""; let all = {...themes, ...data.prefs.customThemes}; Object.keys(all).forEach(k => { let o = document.createElement("option"); o.value=k; o.textContent=k; themeSelect.appendChild(o); }); themeSelect.value = data.prefs.theme; }
+document.getElementById("themeSelect").onchange = () => { 
+    data.prefs.theme = document.getElementById("themeSelect").value; 
+    applyTheme(data.prefs.theme); 
+    save(); 
+    updateAll(); // This forces the charts and heatmap to instantly redraw with the new colors!
+};
+const themes = {
+	Dark:{bg:"#0f1115",card:"#1a1d24",header:"#161a20",text:"#e6e6e6",accent:"#4cc9f0",border:"#333",input:"#1e1e1e",anime:"#ef4444",vn:"#3b82f6",manga:"#a855f7",book:"#22c55e",audiobook:"#f59e0b",youtube:"#dc2626",other:"#14b8a6"},
+	Light:{bg:"#f5f6fa",card:"#ffffff",header:"#eef1f5",text:"#1a1a1a",accent:"#2563eb",border:"#dcdcdc",input:"#f0f1f5",anime:"#ef4444",vn:"#3b82f6",manga:"#a855f7",book:"#22c55e",audiobook:"#f59e0b",youtube:"#dc2626",other:"#14b8a6"},
+	Dracula:{bg:"#282a36",card:"#343746",header:"#21222c",text:"#f8f8f2",accent:"#bd93f9",border:"#44475a",input:"#303241",anime:"#ef4444",vn:"#3b82f6",manga:"#a855f7",book:"#22c55e",audiobook:"#f59e0b",youtube:"#dc2626",other:"#14b8a6"},
+	Nord:{bg:"#2e3440",card:"#3b4252",header:"#2e3440",text:"#eceff4",accent:"#88c0d0",border:"#4c566a",input:"#434c5e",anime:"#ef4444",vn:"#3b82f6",manga:"#a855f7",book:"#22c55e",audiobook:"#f59e0b",youtube:"#dc2626",other:"#14b8a6"},
+	SolarizedDark:{bg:"#002b36",card:"#073642",header:"#002b36",text:"#93a1a1",accent:"#b58900",border:"#586e75",input:"#083c4a",anime:"#ef4444",vn:"#3b82f6",manga:"#a855f7",book:"#22c55e",audiobook:"#f59e0b",youtube:"#dc2626",other:"#14b8a6"},
+	SolarizedLight:{bg:"#fdf6e3",card:"#eee8d5",header:"#fdf6e3",text:"#073642",accent:"#268bd2",border:"#93a1a1",input:"#e4dcc7",anime:"#ef4444",vn:"#3b82f6",manga:"#a855f7",book:"#22c55e",audiobook:"#f59e0b",youtube:"#dc2626",other:"#14b8a6"}
+};
+
+
+
+function applyTheme(n) { let t = {...themes, ...data.prefs.customThemes}[n] || themes.Dark; Object.entries(t).forEach(([k,v]) => document.documentElement.style.setProperty(`--${k}`, v)); }
+
+function openCustomTheme() { closeModal("settingsOverlay"); openModal("customThemeOverlay"); }
+function closeCustomTheme() { closeModal("customThemeOverlay"); openSettings(); }
+function copyThemeTemplate() { let currentThemeName = data.prefs.theme; let themeObj = {...themes, ...data.prefs.customThemes}[currentThemeName] || themes.Dark; document.getElementById("ctJSON").value = JSON.stringify(themeObj, null, 4); }
+function saveCustomTheme() { 
+    try { 
+        data.prefs.customThemes[document.getElementById("ctName").value] = JSON.parse(document.getElementById("ctJSON").value); 
+        data.prefs.theme = document.getElementById("ctName").value; save(); applyTheme(data.prefs.theme); closeCustomTheme(); 
+    } catch(e) { showToast("⚠️ ALERT: Invalid JSON", "Alert"); } 
+}
+function deleteCurrentTheme() { 
+    let currentTheme = document.getElementById("themeSelect").value; 
+    if (themes[currentTheme]) { showToast("⚠️ ALERT: You cannot delete built-in OS themes!", "Alert"); return; } 
+    showConfirm(`Are you sure you want to delete the custom theme "${currentTheme}"?`, () => { 
+        delete data.prefs.customThemes[currentTheme]; data.prefs.theme = "Dark"; save(); populateThemeSelect(); applyTheme("Dark"); 
+    }); 
+}
+
+/* ===============================
+PHASE 2: MEDIA BUILDER
+=============================== */
+let editMTName = null;
+function renderMediaTypesSettings() {
+    let c = document.getElementById('mediaTypeContainer');
+    c.innerHTML = "";
+    let keys = Object.keys(data.mediaConfig);
+    
+    let allIdx = keys.indexOf('All Media');
+    if (allIdx > -1) { keys.splice(allIdx, 1); keys.unshift('All Media'); }
+    
+    keys.forEach((t) => {
+        let controls = "";
+        if (t !== 'All Media') {
+            controls = `
+                <button onclick="event.stopPropagation(); moveMediaType('${t}', -1)" style="padding:2px 8px; font-size:10px; background:var(--header); border:1px solid var(--border); color:var(--text);">▲</button>
+                <button onclick="event.stopPropagation(); moveMediaType('${t}', 1)" style="padding:2px 8px; font-size:10px; background:var(--header); border:1px solid var(--border); color:var(--text);">▼</button>
+            `;
+        }
+        c.innerHTML += `<div style="display:flex; justify-content:space-between; align-items:center; background:var(--header); padding:10px; border:1px solid var(--border); border-radius:6px; margin-bottom:8px; cursor:pointer;" onclick="openMediaTypeEditor('${t}')">
+            <strong>${t}</strong> 
+            <div style="display:flex; gap:8px; align-items:center;">
+                ${controls}
+                <span style="font-size:12px; color:var(--accent); margin-left:10px;">✎ Edit</span>
+            </div>
+        </div>`;
+    });
+}
+
+function moveMediaType(name, dir) {
+    let keys = Object.keys(data.mediaConfig);
+    let idx = keys.indexOf(name);
+    if (idx <= 0) return; 
+    
+    let newIdx = idx + dir;
+    if (newIdx <= 0 || newIdx >= keys.length) return;
+    
+    let temp = keys[idx];
+    keys[idx] = keys[newIdx];
+    keys[newIdx] = temp;
+    
+    let newObj = {};
+    keys.forEach(k => { newObj[k] = data.mediaConfig[k]; });
+    data.mediaConfig = newObj;
+    save(); populateDropdowns(); renderMediaTypesSettings();
+}
+
+function openMediaTypeEditor(name) {
+    editMTName = name;
+    document.getElementById('mtEditorTitle').textContent = name ? "Edit " + name : "New Media Type";
+    document.getElementById('mtName').value = name || "";
+    document.getElementById('mtName').disabled = !!name;
+    document.getElementById('mtDeleteBtn').classList.toggle('hidden', !name || name === 'All Media');
+    
+    // MERGED: Keeps your afk/autoSubmit AND adds the preset paths
+    let config = name ? data.mediaConfig[name] : {inputs:[], stats:[], unitName: 'Units', progressMetric: 'units', emoji: '📦', autoHook: false, autoSubmit: false, afk: 0, usePresetPaths: false, presetPaths: ["","",""]};
+    
+    document.getElementById('mtUnitName').value = config.unitName || 'Units';
+    document.getElementById('mtEmoji').value = config.emoji || '📦';
+    document.getElementById('mtProgressMetric').value = config.progressMetric || 'units';
+    document.getElementById('mtWeight').value = config.weight !== undefined ? config.weight : 1.0;
+    
+    // Your variables
+    document.getElementById('mtAfk').value = config.afk !== undefined ? config.afk : "";
+    document.getElementById('mtAutoHook').checked = config.autoHook === true;
+    document.getElementById('mtAutoSubmit').checked = config.autoSubmit === true;
+    
+    // The Launch Preset variables
+    document.getElementById('mtUsePresetPaths').checked = config.usePresetPaths === true;
+    let presetContainer = document.getElementById('mtPresetPathsContainer');
+    if (presetContainer) presetContainer.classList.toggle('hidden', !config.usePresetPaths);
+    
+    let pPaths = config.presetPaths || ["", "", ""];
+    let p1 = document.getElementById('mtPath1'), p2 = document.getElementById('mtPath2'), p3 = document.getElementById('mtPath3');
+    if (p1) p1.value = pPaths[0] || "";
+    if (p2) p2.value = pPaths[1] || "";
+    if (p3) p3.value = pPaths[2] || "";
+    
+    let hasUnits = config.inputs.includes('units') || config.inputs.includes('pages') || config.inputs.includes('eps');
+    document.getElementById('mtInpUnits').checked = hasUnits;
+    document.getElementById('mtInpChars').checked = config.inputs.includes('chars');
+    
+    ['Hours','Units','Chars','Pace','Speed','Days'].forEach(i => {
+        let id = i.toLowerCase();
+        let checkId = (id === 'units' && config.stats.includes('eps')) ? 'eps' : ((id === 'units' && config.stats.includes('pages')) ? 'pages' : id);
+        let idx = config.stats.indexOf(checkId); if(idx === -1) idx = config.stats.indexOf(id);
+        
+        let statCheck = document.getElementById(`mtStat${i}`); let statOrd = document.getElementById(`mtOrd${i}`);
+        if (statCheck) statCheck.checked = (idx !== -1);
+        if (statOrd) statOrd.value = (idx !== -1) ? idx : 99;
+    });
+    
+    openModal('mediaTypeEditorOverlay');
+}
+
+function saveMediaType() {
+    let name = document.getElementById('mtName').value.trim(); if(!name) return;
+    let unitName = document.getElementById('mtUnitName').value.trim() || 'Units';
+    let emoji = document.getElementById('mtEmoji').value.trim() || '📦';
+    let progressMetric = document.getElementById('mtProgressMetric').value || 'units';
+    let autoHook = document.getElementById('mtAutoHook').checked;
+    
+    // Your variables
+    let autoSubmit = document.getElementById('mtAutoSubmit').checked;
+    let afk = parseInt(document.getElementById('mtAfk').value) || 0;
+    
+    // The Launch Preset variables
+    let usePresetPathsBox = document.getElementById('mtUsePresetPaths');
+    let usePresetPaths = usePresetPathsBox ? usePresetPathsBox.checked : false;
+    let p1 = document.getElementById('mtPath1'), p2 = document.getElementById('mtPath2'), p3 = document.getElementById('mtPath3');
+    let presetPaths = [
+        p1 ? p1.value : "",
+        p2 ? p2.value : "",
+        p3 ? p3.value : ""
+    ];
+
+    let inputs = ['hours']; 
+    let weight = parseFloat(document.getElementById('mtWeight').value) || 1.0;
+    
+    if(document.getElementById('mtInpChars').checked) inputs.push('chars');
+    if(document.getElementById('mtInpUnits').checked) inputs.push('units');
+
+    let statObjects = [];
+    ['Hours','Units','Chars','Pace','Speed','Days'].forEach(i => { 
+        let statCheck = document.getElementById(`mtStat${i}`); let statOrd = document.getElementById(`mtOrd${i}`);
+        if(statCheck && statCheck.checked) { statObjects.push({ id: i.toLowerCase(), ord: statOrd ? (parseInt(statOrd.value) || 0) : 0 }); }
+    });
+    statObjects.sort((a,b) => a.ord - b.ord);
+    let stats = statObjects.map(s => s.id);
+    
+    // MERGED: Saves everything together
+    data.mediaConfig[name] = { inputs, stats, unitName, progressMetric, emoji, weight, autoHook, autoSubmit, afk, usePresetPaths, presetPaths };
+    if(!data.media[name]) data.media[name] = []; 
+    
+    save(); populateDropdowns(); renderMediaTypesSettings(); updateAll(); closeModal('mediaTypeEditorOverlay');
+}
+
+function deleteMediaType() {
+    showConfirm(`WARNING: Deleting '${editMTName}' will NOT delete its logs, but may cause display issues. Proceed?`, () => {
+        delete data.mediaConfig[editMTName];
+        delete data.media[editMTName];
+        save(); renderMediaTypesSettings(); populateDropdowns(); closeModal("mediaTypeEditorOverlay");
+    });
+}
+
+/* ===============================
+DATA & ELECTRON HOTKEYS
+=============================== */
+function exportData() { let dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data)); let a = document.createElement("a"); a.href = dataStr; a.download = "ImmersionOS_Backup.json"; a.click(); }
+function importData(event) { let file = event.target.files[0]; if (!file) return; let reader = new FileReader(); reader.onload = function(e) { try { let imported = JSON.parse(e.target.result); if (imported.entries && imported.media) { data = imported; save(); location.reload(); } else alert("Invalid save file."); } catch(err) { alert("Error parsing file."); } }; reader.readAsText(file); }
+function wipeData() { if(confirm("Wipe everything?") && prompt("Type 'DELETE' to confirm") === "DELETE") { localStorage.removeItem("immersionOSv13"); location.reload(); } }
+
+function updateElectronHotkeys() { if (window.electronAPI) window.electronAPI.registerHotkeys(data.prefs.hotkeys); }
+function updateAFK(val) { data.prefs.afkTimer = parseInt(val) || 0; save(); if (window.electronAPI) window.electronAPI.setAfkThreshold(data.prefs.afkTimer); }
+function recordBind(e, type) { e.preventDefault(); let keys = []; if (e.ctrlKey || e.metaKey) keys.push("CommandOrControl"); if (e.altKey) keys.push("Alt"); if (e.shiftKey) keys.push("Shift"); if (['Control', 'Shift', 'Alt', 'Meta'].includes(e.key)) return; let keyMap = { ' ': 'Space', '+': 'Plus', 'ArrowUp': 'Up', 'ArrowDown': 'Down', 'ArrowLeft': 'Left', 'ArrowRight': 'Right' }; let keyStr = keyMap[e.key] || e.key.toUpperCase(); keys.push(keyStr); let finalBind = keys.join('+'); document.getElementById(type === 'save' ? 'hkSave' : 'hkTimer').value = finalBind; data.prefs.hotkeys[type] = finalBind; save(); updateElectronHotkeys(); updateShortcutText(); }
+function clearBind(type) { data.prefs.hotkeys[type] = ""; document.getElementById(type === 'save' ? 'hkSave' : 'hkTimer').value = ""; save(); updateElectronHotkeys(); updateShortcutText(); }
+function updateShortcutText() { 
+    let saveStr = data.prefs.hotkeys.save ? `Save (${data.prefs.hotkeys.save})` : ""; 
+    let timerStr = data.prefs.hotkeys.timer ? `Timer (${data.prefs.hotkeys.timer})` : ""; 
+    let parts = [saveStr, timerStr].filter(x => x);
+    let finalStr = parts.length > 0 ? `Shortcuts: ${parts.join(' | ')} | Right-Click ▶ to Pause` : "Right-Click ▶ to Pause";
+    let el = document.getElementById("shortcutHint"); 
+    if (el) el.textContent = finalStr; 
+}
+function setAnimePlayer(input) { if (input.files && input.files[0]) { let path = input.files[0].path; if(path) { document.getElementById("animePlayerPath").value = path; data.prefs.animePlayer = path; save(); } } }
+
+if (window.electronAPI) {
+    window.electronAPI.onTriggerSave(() => { addEntry(); });
+    window.electronAPI.onTriggerTimer(() => { toggleTimer(); });
+    window.electronAPI.onAfkPause(() => { if (timerInterval && !isTimerPaused) { pauseTimer(); showToast("⏸️ AFK Detected. Timer Paused.", "Alert"); } });
+    
+    // --- APP CLOSED LISTENER ---
+    window.electronAPI.onAppClosed((closedMediaName) => {
+        let currentSelect = document.getElementById("mediaSelect").value;
+        if (currentSelect === closedMediaName && (timerInterval !== null || isTimerPaused)) {
+            if (!isTimerPaused) toggleTimer(); // Formally stop the timer
+            showToast(`🛑 ${closedMediaName} closed. Auto-saving entry!`, "Overall");
+            addEntry();
+        }
+    });
+
+    window.electronAPI.onAutoLogYt((ytData) => {
+    ytData.forEach(item => {
+        let h = item.seconds / 3600;
+        data.entries.push({ date: getLocalDateStr(), type: "YouTube", hours: h, chars: 0, pages: 1, media: item.channel });
+        if (!data.media["YouTube"]) data.media["YouTube"] = [];
+        if (!data.media["YouTube"].includes(item.channel)) {
+            data.media["YouTube"].push(item.channel);
+            data.mediaData[item.channel] = { type: "YouTube", status: 'active', target: null, img: "", paths: ["","",""], blur: false, hidden: false };
+        }
+    });
+    save(); updateAll(); renderLibrary();
+    showToast(`Logged ${ytData.length} YouTube sessions!`, "YouTube");
+	});
+
+    // --- MPV / ANIME RECEIVER ---
+    window.electronAPI.onAutoLogEp(async (arg1, arg2) => {
+        let rawData = arg2 !== undefined ? arg2 : arg1;
+        if (typeof rawData !== 'string') return;
+        
+        let parts = rawData.split("|||");
+        let folderPath = parts[0];
+        let seconds = parseInt(parts[1]) || 0;
+        let eps = parseInt(parts[2]) || 0;
+        
+        let pingText = folderPath.replace(/[^a-zA-Z0-9]/g, '').toLowerCase(); 
+        if (!pingText) return; 
+        
+        let matchedName = null;
+        Object.keys(data.mediaData).forEach(name => {
+            let paths = data.mediaData[name].paths || [];
+            paths.forEach(p => {
+                if (!p || p.trim() === "") return; 
+                let savedText = p.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
+                if (savedText.includes(pingText) || pingText.includes(savedText)) matchedName = name;
+            });
+        });
+        
+        if (matchedName && (seconds > 10 || eps > 0)) { 
+            // INSTANT SYNC before logging the MPV session
+            if (data.prefs.ankiEnabled) await pollAnki();
+
+            let hours = seconds / 3600;
+            let profile = data.mediaData[matchedName] || {};
+            let mediaType = profile.type || 'Anime';
+            let conf = data.mediaConfig[mediaType] || {};
+            
+            hours = hours * (conf.weight !== undefined ? conf.weight : 1.0);
+            
+            let logMined = document.getElementById('logMined');
+            let minedToAdd = parseInt(logMined?.value) || 0;
+
+            // --- SMART BATCHING ---
+            let todayStr = getLocalDateStr();
+            let existingEntry = data.entries.find(e => e.date === todayStr && e.media === matchedName);
+            
+            if (existingEntry) {
+                existingEntry.hours += hours;
+                existingEntry.units += eps;
+                existingEntry.cards = (existingEntry.cards || 0) + minedToAdd;
+            } else {
+                data.entries.push({ 
+                    date: todayStr, type: mediaType, hours: hours, chars: 0, units: eps, 
+                    cards: minedToAdd, media: matchedName 
+                }); 
+            }
+            
+            if (logMined) logMined.value = "";
+
+            save(); updateAll(); renderLibrary(); playAudio('save.wav'); 
+            showToast(`Logged ${hours.toFixed(1)}h & ${eps} ${conf.unitName || 'Eps'} for ${matchedName}!`, mediaType); 
+            checkAutoComplete(matchedName); renderLibrary();
+        }
+    });
+
+	window.electronAPI.onAutoLogMokuro((data) => {
+        let logC = document.getElementById("logChars");
+        if (logC) logC.value = (parseInt(logC.value) || 0) + data.chars;
+        let logU = document.getElementById("logUnits");
+        if (logU) logU.value = (parseInt(logU.value) || 0) + data.pages;
+    });
+}
+
+// Override Edit Media to include Notes
+const oldOpenLibEdit = openLibEdit;
+openLibEdit = function(name) {
+    oldOpenLibEdit(name);
+    let profile = data.mediaData[name];
+    document.getElementById("libEditNotes").value = profile.notes || "";
+};
+
+const oldSaveLibraryEdit = saveLibraryEdit;
+saveLibraryEdit = function() {
+    let oldName = editLibMediaName;
+    let newName = document.getElementById("libEditNewName").value.trim();
+    if (!newName) return oldSaveLibraryEdit(); 
+    let profileToUpdate = (newName !== oldName) ? data.mediaData[newName] : data.mediaData[oldName];
+    oldSaveLibraryEdit(); 
+    if (data.mediaData[newName]) {
+        data.mediaData[newName].notes = document.getElementById("libEditNotes").value;
+        save();
+    }
+};
+
+/* ===============================
+SCREENSHOT TOOL
+=============================== */
+function takeScreenshot() {
+    let btn = document.querySelector("button[onclick='takeScreenshot()']");
+    if (btn) btn.textContent = "⏳...";
+    html2canvas(document.body, { 
+        backgroundColor: getComputedStyle(document.documentElement).getPropertyValue('--bg').trim() 
+    }).then(canvas => {
+        let a = document.createElement('a');
+        a.href = canvas.toDataURL("image/png");
+        a.download = `ImmersionOS_${getLocalDateStr()}.png`;
+        a.click();
+        if (btn) btn.textContent = "📸 Snap";
+        playAudio('snap.wav');
+    }).catch(err => {
+        if (btn) btn.textContent = "📸 Snap";
+    });
+}
+
+function openHiddenMediaModal() { openModal("hiddenMediaOverlay"); renderHiddenMedia(); }
+function renderHiddenMedia() {
+    let c = document.getElementById("hiddenMediaList"); c.innerHTML = "";
+    let showDrop = document.getElementById("showDroppedCheck").checked;
+    let items = Object.keys(data.mediaData).filter(k => data.mediaData[k].hidden || (showDrop && data.mediaData[k].status === 'dropped'));
+    if(items.length===0) { c.innerHTML = "<div style='opacity:0.6'>No hidden media.</div>"; return; }
+    items.forEach(k => {
+        let d = document.createElement("div"); d.style.display="flex"; d.style.justifyContent="space-between"; d.style.marginBottom="5px"; d.style.alignItems="center";
+        d.innerHTML = `<span>${k} <span style="opacity:0.6;font-size:10px;">(${data.mediaData[k].type})</span></span> <button onclick="restoreHiddenMedia('${k}')" style="padding:4px 8px; font-size:10px;">Restore</button>`;
+        c.appendChild(d);
+    });
+}
+function restoreHiddenMedia(name) {
+    data.mediaData[name].hidden = false;
+    if(data.mediaData[name].status === 'dropped') data.mediaData[name].status = 'active';
+    save(); renderHiddenMedia(); renderLibrary();
+}
+
+/* ===============================
+TIMER & ZEN MODE LOGIC
+=============================== */
+let timerInterval = null; 
+let startTime = 0; 
+let accumulatedMs = 0; 
+let isTimerPaused = false;
+
+function formatZenTime(ms) {
+    let totalSec = Math.floor(ms / 1000); 
+    let h = String(Math.floor(totalSec / 3600)).padStart(2, '0');
+    let m = String(Math.floor((totalSec % 3600) / 60)).padStart(2, '0'); 
+    let s = String(totalSec % 60).padStart(2, '0');
+    return `${h}:${m}:${s}`;
+}
+
+function toggleTimer() {
+    const btn = document.getElementById("timerBtn"); 
+    const zenBtn = document.getElementById("zenTimerBtn");
+    
+    if(!timerInterval && !isTimerPaused) {
+        startTime = Date.now(); accumulatedMs = 0; isTimerPaused = false; 
+        if(btn) { btn.textContent = "■"; btn.classList.add("active"); btn.style.background = ""; btn.style.borderColor = ""; }
+        if(zenBtn) { zenBtn.textContent = "■ STOP"; zenBtn.classList.add("active"); zenBtn.style.background = ""; zenBtn.style.borderColor = ""; }
+        playAudio('timer.wav'); 
+        
+        timerInterval = setInterval(() => { 
+            let elapsedMs = accumulatedMs + (Date.now() - startTime); 
+            let elapsedHours = elapsedMs / 3600000; 
+            if(btn) btn.title = `Running: ${elapsedHours.toFixed(2)}h`; 
+            let zc = document.getElementById("zenClock");
+            if(zc) zc.textContent = formatZenTime(elapsedMs); 
+            if (typeof updateCharInputFromHook === 'function') updateCharInputFromHook();
+        }, 1000);
+    } else {
+        let logH = document.getElementById('logHours');
+        let logM = document.getElementById('logMinutes');
+        
+        let stopLogic = () => {
+            if(!isTimerPaused) accumulatedMs += (Date.now() - startTime); 
+            let elapsedHours = accumulatedMs / 3600000; 
+            
+            if(logH) logH.value = elapsedHours.toFixed(2); 
+            if(logM) logM.value = 0; 
+            
+            clearInterval(timerInterval); timerInterval = null; isTimerPaused = false; accumulatedMs = 0; 
+            
+            if(btn) { btn.textContent = "▶"; btn.classList.remove("active"); btn.style.background = ""; btn.style.borderColor = ""; }
+            if(zenBtn) { zenBtn.textContent = "▶ START"; zenBtn.classList.remove("active"); zenBtn.style.background = ""; zenBtn.style.borderColor = ""; }
+            let zc = document.getElementById("zenClock");
+            if(zc) zc.textContent = "00:00:00"; 
+            
+            playAudio('timer.wav'); 
+        };
+
+        if ((logH && parseFloat(logH.value) > 0) || (logM && parseFloat(logM.value) > 0)) {
+            showConfirm("This will overwrite the time currently typed in your log. Continue?", stopLogic);
+        } else {
+            stopLogic();
+        }
+    } 
+    nukeFocus();
+}
+
+function pauseTimer(e) {
+    if(e) e.preventDefault(); 
+    if(!timerInterval && !isTimerPaused) return; 
+    
+    const btn = document.getElementById("timerBtn"); 
+    const zenBtn = document.getElementById("zenTimerBtn");
+    
+    if(!isTimerPaused) {
+        accumulatedMs += (Date.now() - startTime); clearInterval(timerInterval); timerInterval = null; isTimerPaused = true; 
+        if(btn) { btn.textContent = "⏸"; btn.style.background = "#f39c12"; btn.style.borderColor = "#f39c12"; btn.style.animation = "none"; }
+        if(zenBtn) { zenBtn.textContent = "⏸ PAUSED"; zenBtn.style.background = "#f39c12"; zenBtn.style.borderColor = "#f39c12"; zenBtn.style.animation = "none"; }
+    } else {
+        startTime = Date.now(); isTimerPaused = false; 
+        if(btn) { btn.textContent = "■"; btn.style.background = ""; btn.style.borderColor = ""; btn.style.animation = ""; }
+        if(zenBtn) { zenBtn.textContent = "■ STOP"; zenBtn.style.background = ""; zenBtn.style.borderColor = ""; zenBtn.style.animation = ""; }
+        
+        timerInterval = setInterval(() => { 
+            let elapsedMs = accumulatedMs + (Date.now() - startTime); 
+            let elapsedHours = elapsedMs / 3600000; 
+            if(btn) btn.title = `Running: ${elapsedHours.toFixed(2)}h`; 
+            let zc = document.getElementById("zenClock");
+            if(zc) zc.textContent = formatZenTime(elapsedMs); 
+            if (typeof updateCharInputFromHook === 'function') updateCharInputFromHook();
+        }, 1000); 
+    } 
+    nukeFocus();
+}
+
+function toggleZenSettings() { 
+    let panel = document.getElementById('zenSettingsPanel');
+    if (panel) panel.classList.toggle('hidden'); 
+}
+
+function toggleZenMode() {
+    let body = document.body; body.classList.toggle('zen-mode');
+    setTimeout(() => { if (document.getElementById('tabAnalytics').classList.contains('active')) updateCharts(); }, 0); 
+    nukeFocus();
+    
+    let prefs = data.prefs.zen || { showTimer:true, blurTimer:false, showChars:true, blurChars:false, showSpeed:true, blurSpeed:false };
+    let zsShowTimer = document.getElementById('zsShowTimer');
+    if(zsShowTimer) {
+        zsShowTimer.checked = prefs.showTimer;
+        document.getElementById('zsBlurTimer').checked = prefs.blurTimer;
+        document.getElementById('zsShowChars').checked = prefs.showChars;
+        document.getElementById('zsBlurChars').checked = prefs.blurChars;
+        document.getElementById('zsShowSpeed').checked = prefs.showSpeed;
+        document.getElementById('zsBlurSpeed').checked = prefs.blurSpeed;
+        updateZenDisplay();
+    }
+}
+
+function updateZenDisplay() {
+    let prefs = data.prefs.zen || { showTimer:true, blurTimer:false, showChars:true, blurChars:false, showSpeed:true, blurSpeed:false };
+    let zsShowTimer = document.getElementById('zsShowTimer');
+    if(!zsShowTimer) return; 
+
+    prefs.showTimer = zsShowTimer.checked;
+    prefs.blurTimer = document.getElementById('zsBlurTimer').checked;
+    prefs.showChars = document.getElementById('zsShowChars').checked;
+    prefs.blurChars = document.getElementById('zsBlurChars').checked;
+    prefs.showSpeed = document.getElementById('zsShowSpeed').checked;
+    prefs.blurSpeed = document.getElementById('zsBlurSpeed').checked;
+    data.prefs.zen = prefs; save();
+    
+    let clock = document.getElementById('zenClock');
+    let chars = document.getElementById('zenCharDisplay');
+    let speed = document.getElementById('zenSpeedDisplay');
+    
+    if(clock) { clock.style.display = prefs.showTimer ? 'block' : 'none'; clock.classList.toggle('heavy-blur-hover', prefs.blurTimer); }
+    if(chars) { chars.style.display = prefs.showChars ? 'block' : 'none'; chars.classList.toggle('mid-blur-hover', prefs.blurChars); }
+    if(speed) { speed.style.display = prefs.showSpeed ? 'block' : 'none'; speed.classList.toggle('blur-hover', prefs.blurSpeed); }
+}
+
+function updateCharInputFromHook() { 
+    if (typeof hookedLines === 'undefined') return;
+    
+    let logChars = document.getElementById("logChars");
+    let zenChars = document.getElementById("zenCharDisplay");
+    let zenSpeed = document.getElementById("zenSpeedDisplay");
+
+    // FIX: If we aren't actively using the Textractor WebSocket, DO NOT overwrite the input box.
+    // Instead, just read whatever Mokuro or the user typed in to update the Zen screensaver.
+    if (!wsConnected && hookedLines.length === 0) {
+        let manualChars = parseInt(logChars?.value) || 0;
+        if (zenChars) zenChars.textContent = manualChars.toLocaleString() + " chars";
+        
+        let liveMs = accumulatedMs;
+        if (timerInterval && !isTimerPaused) { liveMs += (Date.now() - startTime); }
+        let elapsedHours = liveMs / 3600000;
+        if (zenSpeed && elapsedHours > 0) { zenSpeed.textContent = Math.floor(manualChars / elapsedHours).toLocaleString() + " chars/hr"; }
+        return;
+    }
+
+    // Normal Textractor WebSocket Behavior
+    let totalChars = hookedLines.reduce((acc, l) => acc + l.length, 0);
+    if (logChars) logChars.value = totalChars; 
+    
+    if (zenChars) zenChars.textContent = totalChars.toLocaleString() + " chars";
+
+    let liveMs = accumulatedMs;
+    if (timerInterval && !isTimerPaused) { liveMs += (Date.now() - startTime); }
+    let elapsedHours = liveMs / 3600000;
+    if (zenSpeed && elapsedHours > 0) { zenSpeed.textContent = Math.floor(totalChars / elapsedHours).toLocaleString() + " chars/hr"; }
+}
+
+let currentActiveDay = getLocalDateStr(new Date());
+
+setInterval(() => {
+    let nowLogicalDay = getLocalDateStr(new Date());
+    if (nowLogicalDay !== currentActiveDay) {
+        currentActiveDay = nowLogicalDay;
+        let dInp = document.getElementById('logDate'); if (dInp) dInp.value = currentActiveDay;
+        if (typeof updateStats === 'function') updateStats();
+        
+        let toast = document.createElement('div');
+        toast.innerHTML = `📅 <strong>A new day has begun!</strong><br>Logs are now targeting ${currentActiveDay}.`;
+        toast.style.cssText = "position:fixed; bottom:20px; right:20px; background:var(--accent); color:#000; padding:12px 20px; border-radius:8px; font-size:13px; font-weight:bold; z-index:9999; opacity:0; transition:opacity 0.5s ease; box-shadow: 0 4px 10px rgba(0,0,0,0.5); pointer-events:none;";
+        document.body.appendChild(toast);
+        setTimeout(() => toast.style.opacity = '1', 100);
+        setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 500); }, 5000);
+    }
+}, 60000);
+
+function showConfirm(msg, callback) {
+    document.getElementById("confirmMessage").innerText = msg;
+    let yesBtn = document.getElementById("confirmYesBtn");
+    yesBtn.onclick = () => { closeModal('confirmOverlay'); callback(); };
+    openModal("confirmOverlay");
+}
+
+async function triggerAutoFillSearch() {
+    let q = document.getElementById("newMediaInput").value.trim();
+    let container = document.getElementById("apiSearchContainer");
+    let activeType = document.getElementById("logType").value; 
+    
+    if (!q) { showToast("Type a name first to search!", "Alert"); return; }
+
+    container.classList.remove("hidden");
+    container.innerHTML = `<div style="padding:10px; text-align:center; color:var(--accent);">🔍 Searching database...</div>`;
+
+    let searchType = activeType.toLowerCase();
+    
+    // --- ANIME & MANGA (Jikan/MAL) ---
+    if (searchType === 'anime' || searchType === 'manga') {
+        try {
+            const resp = await fetch(`https://api.jikan.moe/v4/${searchType}?q=${encodeURIComponent(q)}&limit=10`);
+            const res = await resp.json();
+            
+            if (!res.data || res.data.length === 0) {
+                container.innerHTML = `<div style="padding:10px; text-align:center; opacity:0.6;">No results found.</div>`;
+                return;
+            }
+            
+            container.innerHTML = "";
+            res.data.forEach(item => {
+                let title = item.title_japanese || item.title;
+                let target = searchType === 'anime' ? item.episodes : item.chapters;
+                let img = item.images?.jpg?.image_url || "";
+                
+                let div = document.createElement("div");
+                div.style.cssText = "display:flex; gap:10px; padding:8px; border-bottom:1px solid var(--border); cursor:pointer;";
+                div.onclick = () => {
+                    document.getElementById("newMediaInput").value = item.alttitle || title;
+                    document.getElementById("newMediaImg").value = img;
+                    if (target) document.getElementById("newMediaTarget").value = target;
+                    container.classList.add("hidden");
+                    showToast("✅ Auto-Filled!", "Overall");
+                };
+                div.innerHTML = `<img src="${img}" style="width:35px; height:50px; object-fit:cover; border-radius:4px;"><div style="font-size:12px;"><strong>${title}</strong><br><span style="opacity:0.6;">Target: ${target || 'Ongoing'}</span></div>`;
+                container.appendChild(div);
+            });
+        } catch(e) { container.innerHTML = "Search Error."; }
+    } 
+    // --- VISUAL NOVELS (VNDB Hours Only) ---
+    else if (searchType === 'vn') {
+        try {
+            const resp = await fetch('https://api.vndb.org/kana/vn', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    filters: ["search", "=", q],
+                    fields: "title, alttitle, image.url, length_minutes",
+                    results: 10
+                })
+            });
+            const res = await resp.json();
+            
+            if (!res.results || res.results.length === 0) {
+                container.innerHTML = `<div style="padding:10px; text-align:center; opacity:0.6;">No results found on VNDB.</div>`;
+                return;
+            }
+            
+            container.innerHTML = "";
+            res.results.forEach(item => {
+                let title = item.alttitle || item.title;
+                let img = item.image ? item.image.url : "";
+                // Convert VNDB minutes to rounded hours
+                let hours = item.length_minutes ? Math.round(item.length_minutes / 60) : "";
+                
+                let div = document.createElement("div");
+                div.style.cssText = "display:flex; gap:10px; padding:8px; border-bottom:1px solid var(--border); cursor:pointer;";
+                div.onclick = () => {
+                    document.getElementById("newMediaInput").value = title;
+                    document.getElementById("newMediaImg").value = img;
+                    document.getElementById("newMediaTarget").value = hours;
+                    container.classList.add("hidden");
+                    showToast(`✅ Auto-Filled ${hours ? hours+'h' : '(No time data)'}`, "VN");
+                };
+                div.innerHTML = `<img src="${img}" style="width:35px; height:50px; object-fit:cover; border-radius:4px;"><div style="font-size:12px;"><strong>${title}</strong><br><span style="opacity:0.6;">VNDB Length: ${hours ? hours+'h' : 'Unknown'}</span></div>`;
+                container.appendChild(div);
+            });
+        } catch(e) { container.innerHTML = "VNDB Search Error."; }
+    } else {
+        container.innerHTML = `<div style="padding:10px; text-align:center; opacity:0.6;">Search only supports Anime, Manga, and VN.</div>`;
+    }
+}
+
+function initOS() { 
+    if (!data.mediaConfig['All Media']) { data.mediaConfig['All Media'] = { inputs: ['hours', 'chars', 'units'], stats: ['hours', 'units', 'chars', 'days'], unitName: 'Units' }; }
+    if (data.prefs.cardWidth) document.documentElement.style.setProperty('--card-width', data.prefs.cardWidth + 'px');
+    if (data.prefs.cardHeight) document.documentElement.style.setProperty('--card-height', data.prefs.cardHeight + 'px');
+    if (window.electronAPI) window.electronAPI.setAfkThreshold(data.prefs.afkTimer);
+
+    populateDropdowns(); 
+    populateMedia(); 
+    updateTrendOptions(); 
+    applyTheme(data.prefs.theme); 
+    
+    // Explicitly hide both initially to let switchView handle the exact routing
+    document.getElementById('tabLibrary').classList.remove('active');
+    document.getElementById('tabAnalytics').classList.remove('active');
+
+    let isLibraryActive = data.prefs.lastView === 'analytics' ? false : true;
+    if (isLibraryActive) switchView('library', true);
+    else switchView('analytics', true);
+    
+    // Force a full refresh after the correct view is chosen
+    updateAll(); 
+    renderLibrary(); 
+    
+    if (typeof updateElectronHotkeys === 'function') updateElectronHotkeys(); 
+    if (typeof renderLinkManager === 'function') renderLinkManager(); 
+    if (typeof updateShortcutText === 'function') updateShortcutText();
+}
+
+// Forces Chart.js to recalculate dimensions when you Maximize/Restore the app
+let resizeTimer;
+window.addEventListener('resize', () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(() => {
+        if (!document.getElementById('analyticsView').classList.contains('hidden')) {
+            if (pie) pie.resize();
+            if (line) line.resize();
+        }
+        if (!document.getElementById('compareView').classList.contains('hidden')) {
+            if (compareChartInstance) compareChartInstance.resize();
+        }
+    }, 100); // 100ms delay ensures the window has finished snapping
+});
+
+// Delay init slightly to ensure the DOM is completely ready
+setTimeout(initOS, 50);
+</script>
+</body>
+</html>
