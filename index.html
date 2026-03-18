@@ -1581,6 +1581,30 @@ function saveLibraryEdit() {
     } 
     save(); populateMedia(); updateAll(); renderLibrary(); closeModal('libEditOverlay'); 
 }
+
+function deleteLibraryMedia() { 
+    let oldName = editLibMediaName; 
+    let type = editLibMediaType; 
+    let msg = `Completely remove "${oldName}" from your library?\n(Note: Your past hours for this media will remain in history)`;
+
+    // The Action to perform if 'Yes' is clicked
+    let executeDelete = () => {
+        if (data.media[type]) {
+            data.media[type] = data.media[type].filter(x => x !== oldName); 
+        }
+        delete data.mediaData[oldName]; 
+        save(); populateMedia(); updateAll(); renderLibrary(); closeModal('libEditOverlay'); 
+        showToast(`🗑️ Deleted ${oldName}`, "Alert");
+    };
+
+    // Safety Check: Try custom UI, fallback to standard UI
+    if (typeof showConfirm === "function") {
+        showConfirm(msg, executeDelete); 
+    } else {
+        if (confirm(msg)) executeDelete();
+    }
+}
+
 function openAddMediaModal() { 
     document.getElementById("newMediaInput").value = ""; 
     document.getElementById("newMediaImg").value = ""; 

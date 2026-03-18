@@ -1,13 +1,13 @@
 {
   "name": "immersion-os",
   "productName": "Immersion OS",
-  "version": "13.3.0",
+  "version": "1.0.0",
   "description": "A desktop dashboard for tracking immersion learning.",
-  "author": "abdulla",
+  "author": "ljpn2vw",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
-    "build": "electron-builder --win portable"
+    "build": "electron-builder"
   },
   "devDependencies": {
     "electron": "^30.0.0",
@@ -18,6 +18,11 @@
     "win": {
       "target": "nsis",
       "icon": "logo.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true
     },
     "extraResources": [
       "assets/**"
