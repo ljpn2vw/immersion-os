@@ -147,6 +147,7 @@ hr { border: 0; border-top: 1px solid var(--border); margin: 15px 0; }
 .toast-Manga { background: #ffffff; color: #000; border-radius: 0; border: 3px dashed #000; }
 .toast-YouTube { background: #ff0000; color: #fff; border-radius: 8px; border: 2px solid #fff; }
 .toast-Other { background: #b5179e; color: #fff; border-radius: 8px; border-right: 6px solid #4cc9f0; }
+.toast-success { background: #1b4332; color: #0f0; border-radius: 8px; border-left: 6px solid #0f0; }
 .toast-Alert { background: #0f0f0f; color: #fff; border-radius: 8px; border-left: 8px solid #cc0000; box-shadow: 0 5px 15px rgba(255, 68, 68, 0.4); }
 .chart-container { position: relative; flex: 1; min-height: 350px; width: 100%; }
 .chart-row { margin-top:20px; display: flex; gap: 15px; }
@@ -375,6 +376,8 @@ hr { border: 0; border-top: 1px solid var(--border); margin: 15px 0; }
                     <option value="chars">Metric: Characters</option>
                     <option value="units">Metric: Units (Eps/Pages)</option>
                     <option value="cph">Metric: Speed (CPH)</option>
+					<option value="cards">Metric: Cards Mined</option>
+					<option value="cardSpeed">Metric: Mining Speed (Cards/Hr)</option>
                 </select>
             </div>
             
@@ -463,8 +466,16 @@ hr { border: 0; border-top: 1px solid var(--border); margin: 15px 0; }
         
         Name<br><input type="text" id="newMediaInput" style="width:95%; margin-bottom:10px;" placeholder="Media Title..." onkeypress="if(event.key === 'Enter') triggerAutoFillSearch()">
         Cover Art (URL)<br><input type="text" id="newMediaImg" style="width:95%; margin-bottom:10px;" placeholder="https://...">
-        Target <span style="font-size:10px;opacity:0.6">(Optional)</span><br><input type="number" id="newMediaTarget" style="width:95%; margin-bottom:15px;" placeholder="e.g. 64 or 1000000">
-        
+		Target & Metric <span style="font-size:10px;opacity:0.6">(Optional)</span><br>
+				<div style="display:flex; gap:5px; width:95%; margin-bottom:15px;">
+					<input type="number" id="newMediaTarget" placeholder="e.g. 64 or 100k" style="flex:2;">
+					<select id="newMediaOverride" style="flex:1; font-size:12px; padding:4px;">
+						<option value="default">Default</option>
+						<option value="units">Units</option>
+						<option value="chars">Chars</option>
+						<option value="hours">Hours</option>
+					</select>
+				</div>        
         <label style="display:flex; align-items:center; gap:8px; margin-bottom:15px; font-size: 12px; opacity: 0.9;">
             <input type="checkbox" id="newMediaAuto" checked> Auto-Complete when target reached
         </label>
@@ -570,8 +581,10 @@ hr { border: 0; border-top: 1px solid var(--border); margin: 15px 0; }
             <div style="display:flex; justify-content:space-between;"><label><input type="checkbox" id="mtStatUnits"> Total Units</label> <input type="number" id="mtOrdUnits" style="width:40px; padding:2px;" value="1"></div>
             <div style="display:flex; justify-content:space-between;"><label><input type="checkbox" id="mtStatChars"> Total Characters</label> <input type="number" id="mtOrdChars" style="width:40px; padding:2px;" value="2"></div>
             <div style="display:flex; justify-content:space-between;"><label><input type="checkbox" id="mtStatPace"> Pace (Amt/Day)</label> <input type="number" id="mtOrdPace" style="width:40px; padding:2px;" value="3"></div>
-            <div style="display:flex; justify-content:space-between;"><label><input type="checkbox" id="mtStatSpeed"> Speed (Amt/Hr)</label> <input type="number" id="mtOrdSpeed" style="width:40px; padding:2px;" value="4"></div>
+            <div style="display:flex; justify-content:space-between;"><label><input type="checkbox" id="mtStatSpeed"> Read Speed (C/Hr)</label> <input type="number" id="mtOrdSpeed" style="width:40px; padding:2px;" value="4"></div>
             <div style="display:flex; justify-content:space-between;"><label><input type="checkbox" id="mtStatDays"> Consistency (Days)</label> <input type="number" id="mtOrdDays" style="width:40px; padding:2px;" value="5"></div>
+            <div style="display:flex; justify-content:space-between;"><label><input type="checkbox" id="mtStatCards"> Cards Mined</label> <input type="number" id="mtOrdCards" style="width:40px; padding:2px;" value="6"></div>
+            <div style="display:flex; justify-content:space-between;"><label><input type="checkbox" id="mtStatCardSpeed"> Mining Speed</label> <input type="number" id="mtOrdCardSpeed" style="width:40px; padding:2px;" value="7"></div>
         </div>
 
         <div class="flex-row" style="margin-top:20px;">
@@ -579,6 +592,26 @@ hr { border: 0; border-top: 1px solid var(--border); margin: 15px 0; }
             <button id="mtDeleteBtn" onclick="deleteMediaType()" style="background:#ff4444; color:#fff; width:100%; font-weight:bold;">DELETE</button>
         </div>
         <button onclick="closeModal('mediaTypeEditorOverlay')" style="width:100%;">CANCEL</button>
+    </div>
+</div>
+
+<div id="editLogOverlay" class="overlay hidden" style="z-index: 140;">
+    <div class="modal" style="width: 300px;">
+        <h3 style="margin-top:0;">✏️ Edit Log</h3>
+        <div class="flex-row">
+            <div>Date<br><input type="date" id="elDate" style="width:90%"></div>
+            <div>Hours<br><input type="number" step="0.1" id="elHours" style="width:90%"></div>
+        </div>
+        <div class="flex-row">
+            <div>Units<br><input type="number" id="elUnits" style="width:90%"></div>
+            <div>Chars<br><input type="number" id="elChars" style="width:90%"></div>
+        </div>
+        <div style="margin-bottom:15px;">Cards Mined<br><input type="number" id="elCards" style="width:95%"></div>
+        
+        <div class="flex-row">
+            <button onclick="saveLogEdit()" style="background:var(--accent); color:#000; width:100%; font-weight:bold;">SAVE</button>
+            <button onclick="closeModal('editLogOverlay')" style="width:100%;">CANCEL</button>
+        </div>
     </div>
 </div>
 
@@ -939,10 +972,15 @@ function updateTrendOptions() {
     let config = data.mediaConfig[typeToCheck] || { inputs: ['hours', 'chars', 'units'], unitName: 'Units' };
     if (media === "all") config = { inputs: ['hours', 'chars', 'units'], unitName: 'Units' };
 
-    if (config.inputs.includes('chars')) { addOp("chars", "Characters"); addOp("cph", "Speed"); }
+    if (config.inputs.includes('chars')) { addOp("chars", "Characters"); addOp("cph", "Reading Speed"); }
     if (config.inputs.includes('units') || config.inputs.includes('eps') || config.inputs.includes('pages')) { 
         addOp("units", config.unitName || "Units"); 
     }
+    
+    // Explicitly add our new Mining metrics
+    addOp("cards", "Cards Mined");
+    addOp("cardspeed", "Mining Speed");
+
     if(Array.from(tSelect.options).some(o => o.value === oldVal)) tSelect.value = oldVal; else tSelect.value = "hours";
 }
 
@@ -1180,19 +1218,27 @@ function updateStats() {
     if(range === "today") { let yesterday = new Date(); yesterday.setDate(yesterday.getDate() - 1); let yStr = getLocalDateStr(yesterday); previousPeriodEnt = data.entries.filter(e => { return (media === "all" || e.type === media || e.media === media) && e.date === yStr; }); } 
     else if(range !== "all" && range !== "365" && range !== "custom") { let cutCurrent = new Date(); cutCurrent.setDate(cutCurrent.getDate() - parseInt(range)); let cutPrev = new Date(); cutPrev.setDate(cutPrev.getDate() - (parseInt(range)*2)); previousPeriodEnt = data.entries.filter(e => { let matchesMedia = media === "all" || e.type === media || e.media === media; let d = new Date(e.date); return matchesMedia && d >= cutPrev && d < cutCurrent; }); } 
     
-    let h=0, c=0, u=0; let ph=0, pc=0, pu=0; let daysActive = new Set();
-    let cphH = 0; let pcphH = 0; // Tracks valid hours for accurate reading speed
+    let h=0, c=0, u=0, cards=0; let ph=0, pc=0, pu=0, pCards=0; let daysActive = new Set();
+    let cphH = 0; let pcphH = 0; 
+    let cardsH = 0; let pCardsH = 0; // Tracks hours specifically spent mining
     
     currentPeriodEnt.forEach(x => { 
         h += x.hours; c += (x.chars || 0); 
         u += (x.units || x.eps || x.pages || 0); 
-        if (x.chars > 0 && x.hours > 0) cphH += x.hours; // Only count hours if chars were logged
+        cards += (x.cards || 0);
+        
+        if (x.chars > 0 && x.hours > 0) cphH += x.hours; 
+        if (x.cards > 0 && x.hours > 0) cardsH += x.hours; // Only count hours if cards were mined
+        
         daysActive.add(x.date); 
     }); 
     previousPeriodEnt.forEach(x => { 
         ph += x.hours; pc += (x.chars || 0); 
         pu += (x.units || x.eps || x.pages || 0); 
+        pCards += (x.cards || 0);
+        
         if (x.chars > 0 && x.hours > 0) pcphH += x.hours;
+        if (x.cards > 0 && x.hours > 0) pCardsH += x.hours;
     }); 
     
     let typeToCheck = media;
@@ -1212,8 +1258,19 @@ function updateStats() {
         if (st === 'units' || st === 'eps' || st === 'pages') { val = u.toLocaleString(); label = `Total ${config.unitName || "Units"}`; bdown = "metric3"; dc = calculateDiffString(u, pu); }
         if (st === 'speed') { 
             val = cphH > 0 ? Math.floor(c/cphH).toLocaleString() : 0; 
-            label = "Speed (Chars/Hr)"; 
-            if(data.prefs.blurCph) bc="blur-hover"; // Uses the standard 5px blur
+            label = "Reading Speed (C/Hr)"; 
+            if(data.prefs.blurCph) bc="blur-hover"; 
+        }
+        if (st === 'cards') { 
+            val = cards.toLocaleString(); 
+            label = "Cards Mined"; 
+            bdown = "cards"; 
+            dc = calculateDiffString(cards, pCards); 
+        }
+        if (st === 'cardspeed') { 
+            val = cardsH > 0 ? Math.floor(cards/cardsH).toLocaleString() : 0; 
+            label = "Mining Speed"; 
+            if(data.prefs.blurCph) bc="blur-hover"; 
         }
         if (st === 'pace') { val = (u / totalRange).toFixed(1); label = `Pace (${config.unitName || 'Units'}/Day)`; }
         if (st === 'days') { val = `${daysActive.size} <span style="font-size:12px;opacity:0.6">/ ${totalRange}d</span>`; label = "Consistency"; }
@@ -1253,7 +1310,7 @@ function forceBreakdownRerender() {
     let rangeVal = rangeSelect.value; let ent = getFilteredEntries(rangeVal); let isSpecificMedia = mediaFilter.value !== "all"; let groupKey = isSpecificMedia ? "media" : "type"; let days = 1; 
     if(rangeVal === '7') days = 7; else if(rangeVal === '30') days = 30; else if(rangeVal === '90') days = 90; else if(rangeVal === '365') days = 365; else if(rangeVal === 'custom') { let s = new Date(document.getElementById("customStartDate").value); let e = new Date(document.getElementById("customEndDate").value); days = Math.max(1, Math.ceil((e - s) / (1000 * 60 * 60 * 24)) + 1); } else if(rangeVal === 'all' && data.entries.length > 0) { let firstDate = new Date(Math.min(...data.entries.map(e => new Date(e.date)))); let today = new Date(); days = Math.max(1, Math.ceil((today - firstDate) / (1000 * 60 * 60 * 24))); } 
     
-    ['hours', 'metric2', 'metric3'].forEach(cardType => { 
+    ['hours', 'metric2', 'metric3', 'cards'].forEach(cardType => { 
         let el = document.getElementById(`breakdown-${cardType}`); if(!el) return; if (!breakdownsExpanded) { el.style.display = "none"; return; } 
         
         let sums = {}; 
@@ -1262,7 +1319,8 @@ function forceBreakdownRerender() {
             let val = 0;
             if(cardType === 'hours') val = e.hours || 0; 
             else if (cardType === 'metric2') val = e.chars || 0; 
-            else if (cardType === 'metric3') val = (e.units || e.eps || e.pages || 0); // Universally searches for any unit type
+            else if (cardType === 'metric3') val = (e.units || e.eps || e.pages || 0); 
+            else if (cardType === 'cards') val = e.cards || 0; // Extracts the card data
             
             if(val > 0) sums[key] = (sums[key] || 0) + val; 
         }); 
@@ -1271,13 +1329,19 @@ function forceBreakdownRerender() {
         if (cardType === 'hours') avgStr = avg.toFixed(1) + "h / day"; 
         else if (cardType === 'metric2') avgStr = Math.floor(avg).toLocaleString() + " / day"; 
         else if (cardType === 'metric3') avgStr = avg.toFixed(1) + " / day"; 
+        else if (cardType === 'cards') avgStr = avg.toFixed(1) + " / day"; // Averages the cards
         
         let avgHtml = `<div style="color:var(--accent); margin-bottom:8px; padding-bottom:4px; border-bottom:1px solid var(--border);"><strong>Daily Avg:</strong> ${avgStr}</div>`; 
-        let parts = Object.entries(sums).filter(x => x[1] > 0).sort((a,b)=>b[1]-a[1]).map(x => { let val = x[1]; if (cardType === 'hours') val = val.toFixed(1) + 'h'; else if (cardType === 'metric2') val = val > 1000 ? (val/1000).toFixed(1) + 'k' : val; return `<strong>${x[0]}</strong>: ${val}`; }); 
+        let parts = Object.entries(sums).filter(x => x[1] > 0).sort((a,b)=>b[1]-a[1]).map(x => { 
+            let val = x[1]; 
+            if (cardType === 'hours') val = val.toFixed(1) + 'h'; 
+            else if (cardType === 'metric2') val = val > 1000 ? (val/1000).toFixed(1) + 'k' : val; 
+            else if (cardType === 'cards') val = val.toLocaleString() + ' cards'; // Formats the card output
+            return `<strong>${x[0]}</strong>: ${val}`; 
+        }); 
         el.innerHTML = avgHtml + (parts.length > 0 ? parts.join(" | ") : "No data"); el.style.display = "block"; 
     }); 
     
-    // Unhide all percentages if expanded
     document.querySelectorAll('.diff-text').forEach(el => el.style.display = breakdownsExpanded ? 'block' : 'none');
 }
 
@@ -1629,6 +1693,9 @@ function openAddMediaModal() {
     document.getElementById("newMediaImg").value = ""; 
     document.getElementById("newMediaTarget").value = ""; 
     
+    let overrideSel = document.getElementById("newMediaOverride");
+    if (overrideSel) overrideSel.value = "default";
+    
     // Reset the search container UI
     let container = document.getElementById("apiSearchContainer");
     if (container) {
@@ -1639,11 +1706,16 @@ function openAddMediaModal() {
     openModal("addMediaOverlay"); 
     setTimeout(() => document.getElementById("newMediaInput").focus(), 100); 
 }
+
 document.getElementById("newMediaInput").addEventListener("keypress", function(e) { if (e.key === "Enter") confirmAddMedia(); });
 function confirmAddMedia() { 
     let n = document.getElementById("newMediaInput").value.trim(); 
     let img = document.getElementById("newMediaImg").value.trim(); 
     let target = parseInt(document.getElementById("newMediaTarget").value) || null; 
+    
+    let overrideSel = document.getElementById("newMediaOverride");
+    let metricOverride = overrideSel ? overrideSel.value : 'default';
+    
     let t = logType.value; 
     
     if(n) { 
@@ -1658,7 +1730,7 @@ function confirmAddMedia() {
                 defaultPaths = [...conf.presetPaths];
             }
 
-            data.mediaData[n] = { type: t, status: 'active', target: target, img: img, paths: defaultPaths, blur: false, hidden: false, autoComplete: auto }; 
+            data.mediaData[n] = { type: t, status: 'active', target: target, metricOverride: metricOverride, img: img, paths: defaultPaths, blur: false, hidden: false, autoComplete: auto }; 
         } 
         save(); populateMedia(); renderLibrary(); 
     } 
@@ -1960,15 +2032,12 @@ function updateCharts() {
     let ent = getFilteredEntries(rangeSelect.value); 
     let selectedMetric = document.getElementById("trendMetric").value || "hours"; 
     
-    // Grab the full active theme object!
-    let currTheme = {...themes, ...data.prefs.customThemes}[data.prefs.theme] || themes.Dark;
-    
     // --- DYNAMIC PIE CHART COLORS ---
+    let currTheme = {...themes, ...data.prefs.customThemes}[data.prefs.theme] || themes.Dark;
     let dist = {}; ent.forEach(e => { dist[e.type] = (dist[e.type] || 0) + e.hours; }); 
     let filteredDist = {}; for (const [key, val] of Object.entries(dist)) { if (val > 0) filteredDist[key] = val; }
     
     let pieLabels = Object.keys(filteredDist);
-    // Looks for the exact media type in the theme JSON. If missing, safely falls back to stringToColor!
     let pieColors = pieLabels.map(label => currTheme[label.toLowerCase()] || stringToColor(label)); 
 
     if(pie) pie.destroy(); 
@@ -1991,28 +2060,69 @@ function updateCharts() {
         } 
     });
     
-    let rangeVal = rangeSelect.value; let startDate = new Date(); let endDate = new Date();
+    // --- DATE RANGE & TREND CHART LOGIC ---
+    let rangeVal = rangeSelect.value; 
+    let today = new Date();
+    let startDate = new Date(); 
+    let endDate = new Date(); // Lock the chart's end to TODAY
+    
     if (ent.length === 0 && rangeVal === 'all') { if(line) line.destroy(); return; }
-    if (rangeVal === '7') { startDate.setDate(startDate.getDate() - 7); } else if (rangeVal === '30') { startDate.setDate(startDate.getDate() - 30); } else if (rangeVal === '90') { startDate.setDate(startDate.getDate() - 90); } else if (rangeVal === '365') { startDate = new Date(new Date().getFullYear(), 0, 1); } else if (rangeVal === 'custom') { startDate = new Date(document.getElementById("customStartDate").value); endDate = new Date(document.getElementById("customEndDate").value); } else { if (ent.length > 0) { startDate = new Date(Math.min(...ent.map(e => new Date(e.date)))); endDate = new Date(Math.max(...ent.map(e => new Date(e.date)))); } }
-    startDate.setHours(0,0,0,0); endDate.setHours(23,59,59,999);
-    let dateArray = []; for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) { dateArray.push(getLocalDateStr(d)); } dateArray = [...new Set(dateArray)]; 
+    
+    // Calculate the start date based on the selected range
+    if (rangeVal === '7') { startDate.setDate(today.getDate() - 6); } 
+    else if (rangeVal === '30') { startDate.setDate(today.getDate() - 29); } 
+    else if (rangeVal === '90') { startDate.setDate(today.getDate() - 89); } 
+    else if (rangeVal === '365') { startDate.setDate(today.getDate() - 364); } 
+    else if (rangeVal === 'custom') { 
+        startDate = new Date(document.getElementById("customStartDate").value + "T00:00:00"); 
+        endDate = new Date(document.getElementById("customEndDate").value + "T23:59:59"); 
+    } else { 
+        if (ent.length > 0) { 
+            // Append T00:00:00 to prevent JavaScript from shifting dates across timezones
+            let timestamps = ent.map(e => new Date(e.date + "T00:00:00").getTime());
+            startDate = new Date(Math.min(...timestamps)); 
+            // We intentionally do not touch endDate here so it stays as 'today'
+        } 
+    }
+    
+    startDate.setHours(0,0,0,0); 
+    endDate.setHours(23,59,59,999);
+    
+    let dateArray = []; 
+    // Build the YYYY-MM-DD string safely for local time to prevent drops
+    for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) { 
+        let yyyy = d.getFullYear();
+        let mm = String(d.getMonth() + 1).padStart(2, '0');
+        let dd = String(d.getDate()).padStart(2, '0');
+        dateArray.push(`${yyyy}-${mm}-${dd}`); 
+    } 
+    dateArray = [...new Set(dateArray)]; 
 
-    let dayData = {}; dateArray.forEach(d => dayData[d] = {c:0, h:0, metric:0, validCphHours: 0});
+    // Initialize mapping objects securely with Cards and ValidCardHours
+    let dayData = {}; 
+    dateArray.forEach(d => dayData[d] = {c:0, h:0, metric:0, validCphHours: 0, cards:0, validCardHours:0});
 
     ent.forEach(e => {
         if(!dayData[e.date]) return; 
-        dayData[e.date].c += e.chars || 0; dayData[e.date].h += e.hours || 0; 
+        dayData[e.date].c += e.chars || 0; 
+        dayData[e.date].h += e.hours || 0; 
+        dayData[e.date].cards += e.cards || 0; 
+        
         if (e.chars > 0 && e.hours > 0) { dayData[e.date].validCphHours += e.hours; }
+        if (e.cards > 0 && e.hours > 0) { dayData[e.date].validCardHours += e.hours; }
         
         let val = e.hours; 
         if(selectedMetric === "chars") val = e.chars || 0; 
-        if(selectedMetric === "units" || selectedMetric === "eps" || selectedMetric === "pages") val = (e.units || e.eps || e.pages || 0); 
+        else if(selectedMetric === "cards") val = e.cards || 0;
+        else if(selectedMetric === "units" || selectedMetric === "eps" || selectedMetric === "pages") val = (e.units || e.eps || e.pages || 0); 
+        
         dayData[e.date].metric += val;
     });
 
     let labels = dateArray.map(d => formatDDMMYYYY(d));
     let chartData = dateArray.map(d => { 
         if (selectedMetric === "cph") return dayData[d].validCphHours > 0 ? Math.floor(dayData[d].c / dayData[d].validCphHours) : 0; 
+        if (selectedMetric === "cardspeed") return dayData[d].validCardHours > 0 ? Math.floor(dayData[d].cards / dayData[d].validCardHours) : 0; 
         return dayData[d].metric; 
     });
     
@@ -2021,7 +2131,6 @@ function updateCharts() {
     let lineTension = data.prefs.trendCurve === 'straight' ? 0 : 0.3;
     let lineFill = data.prefs.trendFill !== false;
     
-    // Grab the theme color
     let accentHex = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#4cc9f0';
     let rgbVal = hexToRgb(accentHex);
 
@@ -2090,14 +2199,17 @@ function updateCompareChart() {
     let mediaAgg = {};
     ent.forEach(e => {
         if (!e.media) return;
-        if (!mediaAgg[e.media]) mediaAgg[e.media] = { hours: 0, chars: 0, units: 0, validCphHours: 0, days: new Set() };
+        // ADDED cards and validCardHours to the baseline tracking
+        if (!mediaAgg[e.media]) mediaAgg[e.media] = { hours: 0, chars: 0, units: 0, validCphHours: 0, cards: 0, validCardHours: 0, days: new Set() };
         
         mediaAgg[e.media].hours += e.hours || 0;
         mediaAgg[e.media].chars += e.chars || 0;
         mediaAgg[e.media].units += (e.units || e.eps || e.pages || 0);
+        mediaAgg[e.media].cards += e.cards || 0; // Tracks the cards
         mediaAgg[e.media].days.add(e.date);
         
         if (e.chars > 0 && e.hours > 0) mediaAgg[e.media].validCphHours += e.hours;
+        if (e.cards > 0 && e.hours > 0) mediaAgg[e.media].validCardHours += e.hours; // Tracks hours for accurate speed
     });
 
     // --- LEADERBOARD LOGIC ---
@@ -2145,6 +2257,10 @@ function updateCompareChart() {
         if (metric === 'units') val = mediaAgg[m].units;
         if (metric === 'cph') val = mediaAgg[m].validCphHours > 0 ? Math.floor(mediaAgg[m].chars / mediaAgg[m].validCphHours) : 0;
         
+        // ADDED math to extract cards and cardSpeed for the graph
+        if (metric === 'cards') val = mediaAgg[m].cards;
+        if (metric === 'cardSpeed') val = mediaAgg[m].validCardHours > 0 ? Math.floor(mediaAgg[m].cards / mediaAgg[m].validCardHours) : 0;
+        
         if (val > 0) {
             chartLabels.push(m);
             chartData.push(metric === 'hours' ? parseFloat(val.toFixed(1)) : val);
@@ -2174,8 +2290,8 @@ function updateCompareChart() {
                 backgroundColor: chartColors,
                 borderWidth: 1,
                 borderColor: 'rgba(0,0,0,0.3)',
-                barPercentage: 1.0,      // Removes gap inside categories
-                categoryPercentage: 1.0  // Removes gap between categories
+                barPercentage: 1.0,
+                categoryPercentage: 1.0
             }]
         },
         options: {
@@ -2207,7 +2323,11 @@ function renderHistory() {
         if (e.cards > 0) amt += ` <span style="color:var(--accent);">[${e.cards} cards]</span>`;
         
         let tr = document.createElement("tr"); 
-        tr.innerHTML = `<td>${formatDDMMYYYY(e.date)}</td><td>${e.type}</td><td>${e.media || "-"}</td><td>${amt}</td><td><button onclick="deleteEntry(${idx})">X</button></td>`; 
+		tr.innerHTML = `<td>${formatDDMMYYYY(e.date)}</td><td>${e.type}</td><td>${e.media || "-"}</td><td>${amt}</td>
+        <td>
+            <button onclick="openLogEdit(${idx})" style="padding:2px 6px; font-size:10px; background:var(--card);">✏️</button>
+            <button onclick="deleteEntry(${idx})" style="padding:2px 6px; font-size:10px; background:#ff4444; color:#fff;">✕</button>
+        </td>`;
         tbody.appendChild(tr); 
     }); 
 }
@@ -2431,7 +2551,7 @@ function openMediaTypeEditor(name) {
     document.getElementById('mtInpUnits').checked = hasUnits;
     document.getElementById('mtInpChars').checked = config.inputs.includes('chars');
     
-    ['Hours','Units','Chars','Pace','Speed','Days'].forEach(i => {
+    ['Hours','Units','Chars','Pace','Speed','Days','Cards','CardSpeed'].forEach(i => {
         let id = i.toLowerCase();
         let checkId = (id === 'units' && config.stats.includes('eps')) ? 'eps' : ((id === 'units' && config.stats.includes('pages')) ? 'pages' : id);
         let idx = config.stats.indexOf(checkId); if(idx === -1) idx = config.stats.indexOf(id);
@@ -2472,7 +2592,7 @@ function saveMediaType() {
     if(document.getElementById('mtInpUnits').checked) inputs.push('units');
 
     let statObjects = [];
-    ['Hours','Units','Chars','Pace','Speed','Days'].forEach(i => { 
+    ['Hours','Units','Chars','Pace','Speed','Days','Cards','CardSpeed'].forEach(i => {
         let statCheck = document.getElementById(`mtStat${i}`); let statOrd = document.getElementById(`mtOrd${i}`);
         if(statCheck && statCheck.checked) { statObjects.push({ id: i.toLowerCase(), ord: statOrd ? (parseInt(statOrd.value) || 0) : 0 }); }
     });
@@ -2524,7 +2644,24 @@ if (window.electronAPI) {
     window.electronAPI.onAppClosed((closedMediaName) => {
         let currentSelect = document.getElementById("mediaSelect").value;
         if (currentSelect === closedMediaName && (timerInterval !== null || isTimerPaused)) {
-            if (!isTimerPaused) toggleTimer(); // Formally stop the timer
+            // Grab the exact time right now
+            if (!isTimerPaused) accumulatedMs += (Date.now() - startTime); 
+            let elapsedHours = accumulatedMs / 3600000;
+            
+            // Dump it directly into the input boxes safely
+            let logH = document.getElementById('logHours');
+            if (logH) logH.value = elapsedHours.toFixed(2);
+            
+            // Hard reset the timer state
+            clearInterval(timerInterval); timerInterval = null; isTimerPaused = false; accumulatedMs = 0;
+            
+            // Reset UI buttons
+            let btn = document.getElementById("timerBtn");
+            let zenBtn = document.getElementById("zenTimerBtn");
+            if(btn) { btn.textContent = "▶"; btn.classList.remove("active"); btn.style.background = ""; btn.style.borderColor = ""; }
+            if(zenBtn) { zenBtn.textContent = "▶ START"; zenBtn.classList.remove("active"); zenBtn.style.background = ""; zenBtn.style.borderColor = ""; }
+            let zc = document.getElementById("zenClock"); if(zc) zc.textContent = "00:00:00"; 
+            
             showToast(`🛑 ${closedMediaName} closed. Auto-saving entry!`, "Overall");
             addEntry();
         }
@@ -2651,6 +2788,32 @@ function takeScreenshot() {
     }).catch(err => {
         if (btn) btn.textContent = "📸 Snap";
     });
+}
+
+let currentEditLogIndex = null;
+
+function openLogEdit(idx) {
+    currentEditLogIndex = idx;
+    let e = data.entries[idx];
+    document.getElementById("elDate").value = e.date;
+    document.getElementById("elHours").value = e.hours ? e.hours.toFixed(2) : 0;
+    document.getElementById("elUnits").value = e.units || e.eps || e.pages || 0;
+    document.getElementById("elChars").value = e.chars || 0;
+    document.getElementById("elCards").value = e.cards || 0;
+    openModal("editLogOverlay");
+}
+
+function saveLogEdit() {
+    if (currentEditLogIndex === null) return;
+    let e = data.entries[currentEditLogIndex];
+    e.date = document.getElementById("elDate").value;
+    e.hours = parseFloat(document.getElementById("elHours").value) || 0;
+    delete e.eps; delete e.pages; // Standardize old data
+    e.units = parseInt(document.getElementById("elUnits").value) || 0;
+    e.chars = parseInt(document.getElementById("elChars").value) || 0;
+    e.cards = parseInt(document.getElementById("elCards").value) || 0;
+    
+    save(); updateAll(); renderHistory(); closeModal('editLogOverlay');
 }
 
 function openHiddenMediaModal() { openModal("hiddenMediaOverlay"); renderHiddenMedia(); }

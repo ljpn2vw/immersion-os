@@ -45,18 +45,46 @@ ipcMain.on('launch-apps', (event, paths, opts) => {
             if (cmd.startsWith('http://') || cmd.startsWith('https://')) {
                 shell.openExternal(cmd);
             } else {
-                // Use spawn to track the process explicitly
-                let child = spawn(cmd, [], { shell: true, detached: true });
+				
+                let exePath = cmd;
+                let args = "";
                 
-                // If this is Path 1 (index 0) and Auto-Submit is enabled for this media type
-                if (index === 0 && opts && opts.autoSubmit) {
-                    child.on('close', () => {
-                        event.reply('app-closed', opts.mediaName);
-                    });
+                if (cmd.startsWith('"')) {
+                    let match = cmd.match(/^"([^"]+)"(.*)/);
+                    if (match) {
+                        exePath = match[1];
+                        args = match[2];
+                    }
+                } else {
+                    let parts = cmd.split(" ");
+                    exePath = parts[0];
+                    args = parts.slice(1).join(" ");
                 }
-                
-                child.on('error', (err) => console.error(`Failed to launch: ${cmd}`, err));
-                child.unref(); // Allows the main OS to close without waiting for games to close
+
+                let exeName = path.basename(exePath);
+                let targetDir = path.dirname(exePath);
+
+                exec(`tasklist /FI "IMAGENAME eq ${exeName}"`, (err, stdout, stderr) => {
+                    if (stdout.toLowerCase().includes(exeName.toLowerCase())) {
+                        console.log(`${exeName} is already running. Skipping.`);
+                        return; 
+                    }
+
+                    let launchCommand = `"${exePath}" ${args}`.trim();
+                    let child = spawn(launchCommand, [], { 
+                        shell: true, 
+                        detached: true, 
+                        cwd: targetDir
+                    });
+                    if (index === 0 && opts && opts.autoSubmit) {
+                        child.on('close', () => {
+                            event.reply('app-closed', opts.mediaName);
+                        });
+                    }
+                    
+                    child.on('error', (err) => console.error(`Failed to launch: ${cmd}`, err));
+                    child.unref(); 
+                });
             }
         }
     });
