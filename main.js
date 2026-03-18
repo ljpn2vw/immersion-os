@@ -92,6 +92,11 @@ ipcMain.on('set-afk-threshold', (event, seconds) => {
     }
 });
 
+// --- GET APP VERSION ---
+ipcMain.handle('get-app-version', () => {
+    return app.getVersion(); //
+});
+
 // --- IMMERSION OS: BACKGROUND MPV & YOUTUBE LISTENER ---
 const http = require('http');
 

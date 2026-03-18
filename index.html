@@ -641,7 +641,7 @@ hr { border: 0; border-top: 1px solid var(--border); margin: 15px 0; }
             <div class="settings-nav">
                 <div style="padding: 20px 15px; font-weight:bold; font-size:18px; border-bottom:1px solid var(--border);">
 					⚙️ Settings 
-					<span style="font-size:11px; opacity:0.4; margin-left:8px; font-weight:normal;">v1.0.0</span>
+					<span id="appVersionDisplay" style="font-size:11px; opacity:0.4; margin-left:8px; font-weight:normal;"></span>
 				</div>
                 <button class="set-tab-btn active" onclick="switchSetTab('set-app')">🎨 Appearance</button>
                 <button class="set-tab-btn" onclick="switchSetTab('set-media')">📝 Media Types</button>
@@ -700,6 +700,10 @@ hr { border: 0; border-top: 1px solid var(--border); margin: 15px 0; }
 
                 <div id="set-pref" class="set-section">
                     <h3>Preferences</h3>
+					<label style="display:flex; align-items:center; gap:8px; margin-bottom:15px; font-size:12px; opacity:0.9; cursor:pointer;">
+						<input type="checkbox" id="prefHideSidebar" onchange="data.prefs.hideSidebarInLibrary = this.checked; save();"> 
+						Auto-hide sidebar when opening Library
+					</label>
                     <div class="flex-row">
                         <div style="flex:1">Reset Hour (0-23)<br><input type="number" id="resetHour" min="0" max="23" style="width:90%" onchange="data.prefs.resetHour = parseInt(this.value)||0; save();"></div>
                         <div style="flex:1">Global AFK Pause (Sec)<br><input type="number" id="afkInput" placeholder="0 to disable" style="width:90%" onchange="updateAFK(this.value)"></div>
@@ -853,11 +857,18 @@ window.addEventListener('keydown', (e) => { if (e.key === "Escape") { document.q
 MAIN STAGE CONTROLS & MODES
 =============================== */
 
-function toggleSidebar(forceOpen) {
+function toggleSidebar(forceOpen, silent = false) {
     let sidebar = document.getElementById('sidebar');
-    if (forceOpen === true) sidebar.classList.remove('collapsed'); else if (forceOpen === false) sidebar.classList.add('collapsed'); else sidebar.classList.toggle('collapsed');
-    playAudio('slide.wav');
+    
+    if (silent) sidebar.style.transition = 'none';
+
+    if (forceOpen === true) sidebar.classList.remove('collapsed'); 
+    else if (forceOpen === false) sidebar.classList.add('collapsed'); 
+    else sidebar.classList.toggle('collapsed');
+    
+    if (!silent) playAudio('slide.wav');
     if (forceOpen === undefined) { data.prefs.sidebarOpen = !sidebar.classList.contains('collapsed'); save(); }
+    if (silent) setTimeout(() => sidebar.style.transition = '', 50);
     
     setTimeout(() => { 
         if (document.getElementById('tabAnalytics').classList.contains('active')) {
@@ -878,6 +889,10 @@ function switchView(viewName, silent = false) {
         libView.classList.remove('hidden'); anaView.classList.add('hidden'); filters.classList.add('hidden');
         if (compView) compView.classList.add('hidden');
         data.prefs.lastView = 'library'; if (typeof save === 'function') save(); 
+        
+        // --- UPDATED: Pass the 'silent' flag ---
+        if (data.prefs.hideSidebarInLibrary) toggleSidebar(false, silent);
+        
         renderLibrary();
     } else {
         if (anaBtn.classList.contains('active') && (!compView || compView.classList.contains('hidden'))) {
@@ -891,6 +906,10 @@ function switchView(viewName, silent = false) {
         filters.classList.remove('hidden');
         if (compView) compView.classList.add('hidden');
         data.prefs.lastView = 'analytics'; if (typeof save === 'function') save();
+        
+        // --- UPDATED: Pass the 'silent' flag ---
+        toggleSidebar(data.prefs.sidebarOpen !== false, silent);
+
         updateAll(); 
         setTimeout(() => { if(typeof pie !== 'undefined' && pie) pie.resize(); if(typeof line !== 'undefined' && line) line.resize(); }, 100);
     }
@@ -2268,6 +2287,7 @@ function openSettings() {
     document.getElementById("hkTimer").value = data.prefs.hotkeys.timer || ""; 
     document.getElementById("wsUrl").value = data.prefs.wsUrl || "ws://localhost:55001"; 
     document.getElementById("muteSounds").checked = data.prefs.mute;
+    document.getElementById("prefHideSidebar").checked = data.prefs.hideSidebarInLibrary === true;
     
     // Load Anki Settings
     document.getElementById("setAnkiEnabled").checked = data.prefs.ankiEnabled === true;
@@ -2937,13 +2957,25 @@ function initOS() {
     if (data.prefs.cardWidth) document.documentElement.style.setProperty('--card-width', data.prefs.cardWidth + 'px');
     if (data.prefs.cardHeight) document.documentElement.style.setProperty('--card-height', data.prefs.cardHeight + 'px');
     if (window.electronAPI) window.electronAPI.setAfkThreshold(data.prefs.afkTimer);
+    
+    // --- Restore global sidebar state on boot (silent mode) ---
+    if (data.prefs.sidebarOpen === false && typeof toggleSidebar === 'function') {
+        toggleSidebar(false, true); 
+    }
+
+    // --- Fetch dynamic version ---
+    if (window.electronAPI && window.electronAPI.getAppVersion) {
+        window.electronAPI.getAppVersion().then(version => {
+            let versionDisplay = document.getElementById("appVersionDisplay");
+            if (versionDisplay) versionDisplay.textContent = `v${version}`;
+        });
+    }
 
     populateDropdowns(); 
     populateMedia(); 
     updateTrendOptions(); 
     applyTheme(data.prefs.theme); 
-    
-    // Explicitly hide both initially to let switchView handle the exact routing
+
     document.getElementById('tabLibrary').classList.remove('active');
     document.getElementById('tabAnalytics').classList.remove('active');
 
@@ -2951,16 +2983,11 @@ function initOS() {
     if (isLibraryActive) switchView('library', true);
     else switchView('analytics', true);
     
-    // Force a full refresh after the correct view is chosen
-    updateAll(); 
-    renderLibrary(); 
-    
     if (typeof updateElectronHotkeys === 'function') updateElectronHotkeys(); 
     if (typeof renderLinkManager === 'function') renderLinkManager(); 
     if (typeof updateShortcutText === 'function') updateShortcutText();
 }
 
-// Forces Chart.js to recalculate dimensions when you Maximize/Restore the app
 let resizeTimer;
 window.addEventListener('resize', () => {
     clearTimeout(resizeTimer);
@@ -2972,11 +2999,10 @@ window.addEventListener('resize', () => {
         if (!document.getElementById('compareView').classList.contains('hidden')) {
             if (compareChartInstance) compareChartInstance.resize();
         }
-    }, 100); // 100ms delay ensures the window has finished snapping
+    }, 100);
 });
 
-// Delay init slightly to ensure the DOM is completely ready
-setTimeout(initOS, 50);
+initOS();
 </script>
 </body>
 </html>

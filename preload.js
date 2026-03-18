@@ -12,4 +12,5 @@ contextBridge.exposeInMainWorld('electronAPI', {
   onAutoLogMokuro: (callback) => ipcRenderer.on('auto-log-mokuro', (event, data) => callback(data)),
   onAppClosed: (callback) => ipcRenderer.on('app-closed', (event, mediaName) => callback(mediaName)),
   searchAPI: (opts) => ipcRenderer.invoke('search-api', opts),
+  getAppVersion: () => ipcRenderer.invoke('get-app-version'),
 });

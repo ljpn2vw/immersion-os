@@ -1,7 +1,7 @@
 {
   "name": "immersion-os",
   "productName": "Immersion OS",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A desktop dashboard for tracking immersion learning.",
   "author": "ljpn2vw",
   "main": "main.js",
