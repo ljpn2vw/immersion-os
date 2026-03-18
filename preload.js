@@ -10,6 +10,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
   onAutoLogYt: (callback) => ipcRenderer.on('auto-log-yt', (_event, data) => callback(data)),
   onAfkPause: (callback) => ipcRenderer.on('afk-pause', callback),
   onAutoLogMokuro: (callback) => ipcRenderer.on('auto-log-mokuro', (event, data) => callback(data)),
-  onAppClosed: (callback) => ipcRenderer.on('app-closed', (event, mediaName) => callback(mediaName))
+  onAppClosed: (callback) => ipcRenderer.on('app-closed', (event, mediaName) => callback(mediaName)),
   searchAPI: (opts) => ipcRenderer.invoke('search-api', opts),
 });
