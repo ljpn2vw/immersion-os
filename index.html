@@ -15,7 +15,8 @@
 body{ margin:0; font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background:var(--bg); color:var(--text); transition: background 0.3s; overflow-x: hidden; }
 header{ padding:12px; background:var(--header); display:flex; gap:10px; align-items:center; box-shadow:0 2px 10px rgba(0,0,0,.4); z-index:10; }
 select,input,button{ background:var(--input); color:var(--text); border:1px solid var(--border); padding:6px; border-radius: 4px; font-family: inherit; }
-button{cursor:pointer; transition: 0.2s;} button:hover{ filter: brightness(1.2); }
+button{cursor:pointer; transition: 0.2s;} 
+button:hover{ opacity: 0.75; }
 .layout{ display:flex; height:calc(100vh - 55px); width: 100vw; overflow: hidden; }
 
 /* CSS GLOWS FOR STREAKS & LEVELS */
@@ -65,7 +66,7 @@ body.zen-mode #libraryView, body.zen-mode #analyticsView, body.zen-mode #compare
 .grid-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(var(--card-width), 1fr)); gap: 15px; margin-top: 10px; padding-bottom: 20px; }
 .list-container { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; padding-bottom: 20px; }
 
-.lib-card { background: var(--header); border: 1px solid var(--border); border-radius: 6px; padding: 15px; position: relative; transition: 0.2s; cursor: pointer; min-height: var(--card-height); display: flex; flex-direction: column; justify-content: flex-end; overflow: hidden; }
+.lib-card { background: var(--header); border: 1px solid var(--border); border-radius: 6px; padding: 15px; position: relative; transition: 0.2s; cursor: pointer; min-height: var(--card-height); display: flex; flex-direction: column; justify-content: flex-end; overflow: hidden; color: #fff; /* Forces text to be white on all themes */ }
 .lib-card:hover { border-color: var(--accent); transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
 .lib-card.paused { opacity: 0.5; filter: grayscale(0.6); }
 .lib-card.completed { border-color: #ffd700; box-shadow: 0 4px 10px rgba(255, 215, 0, 0.1); }
@@ -73,8 +74,12 @@ body.zen-mode #libraryView, body.zen-mode #analyticsView, body.zen-mode #compare
 .badge-completed { position: absolute; top: 10px; left: 10px; background: linear-gradient(135deg, #ffd700, #daa520); color: #000; font-size: 10px; font-weight: bold; padding: 3px 8px; border-radius: 4px; box-shadow: 0 2px 5px rgba(0,0,0,0.5); z-index: 10; pointer-events: none; }
 .lib-card.dropped { opacity: 0.4; filter: grayscale(0.8); border-color: #ff4444; }
 .card-bg { position: absolute; inset: 0; z-index: 0; transition: filter 0.4s ease, transform 0.4s ease; }
-.card-gradient { position: absolute; inset: 0; z-index: 1; background: linear-gradient(to bottom, rgba(22,26,32,0.3), rgba(22,26,32,0.95)); pointer-events: none; }
-.card-content { position: relative; z-index: 2; display: flex; flex-direction: column; height: 100%; pointer-events: none; }
+
+/* Stronger, pure black gradient to ensure text contrast */
+.card-gradient { position: absolute; inset: 0; z-index: 1; background: linear-gradient(to bottom, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.9) 100%); pointer-events: none; }
+
+/* Apply a strong drop shadow to everything inside the card */
+.card-content { position: relative; z-index: 2; display: flex; flex-direction: column; height: 100%; pointer-events: none; text-shadow: 0 2px 4px rgba(0,0,0,0.9); }
 .lib-actions { position: absolute; top: 8px; right: 8px; opacity: 0; display: flex; gap: 5px; transition: 0.2s; z-index: 5; pointer-events: auto; }
 .lib-card:hover .lib-actions { opacity: 1; }
 .lib-btn { background: rgba(0,0,0,0.8); border: 1px solid #555; padding: 4px 8px; border-radius: 4px; font-size: 11px; color: #fff; cursor: pointer; transition: 0.2s; pointer-events: auto; }
@@ -99,13 +104,19 @@ body.zen-mode #libraryView, body.zen-mode #analyticsView, body.zen-mode #compare
 .stats-grid{ display:grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap:10px; margin-bottom:5px; }
 .stat{ background:var(--card); padding:12px; border-radius:6px; border: 1px solid var(--border); position: relative; }
 .big{ font-size:22px; font-weight:bold; color: var(--accent); display: inline-block; cursor: pointer; transition: 0.2s; }
-.big:hover { color: #fff; }
+.big:hover { 
+    color: var(--text); 
+    text-shadow: 0 0 10px var(--accent); 
+}
 .breakdown-text { font-size: 11px; color: #aaa; margin-top: 8px; display: none; word-wrap: break-word; line-height: 1.4; border-top: 1px solid var(--border); padding-top: 5px; }
 #monthlyForecast { font-size: 12px; color: var(--accent); opacity: 0.8; margin-bottom: 15px; text-align: right; padding-right: 5px; font-style: italic; }
 
 /* ACTIVE SHELF */
 .shelf-item { display: flex; justify-content: space-between; align-items: center; font-size: 12px; padding: 8px 10px; background: var(--header); margin-bottom: 4px; border-radius: 4px; border-left: 2px solid var(--accent); transition: 0.2s; cursor: pointer; }
-.shelf-item:hover { background: var(--card); border-left-color: #fff; }
+.shelf-item:hover { 
+    background: var(--card); 
+    border-left-color: var(--text); 
+}
 .shelf-btn { background: transparent; border: 1px solid var(--border); padding: 4px; width: 100%; font-size: 11px; color: #888; border-radius: 4px; margin-top: 4px; cursor: pointer; }
 .shelf-btn:hover { border-color: var(--accent); color: var(--text); }
 
@@ -298,7 +309,7 @@ hr { border: 0; border-top: 1px solid var(--border); margin: 15px 0; }
             </div>
 
             <div id="zenClock" class="zen-clock heavy-blur-hover">00:00:00</div>
-            <div id="zenCharDisplay" class="mid-blur-hover" style="font-size:30px; font-weight:bold; color:#fff; margin-top:10px;">0 chars</div>
+            <div id="zenCharDisplay" class="mid-blur-hover" style="font-size:30px; font-weight:bold; color:var(--accent); margin-top:10px;">0 chars</div>
             <div id="zenSpeedDisplay" class="blur-hover" style="font-size:16px; color:var(--accent); margin-top:5px; opacity:0.8;">0 chars/hr</div>
             
             <div class="zen-controls" style="position:relative; z-index:10;">
@@ -398,8 +409,20 @@ hr { border: 0; border-top: 1px solid var(--border); margin: 15px 0; }
     <div class="modal" style="width: 320px;">
         <h3>Edit Media</h3>
         <strong id="libEditCurrentName" style="color:var(--accent)"></strong><br><br>
-        <div style="margin-bottom:10px;">Name<br><input type="text" id="libEditNewName" style="width:95%"></div>
+        
+        <div style="margin-bottom:10px;">
+            Name<br>
+            <div style="display:flex; gap:5px; align-items:center;">
+                <input type="text" id="libEditNewName" style="flex:1;">
+                <button onclick="triggerEditAutoFillSearch()" style="background:var(--accent); color:#000; font-weight:bold; padding:4px 8px; border-radius:4px;">🔍 Auto-Fill</button>
+            </div>
+        </div>
+        <div id="libEditApiSearchContainer" class="hidden" style="max-height:150px; overflow-y:auto; background:var(--bg); border:1px solid var(--border); border-radius:4px; margin-bottom:15px;"></div>
         <div style="margin-bottom:10px;">Cover Art (URL)<br><input type="text" id="libEditImg" placeholder="https://..." style="width:95%"></div>
+		<div style="margin-bottom:10px;">
+			<strong>Database URL</strong><br>
+			<input type="text" id="libEditDbUrl" placeholder="https://vndb.org/v..." style="width:100%">
+		</div>
         <div class="flex-row">
 		<div>Status<br><select id="libEditStatus" style="width:100%"><option value="active">🟢 Active</option><option value="paused">⏸️ Paused</option><option value="completed">⭐ Completed</option><option value="dropped">❌ Dropped</option><option value="wishlist">📝 Wishlist</option></select></div>
             <div>Target & Override<span style="font-size:10px;opacity:0.6"></span><br>
@@ -426,9 +449,8 @@ hr { border: 0; border-top: 1px solid var(--border); margin: 15px 0; }
         <hr>
         <div style="margin-bottom:10px;">
             <strong>Launch Paths (Optional)</strong><br><span style="font-size:10px; opacity:0.7;">Fill these out to enable the 🚀 Launch button.</span><br>
-            <input type="text" id="libEditApp1" placeholder="Directory or Executable..." style="width:95%; font-size:11px; margin-top:5px; margin-bottom:4px;"><br>
-            <input type="text" id="libEditApp2" placeholder="App 2 (e.g. Textractor)..." style="width:95%; font-size:11px; margin-bottom:4px;"><br>
-            <input type="text" id="libEditApp3" placeholder="App 3 (e.g. Anki)..." style="width:95%; font-size:11px;">
+            <div id="libEditPathsContainer" style="display:flex; flex-direction:column; gap:5px; margin-top:5px; margin-bottom:5px;"></div>
+            <button onclick="addLibEditPath()" id="btnAddLibPath" style="font-size:10px; padding:4px 8px; background:var(--header); border:1px solid var(--border);">+ Add Path</button>
         </div>
         <hr>
         <div style="margin-bottom:10px;">
@@ -526,7 +548,7 @@ hr { border: 0; border-top: 1px solid var(--border); margin: 15px 0; }
     <div class="modal">
         <h3 id="mtEditorTitle">Edit Media Type</h3>
         Name<br><input type="text" id="mtName" style="width:95%; margin-bottom:15px;">
-        
+        <div id="mtSpecificSettings">
         <div style="display:flex; gap:10px; margin-bottom:15px;">
             <div style="flex:3;">
                 Custom Unit Name<br>
@@ -552,9 +574,8 @@ hr { border: 0; border-top: 1px solid var(--border); margin: 15px 0; }
             <input type="checkbox" id="mtUsePresetPaths" onchange="document.getElementById('mtPresetPathsContainer').classList.toggle('hidden', !this.checked)"> Enable default paths for new media
         </label>
         <div id="mtPresetPathsContainer" class="hidden" style="margin-top: 8px; margin-bottom: 15px; background:var(--header); padding:10px; border-radius:6px; border:1px solid var(--border);">
-            <input type="text" id="mtPath1" placeholder="Path 1 (e.g. Textractor.exe)" style="width:100%; font-size:11px; margin-bottom:5px; background:var(--input); color:var(--text); border:1px solid var(--border); padding:4px; border-radius:4px;">
-            <input type="text" id="mtPath2" placeholder="Path 2 (e.g. Anki.exe)" style="width:100%; font-size:11px; margin-bottom:5px; background:var(--input); color:var(--text); border:1px solid var(--border); padding:4px; border-radius:4px;">
-            <input type="text" id="mtPath3" placeholder="Path 3..." style="width:100%; font-size:11px; background:var(--input); color:var(--text); border:1px solid var(--border); padding:4px; border-radius:4px;">
+            <div id="mtPathsList" style="display:flex; flex-direction:column; gap:5px; margin-bottom:5px;"></div>
+            <button onclick="addMtPath()" id="btnAddMtPath" style="font-size:10px; padding:4px 8px; background:var(--card); border:1px solid var(--border);">+ Add Preset Path</button>
         </div>
         <h4>Log Inputs</h4>
         <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px; margin-bottom:15px; background:var(--header); padding:10px; border-radius:6px; border:1px solid var(--border);">
@@ -574,7 +595,7 @@ hr { border: 0; border-top: 1px solid var(--border); margin: 15px 0; }
             <option value="chars">Characters</option>
             <option value="hours">Hours</option>
         </select>
-
+		</div>
         <h4 style="margin-bottom:5px;">Dashboard Stats (Order 0-9)</h4>
         <div id="mtStatsList" style="display:flex; flex-direction:column; gap:8px; background:var(--header); padding:10px; border-radius:6px; border:1px solid var(--border);">
             <div style="display:flex; justify-content:space-between;"><label><input type="checkbox" id="mtStatHours"> Total Hours</label> <input type="number" id="mtOrdHours" style="width:40px; padding:2px;" value="0"></div>
@@ -721,6 +742,16 @@ hr { border: 0; border-top: 1px solid var(--border); margin: 15px 0; }
                     <label style="display:flex; align-items:center; gap:8px; margin-bottom:15px; font-size:12px; opacity:0.9;">
                         <input type="checkbox" id="setGoalTrajectory" onchange="data.prefs.showTrajectory = this.checked; save(); renderGoals();"> Show Goal Trajectory (Ahead/Behind Pace)
                     </label>
+					<hr>
+                    <div style="background:var(--header); padding:15px; border-radius:6px; border:1px solid var(--border); margin-bottom:15px;">
+                        <strong style="display:block; margin-bottom:8px;">Custom Wallpaper</strong>
+                        <input type="text" id="setBgUrl" placeholder="Image URL (e.g. https://...)" style="width:100%; margin-bottom:10px; font-size:12px; padding:6px; background:var(--input); color:var(--text); border:1px solid var(--border); border-radius:4px;" onchange="saveSettingsFast()">
+                        <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:5px;">
+                            <span>Dimness Overlay</span>
+                            <span id="setBgDimVal">0.7</span>
+                        </div>
+                        <input type="range" id="setBgDim" min="0" max="1" step="0.05" oninput="document.getElementById('setBgDimVal').textContent = this.value; saveSettingsFast();" style="width:100%;">
+                    </div>
                 </div>
 
                 <div id="set-media" class="set-section">
@@ -736,6 +767,10 @@ hr { border: 0; border-top: 1px solid var(--border); margin: 15px 0; }
 					<label style="display:flex; align-items:center; gap:8px; margin-bottom:15px; font-size:12px; opacity:0.9; cursor:pointer;">
 						<input type="checkbox" id="prefHideSidebar" onchange="data.prefs.hideSidebarInLibrary = this.checked; save();"> 
 						Auto-hide sidebar when opening Library
+					</label>
+					<label style="display:flex; align-items:center; gap:8px; margin-bottom:15px; font-size:12px; opacity:0.9; cursor:pointer;">
+						<input type="checkbox" id="setLaunchSidebar" onchange="data.prefs.launchSidebar = this.checked; save();"> 
+						Auto-open sidebar when launching media
 					</label>
                     <div class="flex-row">
                         <div style="flex:1">Reset Hour (0-23)<br><input type="number" id="resetHour" min="0" max="23" style="width:90%" onchange="data.prefs.resetHour = parseInt(this.value)||0; save();"></div>
@@ -851,6 +886,31 @@ Object.keys(data.mediaConfig).forEach(t => {
 });
 
 function save() { localStorage.setItem("immersionOSv13", JSON.stringify(data)); }
+
+// --- DYNAMIC LAUNCH PATHS LOGIC ---
+let currentMtPaths = [];
+let currentLibEditPaths = [];
+
+function renderMtPaths() {
+    let c = document.getElementById("mtPathsList"); c.innerHTML = "";
+    currentMtPaths.forEach((p, i) => {
+        c.innerHTML += `<div style="display:flex; gap:5px;"><input type="text" id="mtPath${i}" value="${p.replace(/"/g, '&quot;')}" placeholder="Path ${i+1}..." style="flex:1; font-size:11px; background:var(--input); color:var(--text); border:1px solid var(--border); padding:4px; border-radius:4px;"><button onclick="removeMtPath(${i})" style="background:#ff4444; color:#fff; border:none; border-radius:4px; padding:0 8px; font-weight:bold;">X</button></div>`;
+    });
+    document.getElementById("btnAddMtPath").style.display = currentMtPaths.length >= 5 ? 'none' : 'inline-block';
+}
+function addMtPath() { if(currentMtPaths.length < 5) currentMtPaths.push(""); renderMtPaths(); }
+function removeMtPath(i) { currentMtPaths.splice(i, 1); renderMtPaths(); }
+
+function renderLibEditPaths() {
+    let c = document.getElementById("libEditPathsContainer"); c.innerHTML = "";
+    currentLibEditPaths.forEach((p, i) => {
+        c.innerHTML += `<div style="display:flex; gap:5px;"><input type="text" id="libEditApp${i}" value="${p.replace(/"/g, '&quot;')}" placeholder="Path ${i+1}..." style="flex:1; font-size:11px; background:var(--input); color:var(--text); border:1px solid var(--border); padding:4px; border-radius:4px;"><button onclick="removeLibEditPath(${i})" style="background:#ff4444; color:#fff; border:none; border-radius:4px; padding:0 8px; font-weight:bold;">X</button></div>`;
+    });
+    document.getElementById("btnAddLibPath").style.display = currentLibEditPaths.length >= 5 ? 'none' : 'inline-block';
+}
+function addLibEditPath() { if(currentLibEditPaths.length < 5) currentLibEditPaths.push(""); renderLibEditPaths(); }
+function removeLibEditPath(i) { currentLibEditPaths.splice(i, 1); renderLibEditPaths(); }
+
 
 /* ===============================
 NATIVE AUDIO ENGINE & UTILS
@@ -1400,6 +1460,7 @@ function renderLibrary() {
             name: name, type: profile.type, status: stat, target: profile.target, 
             metricOverride: profile.metricOverride, 
             img: profile.img || "", paths: profile.paths || ["","",""], 
+            dbUrl: profile.dbUrl || "", // <-- DB Url fetched here
             blur: profile.blur || false, stats: mediaStats[name] || { hours: 0, chars: 0, units: 0, last: 0 } 
         });
     });
@@ -1433,7 +1494,6 @@ function renderLibrary() {
     items.forEach(item => {
         let conf = data.mediaConfig[item.type] || {unitName:'Units', inputs:[], progressMetric: 'units', emoji: '📦'};
         
-        // Resolve exactly which metric to display
         let activeMetric = item.metricOverride && item.metricOverride !== 'default' ? item.metricOverride : (conf.progressMetric || 'units');
         let amt = 0; let amtStr = conf.unitName || 'Units';
         
@@ -1458,22 +1518,38 @@ function renderLibrary() {
         let pct = item.target > 0 ? Math.min((amt / item.target) * 100, 100).toFixed(0) : 0;
         let emoji = conf.emoji || '📦';
         
+        // --- BUTTON HTML BUILDERS ---
         let statsBtn = `<button class="lib-btn" onclick="event.stopPropagation(); viewSpecificAnalytics('${item.name}')" title="Media Analytics">📊</button>`;
         let quickAdd = (item.type === 'Anime' || conf.unitName === 'Eps') ? `<button class="lib-btn" onclick="event.stopPropagation(); quickAddEpisode('${item.name}')">+1</button>` : '';
         let launchBtn = item.paths.some(p => p.trim() !== "") ? `<button class="lib-btn" onclick="event.stopPropagation(); selectFromLibrary('${item.type}', '${item.name}'); fireMediaLaunch('${item.name}');" style="background:var(--accent); color:#000;">🚀</button>` : '';
+        
+        // Our shiny new Database Button!
+        let dbBtn = item.dbUrl ? `<button class="lib-btn" onclick="window.open('${item.dbUrl}', '_blank'); event.stopPropagation();" title="Open Database">🌐</button>` : '';
 
-        let statusIcon = item.status === 'completed' ? '⭐' : (item.status === 'paused' ? '⏸️' : (item.status === 'dropped' ? '❌' : (item.status === 'wishlist' ? '📝' : '🟢')));
+        // Theme colors and glowing dots
+        let currTheme = {...themes, ...data.prefs.customThemes}[data.prefs.theme] || themes.Dark;
+        let tColor = currTheme[item.type.toLowerCase()] || stringToColor(item.type);
+        
+        let statusIcon = item.status === 'completed' ? '⭐' : 
+                         (item.status === 'paused' ? '⏸️' : 
+                         (item.status === 'dropped' ? '❌' : 
+                         (item.status === 'wishlist' ? '📝' : 
+                         `<span style="display:inline-block; width:10px; height:10px; border-radius:50%; background:${tColor}; box-shadow: 0 0 8px ${tColor}; margin-right:4px;"></span>`)));
 
         if (mode === 'grid') {
             let card = document.createElement("div"); card.className = `lib-card ${item.status}`; card.onmouseenter = () => playAudio('hover.wav');
             card.onclick = (e) => { if(e.target.tagName !== 'BUTTON') { selectFromLibrary(item.type, item.name); fireMediaLaunch(item.name); } };
             let bgHtml = item.img ? `<div class="card-bg ${item.blur ? 'blur-cover' : ''}" style="background: url('${item.img}') center/cover;"></div>` : `<div class="card-bg"></div>`;
-			let middleHtml = item.target > 0 ? `<div class="progress" style="margin: 8px 0 4px 0; background:rgba(0,0,0,0.5); pointer-events:auto;"><div class="progress-fill" style="width:${pct}%"></div></div><div style="font-size:11px; display:flex; justify-content:space-between; opacity:0.9;"><span>${dispAmt} / ${dispTarget}</span><span style="font-weight:bold; color:var(--accent);">${pct}%</span></div>` : `<span style="position:absolute; bottom:12px; right:12px; font-size:10px; font-weight:bold; color:var(--accent); opacity:0.8; pointer-events:none;">ONGOING</span>`;
+            let middleHtml = item.target > 0 ? `<div class="progress" style="margin: 8px 0 4px 0; background:rgba(0,0,0,0.5); pointer-events:auto;"><div class="progress-fill" style="width:${pct}%"></div></div><div style="font-size:11px; display:flex; justify-content:space-between; opacity:0.9;"><span>${dispAmt} / ${dispTarget}</span><span style="font-weight:bold; color:var(--accent);">${pct}%</span></div>` : `<span style="position:absolute; bottom:12px; right:12px; font-size:10px; font-weight:bold; color:var(--accent); opacity:0.8; pointer-events:none;">ONGOING</span>`;
             let badgeHtml = item.status === 'completed' ? '<div class="badge-completed">⭐ COMPLETED</div>' : '';
-            card.innerHTML = `${bgHtml}<div class="card-gradient"></div>${badgeHtml}<div class="card-content"><div class="lib-actions">${launchBtn}${statsBtn}${quickAdd}<button class="lib-btn" onclick="event.stopPropagation(); openLibEdit('${item.name}')">✎</button></div><div style="font-size:16px; font-weight:bold; padding-right:110px; word-wrap:break-word; text-shadow:0 2px 4px rgba(0,0,0,0.8);">${item.name}</div><div style="font-size:11px; opacity:0.8; margin-bottom:5px; text-shadow:0 1px 2px rgba(0,0,0,0.8);">${statusIcon} ${item.type}</div><div style="flex:1"></div>${middleHtml}<div style="font-size:11px; opacity:0.9; margin-top:8px; display:flex; gap:10px; text-shadow:0 1px 2px rgba(0,0,0,0.8);"><span>⏱️ ${item.stats.hours.toFixed(1)}h</span><span>${emoji} ${dispAmt} ${amtStr}</span></div></div>`;
+            
+            // Notice ${dbBtn} added to the .lib-actions div right here!
+            card.innerHTML = `${bgHtml}<div class="card-gradient"></div>${badgeHtml}<div class="card-content"><div class="lib-actions">${launchBtn}${dbBtn}${statsBtn}${quickAdd}<button class="lib-btn" onclick="event.stopPropagation(); openLibEdit('${item.name}')">✎</button></div><div style="font-size:16px; font-weight:bold; padding-right:110px; word-wrap:break-word; text-shadow:0 2px 4px rgba(0,0,0,0.8);">${item.name}</div><div style="font-size:11px; opacity:0.8; margin-bottom:5px; text-shadow:0 1px 2px rgba(0,0,0,0.8);">${statusIcon} ${item.type}</div><div style="flex:1"></div>${middleHtml}<div style="font-size:11px; opacity:0.9; margin-top:8px; display:flex; gap:10px; text-shadow:0 1px 2px rgba(0,0,0,0.8);"><span>⏱️ ${item.stats.hours.toFixed(1)}h</span><span>${emoji} ${dispAmt} ${amtStr}</span></div></div>`;
+            
             container.appendChild(card);
         } else {
-			let middleHtml = item.target > 0 ? `<div style="width:120px; display:flex; align-items:center; justify-content:flex-end;"><span style="font-size:11px; color:var(--accent); margin:0;">${pct}% (${dispAmt}/${dispTarget})</span></div>` : `<div style="width:120px; display:flex; align-items:center; justify-content:flex-end;"><span style="font-size:11px; opacity:0.6; margin:0;">Ongoing</span></div>`;            let dispAmtHtml = `<div style="width:90px; display:flex; align-items:center; justify-content:flex-end; font-size:12px; margin:0;">${emoji} ${dispAmt} ${amtStr}</div>`;
+            let middleHtml = item.target > 0 ? `<div style="width:120px; display:flex; align-items:center; justify-content:flex-end;"><span style="font-size:11px; color:var(--accent); margin:0;">${pct}% (${dispAmt}/${dispTarget})</span></div>` : `<div style="width:120px; display:flex; align-items:center; justify-content:flex-end;"><span style="font-size:11px; opacity:0.6; margin:0;">Ongoing</span></div>`;            
+            let dispAmtHtml = `<div style="width:90px; display:flex; align-items:center; justify-content:flex-end; font-size:12px; margin:0;">${emoji} ${dispAmt} ${amtStr}</div>`;
             let timeHtml = `<div style="width:60px; display:flex; align-items:center; justify-content:flex-end; font-size:12px; margin:0;">${item.stats.hours.toFixed(1)}h</div>`;
             
             container.innerHTML += `<div class="list-item ${item.status}" onclick="selectFromLibrary('${item.type}', '${item.name}'); fireMediaLaunch('${item.name}');" style="display: flex; align-items: center; justify-content: space-between; height: 100%;">
@@ -1482,7 +1558,7 @@ function renderLibrary() {
                 </div>
                 <div style="display:flex; align-items:center; gap:15px; height: 100%;">
                     <div style="width:130px; display:flex; gap:5px; justify-content:center; align-items:center; opacity:0; transition: opacity 0.2s ease;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0" onclick="event.stopPropagation()">
-                        ${launchBtn}${statsBtn}${quickAdd}<button class="lib-btn" onclick="openLibEdit('${item.name}')">✎</button>
+                        ${launchBtn}${dbBtn}${statsBtn}${quickAdd}<button class="lib-btn" onclick="openLibEdit('${item.name}')">✎</button>
                     </div>
                     ${middleHtml}
                     ${dispAmtHtml}
@@ -1549,6 +1625,7 @@ function startAutoHookScanner() {
 }
 
 function fireMediaLaunch(name) { 
+	if (data.prefs.launchSidebar) toggleSidebar(true);
     let profile = data.mediaData[name]; 
     if (profile && profile.paths && profile.paths.some(p => p.trim() !== "")) { 
         
@@ -1614,55 +1691,58 @@ function openLibEdit(name) {
     document.getElementById("libEditBlur").checked = profile.blur || false;
     document.getElementById("libEditAuto").checked = profile.autoComplete !== false;
 
-    let paths = profile.paths || ["", "", ""];
-    document.getElementById("libEditApp1").value = paths[0] || "";
-    document.getElementById("libEditApp2").value = paths[1] || "";
-    document.getElementById("libEditApp3").value = paths[2] || "";
+    currentLibEditPaths = (profile.paths || [""]).filter(p => p.trim() !== "");
+    if (currentLibEditPaths.length === 0) currentLibEditPaths = [""];
+    renderLibEditPaths();
     
     document.getElementById("libEditNotes").value = profile.notes || "";
     
     openModal("libEditOverlay");
 }
 
-function saveLibraryEdit() { 
-    let oldName = editLibMediaName; 
-    let newName = document.getElementById("libEditNewName").value.trim(); 
-    if (!newName) return; 
+function saveLibraryEdit() {
+    if (!editLibMediaName) return;
     
-    let newImg = document.getElementById("libEditImg").value.trim(); 
-    let newStatus = document.getElementById("libEditStatus").value; 
-    let newTarget = parseInt(document.getElementById("libEditTarget").value) || null; 
-    
-    // Save the metric override
-    let overrideDropdown = document.getElementById("libEditOverride");
-    let newOverride = overrideDropdown ? overrideDropdown.value : 'default';
-    
+    let newName = document.getElementById("libEditNewName").value.trim();
+    let newImg = document.getElementById("libEditImg").value.trim();
+    let newTarget = parseFloat(document.getElementById("libEditTarget").value) || 0;
     let newBlur = document.getElementById("libEditBlur").checked; 
     let newHidden = document.getElementById("libEditHidden").checked; 
     let newAuto = document.getElementById("libEditAuto").checked;
     let newNotes = document.getElementById("libEditNotes").value;
-    let newPaths = [ document.getElementById("libEditApp1").value, document.getElementById("libEditApp2").value, document.getElementById("libEditApp3").value ]; 
-    
-    let profile = data.mediaData[oldName]; 
-    if (newName !== oldName) { 
-        let idx = data.media[profile.type].indexOf(oldName); 
-        if (idx > -1) data.media[profile.type][idx] = newName; 
-        data.entries.forEach(e => { if(e.type === profile.type && e.media === oldName) e.media = newName; }); 
+    let newDbUrl = document.getElementById("libEditDbUrl").value.trim(); 
+
+    let newPaths = [];
+    if (typeof currentLibEditPaths !== 'undefined') {
+        for (let i = 0; i < currentLibEditPaths.length; i++) {
+            let el = document.getElementById('libEditApp' + i);
+            if (el && el.value.trim() !== "") newPaths.push(el.value.trim());
+        }
+    }
+
+    if (newName && newName !== editLibMediaName) {
+        if (data.mediaData[newName]) { alert("Name already exists."); return; }
+        data.mediaData[newName] = {...data.mediaData[editLibMediaName]};
+        delete data.mediaData[editLibMediaName];
         
-        data.mediaData[newName] = { type: profile.type, status: newStatus, target: newTarget, metricOverride: newOverride, img: newImg, paths: newPaths, blur: newBlur, hidden: newHidden, autoComplete: newAuto, notes: newNotes }; 
-        delete data.mediaData[oldName]; 
-    } else { 
-        profile.status = newStatus; 
-        profile.target = newTarget; 
-        profile.metricOverride = newOverride; 
-        profile.img = newImg; 
-        profile.paths = newPaths; 
-        profile.blur = newBlur; 
-        profile.hidden = newHidden;
-        profile.autoComplete = newAuto; 
-        profile.notes = newNotes;
-    } 
-    save(); populateMedia(); updateAll(); renderLibrary(); closeModal('libEditOverlay'); 
+        data.entries.forEach(e => { if(e.media === editLibMediaName) e.media = newName; });
+        let shelfIdx = (data.shelf || []).findIndex(x => x.name === editLibMediaName);
+        if (shelfIdx !== -1) data.shelf[shelfIdx].name = newName;
+        
+        editLibMediaName = newName;
+    }
+
+    let p = data.mediaData[editLibMediaName];
+    p.img = newImg;
+    p.target = newTarget;
+    p.blur = newBlur;
+    p.hidden = newHidden;
+    p.autoComplete = newAuto;
+    p.notes = newNotes;
+    p.dbUrl = newDbUrl; 
+    p.paths = newPaths;
+
+    save(); updateAll(); renderLibrary(); closeModal('libEditOverlay');
 }
 
 function deleteLibraryMedia() { 
@@ -2068,7 +2148,6 @@ function updateCharts() {
     
     if (ent.length === 0 && rangeVal === 'all') { if(line) line.destroy(); return; }
     
-    // Calculate the start date based on the selected range
     if (rangeVal === '7') { startDate.setDate(today.getDate() - 6); } 
     else if (rangeVal === '30') { startDate.setDate(today.getDate() - 29); } 
     else if (rangeVal === '90') { startDate.setDate(today.getDate() - 89); } 
@@ -2078,52 +2157,66 @@ function updateCharts() {
         endDate = new Date(document.getElementById("customEndDate").value + "T23:59:59"); 
     } else { 
         if (ent.length > 0) { 
-            // Append T00:00:00 to prevent JavaScript from shifting dates across timezones
             let timestamps = ent.map(e => new Date(e.date + "T00:00:00").getTime());
             startDate = new Date(Math.min(...timestamps)); 
-            // We intentionally do not touch endDate here so it stays as 'today'
         } 
     }
     
     startDate.setHours(0,0,0,0); 
     endDate.setHours(23,59,59,999);
-    
-    let dateArray = []; 
-    // Build the YYYY-MM-DD string safely for local time to prevent drops
-    for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) { 
-        let yyyy = d.getFullYear();
-        let mm = String(d.getMonth() + 1).padStart(2, '0');
-        let dd = String(d.getDate()).padStart(2, '0');
-        dateArray.push(`${yyyy}-${mm}-${dd}`); 
-    } 
-    dateArray = [...new Set(dateArray)]; 
 
-    // Initialize mapping objects securely with Cards and ValidCardHours
-    let dayData = {}; 
-    dateArray.forEach(d => dayData[d] = {c:0, h:0, metric:0, validCphHours: 0, cards:0, validCardHours:0});
+    // --- SMART GROUPING LOGIC ---
+    let grouping = 1;
+    if (rangeVal === '365') grouping = 7;
+    else if (rangeVal === '90') grouping = 3;
+
+    let buckets = []; 
+    let currentBucketStart = new Date(startDate);
+    
+    while (currentBucketStart <= endDate) {
+        let currentBucketEnd = new Date(currentBucketStart);
+        currentBucketEnd.setDate(currentBucketEnd.getDate() + (grouping - 1));
+        if (currentBucketEnd > endDate) currentBucketEnd = new Date(endDate);
+        
+        let sLabel = `${currentBucketStart.getMonth()+1}/${currentBucketStart.getDate()}`;
+        let eLabel = `${currentBucketEnd.getMonth()+1}/${currentBucketEnd.getDate()}`;
+        let label = grouping === 1 ? sLabel : `${sLabel} - ${eLabel}`;
+        
+        buckets.push({
+            label: label,
+            start: new Date(currentBucketStart).setHours(0,0,0,0),
+            end: new Date(currentBucketEnd).setHours(23,59,59,999),
+            c: 0, h: 0, metric: 0, validCphHours: 0, cards: 0, validCardHours: 0
+        });
+        
+        currentBucketStart.setDate(currentBucketStart.getDate() + grouping);
+    }
 
     ent.forEach(e => {
-        if(!dayData[e.date]) return; 
-        dayData[e.date].c += e.chars || 0; 
-        dayData[e.date].h += e.hours || 0; 
-        dayData[e.date].cards += e.cards || 0; 
+        let eTime = new Date(e.date + "T12:00:00").getTime();
+        let b = buckets.find(bk => eTime >= bk.start && eTime <= bk.end);
+        if (!b) return;
+
+        b.c += e.chars || 0; 
+        b.h += e.hours || 0; 
+        b.cards += e.cards || 0; 
         
-        if (e.chars > 0 && e.hours > 0) { dayData[e.date].validCphHours += e.hours; }
-        if (e.cards > 0 && e.hours > 0) { dayData[e.date].validCardHours += e.hours; }
+        if (e.chars > 0 && e.hours > 0) b.validCphHours += e.hours;
+        if (e.cards > 0 && e.hours > 0) b.validCardHours += e.hours;
         
         let val = e.hours; 
         if(selectedMetric === "chars") val = e.chars || 0; 
         else if(selectedMetric === "cards") val = e.cards || 0;
         else if(selectedMetric === "units" || selectedMetric === "eps" || selectedMetric === "pages") val = (e.units || e.eps || e.pages || 0); 
         
-        dayData[e.date].metric += val;
+        b.metric += val;
     });
 
-    let labels = dateArray.map(d => formatDDMMYYYY(d));
-    let chartData = dateArray.map(d => { 
-        if (selectedMetric === "cph") return dayData[d].validCphHours > 0 ? Math.floor(dayData[d].c / dayData[d].validCphHours) : 0; 
-        if (selectedMetric === "cardspeed") return dayData[d].validCardHours > 0 ? Math.floor(dayData[d].cards / dayData[d].validCardHours) : 0; 
-        return dayData[d].metric; 
+    let labels = buckets.map(b => b.label);
+    let chartData = buckets.map(b => {
+        if (selectedMetric === "cph") return b.validCphHours > 0 ? Math.floor(b.c / b.validCphHours) : 0; 
+        if (selectedMetric === "cardspeed") return b.validCardHours > 0 ? Math.floor(b.cards / b.validCardHours) : 0; 
+        return b.metric; 
     });
     
     // --- DYNAMIC TREND LINE COLORS ---
@@ -2388,6 +2481,9 @@ function switchSetTab(id) { document.querySelectorAll('.set-section').forEach(el
 function openSettings() { 
     openModal("settingsOverlay"); populateThemeSelect(); renderMediaTypesSettings();
     document.getElementById("setBlurCph").checked = data.prefs.blurCph || false;
+	document.getElementById("setBgUrl").value = data.prefs.bgUrl || "";
+    document.getElementById("setBgDim").value = data.prefs.bgDim !== undefined ? data.prefs.bgDim : 0.7;
+    document.getElementById("setBgDimVal").textContent = document.getElementById("setBgDim").value;
 	document.getElementById("setGoalPace").checked = data.prefs.showGoalPace !== false;
     document.getElementById("setGoalHistory").checked = data.prefs.showGoalHistory !== false;
     document.getElementById("setGoalTrajectory").checked = data.prefs.showTrajectory !== false;
@@ -2420,6 +2516,9 @@ function saveSettingsFast() {
     data.prefs.trendFill = document.getElementById("setTrendFill").value === "true";
     data.prefs.volume = parseFloat(document.getElementById("volSlider").value); 
     data.prefs.blurCph = document.getElementById("setBlurCph").checked; 
+	data.prefs.bgUrl = document.getElementById("setBgUrl").value.trim();
+    data.prefs.bgDim = parseFloat(document.getElementById("setBgDim").value);
+    applyWallpaper();
     
     data.prefs.ankiEnabled = document.getElementById('setAnkiEnabled').checked;
     data.prefs.ankiAlways = document.getElementById('setAnkiAlways').checked;
@@ -2450,7 +2549,19 @@ const themes = {
 
 
 function applyTheme(n) { let t = {...themes, ...data.prefs.customThemes}[n] || themes.Dark; Object.entries(t).forEach(([k,v]) => document.documentElement.style.setProperty(`--${k}`, v)); }
-
+function applyWallpaper() {
+    let url = data.prefs.bgUrl || "";
+    let dim = data.prefs.bgDim !== undefined ? parseFloat(data.prefs.bgDim) : 0.7;
+    
+    if (url) {
+        document.body.style.backgroundImage = `linear-gradient(rgba(0,0,0,${dim}), rgba(0,0,0,${dim})), url("${url.replace(/\\/g, '/')}")`;
+        document.body.style.backgroundSize = "cover";
+        document.body.style.backgroundPosition = "center";
+        document.body.style.backgroundAttachment = "fixed";
+    } else {
+        document.body.style.backgroundImage = "none";
+    }
+}
 function openCustomTheme() { closeModal("settingsOverlay"); openModal("customThemeOverlay"); }
 function closeCustomTheme() { closeModal("customThemeOverlay"); openSettings(); }
 function copyThemeTemplate() { let currentThemeName = data.prefs.theme; let themeObj = {...themes, ...data.prefs.customThemes}[currentThemeName] || themes.Dark; document.getElementById("ctJSON").value = JSON.stringify(themeObj, null, 4); }
@@ -2518,6 +2629,11 @@ function moveMediaType(name, dir) {
 
 function openMediaTypeEditor(name) {
     editMTName = name;
+    
+    // Safe check prevents crashing if the div is missing
+    let specificSettings = document.getElementById('mtSpecificSettings');
+    if (specificSettings) specificSettings.style.display = (name === 'All Media') ? 'none' : 'block';
+    
     document.getElementById('mtEditorTitle').textContent = name ? "Edit " + name : "New Media Type";
     document.getElementById('mtName').value = name || "";
     document.getElementById('mtName').disabled = !!name;
@@ -2541,11 +2657,10 @@ function openMediaTypeEditor(name) {
     let presetContainer = document.getElementById('mtPresetPathsContainer');
     if (presetContainer) presetContainer.classList.toggle('hidden', !config.usePresetPaths);
     
-    let pPaths = config.presetPaths || ["", "", ""];
-    let p1 = document.getElementById('mtPath1'), p2 = document.getElementById('mtPath2'), p3 = document.getElementById('mtPath3');
-    if (p1) p1.value = pPaths[0] || "";
-    if (p2) p2.value = pPaths[1] || "";
-    if (p3) p3.value = pPaths[2] || "";
+    // --- NEW DYNAMIC PATHS LOGIC ---
+    currentMtPaths = (config.presetPaths || [""]).filter(p => p.trim() !== "");
+    if (currentMtPaths.length === 0) currentMtPaths = [""];
+    renderMtPaths();
     
     let hasUnits = config.inputs.includes('units') || config.inputs.includes('pages') || config.inputs.includes('eps');
     document.getElementById('mtInpUnits').checked = hasUnits;
@@ -2578,12 +2693,13 @@ function saveMediaType() {
     // The Launch Preset variables
     let usePresetPathsBox = document.getElementById('mtUsePresetPaths');
     let usePresetPaths = usePresetPathsBox ? usePresetPathsBox.checked : false;
-    let p1 = document.getElementById('mtPath1'), p2 = document.getElementById('mtPath2'), p3 = document.getElementById('mtPath3');
-    let presetPaths = [
-        p1 ? p1.value : "",
-        p2 ? p2.value : "",
-        p3 ? p3.value : ""
-    ];
+    
+    // --- NEW DYNAMIC PATHS LOGIC ---
+    let presetPaths = [];
+    for (let i = 0; i < currentMtPaths.length; i++) {
+        let el = document.getElementById('mtPath' + i);
+        if (el && el.value.trim() !== "") presetPaths.push(el.value.trim());
+    }
 
     let inputs = ['hours']; 
     let weight = parseFloat(document.getElementById('mtWeight').value) || 1.0;
@@ -2617,7 +2733,13 @@ function deleteMediaType() {
 /* ===============================
 DATA & ELECTRON HOTKEYS
 =============================== */
-function exportData() { let dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data)); let a = document.createElement("a"); a.href = dataStr; a.download = "ImmersionOS_Backup.json"; a.click(); }
+function exportData() { 
+    let dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data)); 
+    let a = document.createElement("a"); 
+    a.href = dataStr; 
+    a.download = `ImmersionOS_Backup_${getLocalDateStr()}.json`; 
+    a.click(); 
+}
 function importData(event) { let file = event.target.files[0]; if (!file) return; let reader = new FileReader(); reader.onload = function(e) { try { let imported = JSON.parse(e.target.result); if (imported.entries && imported.media) { data = imported; save(); location.reload(); } else alert("Invalid save file."); } catch(err) { alert("Error parsing file."); } }; reader.readAsText(file); }
 function wipeData() { if(confirm("Wipe everything?") && prompt("Type 'DELETE' to confirm") === "DELETE") { localStorage.removeItem("immersionOSv13"); location.reload(); } }
 
@@ -2755,6 +2877,7 @@ openLibEdit = function(name) {
     oldOpenLibEdit(name);
     let profile = data.mediaData[name];
     document.getElementById("libEditNotes").value = profile.notes || "";
+	document.getElementById("libEditDbUrl").value = profile.dbUrl || "";
 };
 
 const oldSaveLibraryEdit = saveLibraryEdit;
@@ -3028,6 +3151,79 @@ function showConfirm(msg, callback) {
     openModal("confirmOverlay");
 }
 
+async function triggerEditAutoFillSearch() {
+    let q = document.getElementById("libEditNewName").value.trim() || editLibMediaName;
+    let container = document.getElementById("libEditApiSearchContainer");
+    
+    let activeType = data.mediaData[editLibMediaName] ? data.mediaData[editLibMediaName].type : "";
+    if (!activeType) return;
+    let searchType = activeType.toLowerCase();
+    
+    container.classList.remove("hidden");
+    container.innerHTML = `<div style="padding:10px; text-align:center; color:var(--accent);">🔍 Searching database...</div>`;
+
+    if (searchType === 'anime' || searchType === 'manga') {
+        try {
+            const resp = await fetch(`https://api.jikan.moe/v4/${searchType}?q=${encodeURIComponent(q)}&limit=5`);
+            const res = await resp.json();
+            if (!res.data || res.data.length === 0) { container.innerHTML = `<div style="padding:10px; text-align:center; opacity:0.6;">No results found.</div>`; return; }
+            
+            container.innerHTML = "";
+            res.data.forEach(item => {
+                let title = item.title_japanese || item.title;
+                let target = searchType === 'anime' ? item.episodes : item.chapters;
+                let img = item.images?.jpg?.image_url || "";
+                let dbLink = item.url || "";
+                
+                let div = document.createElement("div");
+                div.style.cssText = "display:flex; gap:10px; padding:8px; border-bottom:1px solid var(--border); cursor:pointer;";
+                div.onclick = () => {
+                    document.getElementById("libEditNewName").value = item.alttitle || title;
+                    document.getElementById("libEditImg").value = img;
+                    if (target) document.getElementById("libEditTarget").value = target;
+                    document.getElementById("libEditDbUrl").value = dbLink;
+                    container.classList.add("hidden");
+                    showToast("✅ Edit Auto-Filled!", "Overall");
+                };
+                div.innerHTML = `<img src="${img}" style="width:30px; height:40px; object-fit:cover;"><div style="font-size:11px;"><strong>${title}</strong><br>Target: ${target || '?'}</div>`;
+                container.appendChild(div);
+            });
+        } catch(e) { container.innerHTML = "Error."; }
+    } else if (searchType === 'vn') {
+        try {
+            const resp = await fetch('https://api.vndb.org/kana/vn', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ filters: ["search", "=", q], fields: "title, alttitle, image.url, length_minutes", results: 5 })
+            });
+            const res = await resp.json();
+            if (!res.results || res.results.length === 0) { container.innerHTML = `<div style="padding:10px; text-align:center; opacity:0.6;">No results found.</div>`; return; }
+            
+            container.innerHTML = "";
+            res.results.forEach(item => {
+                let title = item.alttitle || item.title;
+                let img = item.image ? item.image.url : "";
+                let hours = item.length_minutes ? Math.round(item.length_minutes / 60) : "";
+                let dbLink = item.id ? `https://vndb.org/${item.id}` : "";
+                
+                let div = document.createElement("div");
+                div.style.cssText = "display:flex; gap:10px; padding:8px; border-bottom:1px solid var(--border); cursor:pointer;";
+                div.onclick = () => {
+                    document.getElementById("libEditNewName").value = title;
+                    document.getElementById("libEditImg").value = img;
+                    if (hours) document.getElementById("libEditTarget").value = hours;
+                    document.getElementById("libEditDbUrl").value = dbLink;
+                    container.classList.add("hidden");
+                    showToast("✅ Edit Auto-Filled!", "VN");
+                };
+                div.innerHTML = `<img src="${img}" style="width:30px; height:40px; object-fit:cover;"><div style="font-size:11px;"><strong>${title}</strong><br>Length: ${hours ? hours+'h' : '?'}</div>`;
+                container.appendChild(div);
+            });
+        } catch(e) { container.innerHTML = "Error."; }
+    } else {
+        container.innerHTML = `<div style="padding:10px; text-align:center; opacity:0.6;">Auto-fill not supported for ${activeType}.</div>`;
+    }
+}
+
 async function triggerAutoFillSearch() {
     let q = document.getElementById("newMediaInput").value.trim();
     let container = document.getElementById("apiSearchContainer");
@@ -3056,6 +3252,7 @@ async function triggerAutoFillSearch() {
                 let title = item.title_japanese || item.title;
                 let target = searchType === 'anime' ? item.episodes : item.chapters;
                 let img = item.images?.jpg?.image_url || "";
+                let dbLink = item.url || ""; // Gets the MAL link
                 
                 let div = document.createElement("div");
                 div.style.cssText = "display:flex; gap:10px; padding:8px; border-bottom:1px solid var(--border); cursor:pointer;";
@@ -3063,6 +3260,7 @@ async function triggerAutoFillSearch() {
                     document.getElementById("newMediaInput").value = item.alttitle || title;
                     document.getElementById("newMediaImg").value = img;
                     if (target) document.getElementById("newMediaTarget").value = target;
+                    if (document.getElementById("newMediaDbUrl")) document.getElementById("newMediaDbUrl").value = dbLink;
                     container.classList.add("hidden");
                     showToast("✅ Auto-Filled!", "Overall");
                 };
@@ -3071,7 +3269,7 @@ async function triggerAutoFillSearch() {
             });
         } catch(e) { container.innerHTML = "Search Error."; }
     } 
-    // --- VISUAL NOVELS (VNDB Hours Only) ---
+    // --- VISUAL NOVELS (VNDB) ---
     else if (searchType === 'vn') {
         try {
             const resp = await fetch('https://api.vndb.org/kana/vn', {
@@ -3094,8 +3292,8 @@ async function triggerAutoFillSearch() {
             res.results.forEach(item => {
                 let title = item.alttitle || item.title;
                 let img = item.image ? item.image.url : "";
-                // Convert VNDB minutes to rounded hours
                 let hours = item.length_minutes ? Math.round(item.length_minutes / 60) : "";
+                let dbLink = item.id ? `https://vndb.org/${item.id}` : ""; // Builds the VNDB link
                 
                 let div = document.createElement("div");
                 div.style.cssText = "display:flex; gap:10px; padding:8px; border-bottom:1px solid var(--border); cursor:pointer;";
@@ -3103,6 +3301,7 @@ async function triggerAutoFillSearch() {
                     document.getElementById("newMediaInput").value = title;
                     document.getElementById("newMediaImg").value = img;
                     document.getElementById("newMediaTarget").value = hours;
+                    if (document.getElementById("newMediaDbUrl")) document.getElementById("newMediaDbUrl").value = dbLink;
                     container.classList.add("hidden");
                     showToast(`✅ Auto-Filled ${hours ? hours+'h' : '(No time data)'}`, "VN");
                 };
@@ -3138,7 +3337,8 @@ function initOS() {
     populateMedia(); 
     updateTrendOptions(); 
     applyTheme(data.prefs.theme); 
-
+	applyWallpaper();
+	
     document.getElementById('tabLibrary').classList.remove('active');
     document.getElementById('tabAnalytics').classList.remove('active');
 
@@ -3149,6 +3349,8 @@ function initOS() {
     if (typeof updateElectronHotkeys === 'function') updateElectronHotkeys(); 
     if (typeof renderLinkManager === 'function') renderLinkManager(); 
     if (typeof updateShortcutText === 'function') updateShortcutText();
+	
+	updateAll();
 }
 
 let resizeTimer;
