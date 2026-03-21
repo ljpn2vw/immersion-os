@@ -76,7 +76,11 @@ ipcMain.on('launch-apps', (event, paths, opts) => {
                         detached: true, 
                         cwd: targetDir
                     });
-                    if (index === 0 && opts && opts.autoSubmit) {
+                    
+                    // Look for the specific path index selected in the UI (defaults to 0 / Path 1)
+                    let targetIdx = opts && opts.targetPathIndex !== undefined ? opts.targetPathIndex : 0;
+                    
+                    if (index === targetIdx && opts && opts.autoSubmit) {
                         child.on('close', () => {
                             event.reply('app-closed', opts.mediaName);
                         });

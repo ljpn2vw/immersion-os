@@ -488,6 +488,9 @@ hr { border: 0; border-top: 1px solid var(--border); margin: 15px 0; }
         
         Name<br><input type="text" id="newMediaInput" style="width:95%; margin-bottom:10px;" placeholder="Media Title..." onkeypress="if(event.key === 'Enter') triggerAutoFillSearch()">
         Cover Art (URL)<br><input type="text" id="newMediaImg" style="width:95%; margin-bottom:10px;" placeholder="https://...">
+        
+        <input type="hidden" id="newMediaDbUrl">
+        
 		Target & Metric <span style="font-size:10px;opacity:0.6">(Optional)</span><br>
 				<div style="display:flex; gap:5px; width:95%; margin-bottom:15px;">
 					<input type="number" id="newMediaTarget" placeholder="e.g. 64 or 100k" style="flex:2;">
@@ -584,9 +587,16 @@ hr { border: 0; border-top: 1px solid var(--border); margin: 15px 0; }
             <label style="grid-column: 1 / -1; border-top: 1px solid var(--border); padding-top: 8px; margin-top: 4px; color: var(--accent);">
                 <input type="checkbox" id="mtAutoHook"> 🔌 Auto-Connect Text Hooker on Launch
             </label>
-            <label style="grid-column: 1 / -1; color: #ffaa00;">
-                <input type="checkbox" id="mtAutoSubmit"> 🛑 Auto-Save Entry when Path 1 closes
-            </label>
+            <div style="grid-column: 1 / -1; color: #ffaa00; display: flex; align-items: center; gap: 8px;">
+                <label><input type="checkbox" id="mtAutoSubmit"> 🛑 Auto-Save Entry when path closes:</label>
+                <select id="mtAutoSubmitPath" style="font-size:11px; padding:2px; background:var(--input); color:var(--text); border:1px solid var(--border); border-radius:4px;">
+                    <option value="1">Path 1</option>
+                    <option value="2">Path 2</option>
+                    <option value="3">Path 3</option>
+                    <option value="4">Path 4</option>
+                    <option value="5">Path 5</option>
+                </select>
+            </div>
         </div>
 
         <h4 style="margin-top:15px; margin-bottom:5px;">Progress Bar Target</h4>
@@ -868,7 +878,7 @@ const defaultMediaConfig = {
     "Other": { inputs: ['hours', 'pages'], stats: ['hours', 'pages', 'pace', 'days'], unitName: 'Units' }
 };
 
-let data = JSON.parse(localStorage.getItem("immersionOSv13"));
+let data = JSON.parse(localStorage.getItem("ImmersionOS_data"));
 if (!data) data = { entries: [], media: {}, xp: {}, goals: [], archivedGoals: [], achievements: [], prefs: {theme:"Dark", defaultEpLength:20, lastType:"VN", customThemes: {}, resetHour: 0, hotkeys: {save: "", timer: ""}, mute: false, wsUrl: "ws://localhost:55001", cardSize: 220, volume: 0.5, chartStyle: 'line', trendCurve: 'smooth', trendFill: true, animePlayer: 'mpv', afkTimer: 30}, links: [] };
 
 if (!data.mediaConfig) data.mediaConfig = defaultMediaConfig;
@@ -885,7 +895,28 @@ Object.keys(data.mediaConfig).forEach(t => {
     (data.media[t] || []).forEach(m => { if(!data.mediaData[m]) data.mediaData[m] = { type: t, status: 'active', target: null, img: "", paths: ["","",""], blur: false, hidden: false }; });
 });
 
-function save() { localStorage.setItem("immersionOSv13", JSON.stringify(data)); }
+function save() { localStorage.setItem("ImmersionOS_data", JSON.stringify(data)); }
+
+async function checkJitenWaterfall(jpTitle, enTitle) {
+    let checks = [jpTitle, enTitle];
+    if (jpTitle) checks.push(jpTitle.replace(/[^\w\s\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]/g, ' ').trim());
+    if (enTitle) checks.push(enTitle.replace(/[^\w\s]/g, ' ').trim());
+
+    for (let q of checks) {
+        if (!q) continue;
+        try {
+            // Using your existing searchAPI with the capital 'I'
+            let res = await window.electronAPI.searchAPI({ type: 'jiten', q: q });
+            
+            if (res && res.data && res.data.length > 0 && res.data[0].characterCount) {
+                return res.data[0].characterCount;
+            }
+        } catch (e) {
+            console.error("JITEN ERROR:", e);
+        }
+    }
+    return null;
+}
 
 // --- DYNAMIC LAUNCH PATHS LOGIC ---
 let currentMtPaths = [];
@@ -1646,7 +1677,8 @@ function fireMediaLaunch(name) {
         }); 
         if (window.electronAPI) { 
             playAudio('launch.wav'); 
-            window.electronAPI.launchApps(processedPaths, { mediaName: name, autoSubmit: !!conf.autoSubmit }); 
+            let targetIndex = (conf.autoSubmitPath || 1) - 1;
+            window.electronAPI.launchApps(processedPaths, { mediaName: name, autoSubmit: !!conf.autoSubmit, targetPathIndex: targetIndex }); 
         } else { 
             showToast("Launcher requires Desktop App.", "Overall"); 
         } 
@@ -1711,6 +1743,7 @@ function saveLibraryEdit() {
     let newAuto = document.getElementById("libEditAuto").checked;
     let newNotes = document.getElementById("libEditNotes").value;
     let newDbUrl = document.getElementById("libEditDbUrl").value.trim(); 
+	let newOverride = document.getElementById("libEditOverride").value;
 
     let newPaths = [];
     if (typeof currentLibEditPaths !== 'undefined') {
@@ -1740,6 +1773,7 @@ function saveLibraryEdit() {
     p.autoComplete = newAuto;
     p.notes = newNotes;
     p.dbUrl = newDbUrl; 
+    p.metricOverride = newOverride;
     p.paths = newPaths;
 
     save(); updateAll(); renderLibrary(); closeModal('libEditOverlay');
@@ -1796,6 +1830,10 @@ function confirmAddMedia() {
     let overrideSel = document.getElementById("newMediaOverride");
     let metricOverride = overrideSel ? overrideSel.value : 'default';
     
+    // Grab the database URL if it was auto-filled
+    let dbUrlEl = document.getElementById("newMediaDbUrl");
+    let dbUrl = dbUrlEl ? dbUrlEl.value.trim() : "";
+    
     let t = logType.value; 
     
     if(n) { 
@@ -1803,14 +1841,14 @@ function confirmAddMedia() {
             data.media[t].push(n); 
             let auto = document.getElementById("newMediaAuto").checked; 
             
-            // Inject the preset paths from the config directly into the new media
             let defaultPaths = ["", "", ""];
             let conf = data.mediaConfig[t];
             if (conf && conf.usePresetPaths && conf.presetPaths) {
                 defaultPaths = [...conf.presetPaths];
             }
 
-            data.mediaData[n] = { type: t, status: 'active', target: target, metricOverride: metricOverride, img: img, paths: defaultPaths, blur: false, hidden: false, autoComplete: auto }; 
+            // Notice dbUrl is added to the end of this object!
+            data.mediaData[n] = { type: t, status: 'active', target: target, metricOverride: metricOverride, img: img, paths: defaultPaths, blur: false, hidden: false, autoComplete: auto, dbUrl: dbUrl }; 
         } 
         save(); populateMedia(); renderLibrary(); 
     } 
@@ -2064,6 +2102,36 @@ function deleteArchivedGoal(idx) {
     showConfirm("Permanently delete this archived goal?", () => { 
         data.archivedGoals.splice(idx,1); save(); openArchiveModal(); 
     }); 
+}
+
+
+function stopTimerFull() {
+    if(!timerInterval && !isTimerPaused) return;
+    let logH = document.getElementById('logHours'); 
+    let logM = document.getElementById('logMinutes');
+    
+    let stopLogic = () => {
+        if(!isTimerPaused) accumulatedMs += (Date.now() - startTime); 
+        let elapsedHours = accumulatedMs / 3600000; 
+        if(logH) logH.value = elapsedHours.toFixed(2); 
+        if(logM) logM.value = 0; 
+        
+        clearInterval(timerInterval); timerInterval = null; isTimerPaused = false; accumulatedMs = 0; 
+        
+        let btn = document.getElementById("timerBtn");
+        let zenBtn = document.getElementById("zenTimerBtn");
+        if(btn) { btn.textContent = "▶"; btn.classList.remove("active"); btn.style.background = ""; btn.style.borderColor = ""; btn.style.animation = ""; }
+        if(zenBtn) { zenBtn.textContent = "▶ START"; zenBtn.classList.remove("active"); zenBtn.style.background = ""; zenBtn.style.borderColor = ""; zenBtn.style.animation = ""; }
+        let zc = document.getElementById("zenClock"); if(zc) zc.textContent = "00:00:00"; 
+        
+        playAudio('timer.wav'); 
+        showToast("⏹️ Timer Stopped", "Overall");
+    };
+
+    if ((logH && parseFloat(logH.value) > 0) || (logM && parseFloat(logM.value) > 0)) {
+        showConfirm("Overwrite the time currently typed in your log?", stopLogic);
+    } else { stopLogic(); }
+    nukeFocus();
 }
 
 /* ===============================
@@ -2504,6 +2572,7 @@ function openSettings() {
     document.getElementById("wsUrl").value = data.prefs.wsUrl || "ws://localhost:55001"; 
     document.getElementById("muteSounds").checked = data.prefs.mute;
     document.getElementById("prefHideSidebar").checked = data.prefs.hideSidebarInLibrary === true;
+	document.getElementById("setLaunchSidebar").checked = data.prefs.launchSidebar === true;
     
     // Load Anki Settings
     document.getElementById("setAnkiEnabled").checked = data.prefs.ankiEnabled === true;
@@ -2651,6 +2720,8 @@ function openMediaTypeEditor(name) {
     document.getElementById('mtAfk').value = config.afk !== undefined ? config.afk : "";
     document.getElementById('mtAutoHook').checked = config.autoHook === true;
     document.getElementById('mtAutoSubmit').checked = config.autoSubmit === true;
+	let pathSelect = document.getElementById('mtAutoSubmitPath');
+    if (pathSelect) pathSelect.value = config.autoSubmitPath || 1;
     
     // The Launch Preset variables
     document.getElementById('mtUsePresetPaths').checked = config.usePresetPaths === true;
@@ -2688,6 +2759,7 @@ function saveMediaType() {
     
     // Your variables
     let autoSubmit = document.getElementById('mtAutoSubmit').checked;
+	let autoSubmitPath = parseInt(document.getElementById('mtAutoSubmitPath').value) || 1;
     let afk = parseInt(document.getElementById('mtAfk').value) || 0;
     
     // The Launch Preset variables
@@ -2716,7 +2788,7 @@ function saveMediaType() {
     let stats = statObjects.map(s => s.id);
     
     // MERGED: Saves everything together
-    data.mediaConfig[name] = { inputs, stats, unitName, progressMetric, emoji, weight, autoHook, autoSubmit, afk, usePresetPaths, presetPaths };
+    data.mediaConfig[name] = { inputs, stats, unitName, progressMetric, emoji, weight, autoHook, autoSubmit, autoSubmitPath, afk, usePresetPaths, presetPaths };
     if(!data.media[name]) data.media[name] = []; 
     
     save(); populateDropdowns(); renderMediaTypesSettings(); updateAll(); closeModal('mediaTypeEditorOverlay');
@@ -2741,11 +2813,31 @@ function exportData() {
     a.click(); 
 }
 function importData(event) { let file = event.target.files[0]; if (!file) return; let reader = new FileReader(); reader.onload = function(e) { try { let imported = JSON.parse(e.target.result); if (imported.entries && imported.media) { data = imported; save(); location.reload(); } else alert("Invalid save file."); } catch(err) { alert("Error parsing file."); } }; reader.readAsText(file); }
-function wipeData() { if(confirm("Wipe everything?") && prompt("Type 'DELETE' to confirm") === "DELETE") { localStorage.removeItem("immersionOSv13"); location.reload(); } }
+function wipeData() { if(confirm("Wipe everything?") && prompt("Type 'DELETE' to confirm") === "DELETE") { localStorage.removeItem("ImmersionOS_data"); location.reload(); } }
 
 function updateElectronHotkeys() { if (window.electronAPI) window.electronAPI.registerHotkeys(data.prefs.hotkeys); }
 function updateAFK(val) { data.prefs.afkTimer = parseInt(val) || 0; save(); if (window.electronAPI) window.electronAPI.setAfkThreshold(data.prefs.afkTimer); }
-function recordBind(e, type) { e.preventDefault(); let keys = []; if (e.ctrlKey || e.metaKey) keys.push("CommandOrControl"); if (e.altKey) keys.push("Alt"); if (e.shiftKey) keys.push("Shift"); if (['Control', 'Shift', 'Alt', 'Meta'].includes(e.key)) return; let keyMap = { ' ': 'Space', '+': 'Plus', 'ArrowUp': 'Up', 'ArrowDown': 'Down', 'ArrowLeft': 'Left', 'ArrowRight': 'Right' }; let keyStr = keyMap[e.key] || e.key.toUpperCase(); keys.push(keyStr); let finalBind = keys.join('+'); document.getElementById(type === 'save' ? 'hkSave' : 'hkTimer').value = finalBind; data.prefs.hotkeys[type] = finalBind; save(); updateElectronHotkeys(); updateShortcutText(); }
+function recordBind(e, type) { 
+    e.preventDefault(); 
+    let keys = []; 
+    if (e.ctrlKey || e.metaKey) keys.push("CommandOrControl"); 
+    if (e.altKey) keys.push("Alt"); 
+    if (e.shiftKey) keys.push("Shift"); 
+    
+    // Ignore modifier-only presses AND dangerous global keys
+    if (['Control', 'Shift', 'Alt', 'Meta', 'Enter', 'Backspace', 'Escape'].includes(e.key)) return; 
+    
+    let keyMap = { ' ': 'Space', '+': 'Plus', 'ArrowUp': 'Up', 'ArrowDown': 'Down', 'ArrowLeft': 'Left', 'ArrowRight': 'Right' }; 
+    let keyStr = keyMap[e.key] || e.key.toUpperCase(); 
+    keys.push(keyStr); 
+    
+    let finalBind = keys.join('+'); 
+    document.getElementById(type === 'save' ? 'hkSave' : 'hkTimer').value = finalBind; 
+    data.prefs.hotkeys[type] = finalBind; 
+    save(); 
+    updateElectronHotkeys(); 
+    updateShortcutText(); 
+}
 function clearBind(type) { data.prefs.hotkeys[type] = ""; document.getElementById(type === 'save' ? 'hkSave' : 'hkTimer').value = ""; save(); updateElectronHotkeys(); updateShortcutText(); }
 function updateShortcutText() { 
     let saveStr = data.prefs.hotkeys.save ? `Save (${data.prefs.hotkeys.save})` : ""; 
@@ -2759,30 +2851,66 @@ function setAnimePlayer(input) { if (input.files && input.files[0]) { let path =
 
 if (window.electronAPI) {
     window.electronAPI.onTriggerSave(() => { addEntry(); });
-    window.electronAPI.onTriggerTimer(() => { toggleTimer(); });
+    let hkTimerState = { last: 0, delay: null };
+    
+    window.electronAPI.onTriggerTimer(() => { 
+        let now = Date.now();
+        let timeSinceLast = now - hkTimerState.last;
+        hkTimerState.last = now;
+        
+        // --- DOUBLE TAP DETECTED ---
+        if (timeSinceLast < 400) {
+            clearTimeout(hkTimerState.delay);
+            hkTimerState.last = 0; // Reset to prevent triple-tap weirdness
+            
+            // If the timer is running or paused, Double-Tap STOPS it
+            if (timerInterval || isTimerPaused) {
+                stopTimerFull(); 
+            }
+        } 
+        // --- SINGLE TAP DETECTED ---
+        else {
+            clearTimeout(hkTimerState.delay);
+            
+            // Wait 400ms to ensure it's not a double-tap
+            hkTimerState.delay = setTimeout(() => {
+                
+                // 1. If timer is completely stopped -> START IT (Left Click behavior)
+                if (!timerInterval && !isTimerPaused) {
+                    toggleTimer();
+                } 
+                // 2. If timer is running or paused -> PAUSE/UNPAUSE (Right Click behavior)
+                else {
+                    pauseTimer();
+                }
+                
+            }, 400);
+        }
+    });
     window.electronAPI.onAfkPause(() => { if (timerInterval && !isTimerPaused) { pauseTimer(); showToast("⏸️ AFK Detected. Timer Paused.", "Alert"); } });
     
     // --- APP CLOSED LISTENER ---
     window.electronAPI.onAppClosed((closedMediaName) => {
         let currentSelect = document.getElementById("mediaSelect").value;
         if (currentSelect === closedMediaName && (timerInterval !== null || isTimerPaused)) {
-            // Grab the exact time right now
             if (!isTimerPaused) accumulatedMs += (Date.now() - startTime); 
             let elapsedHours = accumulatedMs / 3600000;
+            let elapsedMinutes = accumulatedMs / 60000;
             
-            // Dump it directly into the input boxes safely
-            let logH = document.getElementById('logHours');
-            if (logH) logH.value = elapsedHours.toFixed(2);
-            
-            // Hard reset the timer state
             clearInterval(timerInterval); timerInterval = null; isTimerPaused = false; accumulatedMs = 0;
             
-            // Reset UI buttons
-            let btn = document.getElementById("timerBtn");
-            let zenBtn = document.getElementById("zenTimerBtn");
+            let btn = document.getElementById("timerBtn"); let zenBtn = document.getElementById("zenTimerBtn");
             if(btn) { btn.textContent = "▶"; btn.classList.remove("active"); btn.style.background = ""; btn.style.borderColor = ""; }
             if(zenBtn) { zenBtn.textContent = "▶ START"; zenBtn.classList.remove("active"); zenBtn.style.background = ""; zenBtn.style.borderColor = ""; }
             let zc = document.getElementById("zenClock"); if(zc) zc.textContent = "00:00:00"; 
+            
+            if (elapsedMinutes < 2) {
+                showToast(`🛑 ${closedMediaName} closed (Ignored)`, "Alert");
+                return;
+            }
+
+            let logH = document.getElementById('logHours');
+            if (logH) logH.value = elapsedHours.toFixed(2);
             
             showToast(`🛑 ${closedMediaName} closed. Auto-saving entry!`, "Overall");
             addEntry();
@@ -2826,7 +2954,7 @@ if (window.electronAPI) {
             });
         });
         
-        if (matchedName && (seconds > 10 || eps > 0)) { 
+        if (matchedName && (seconds > 120 || eps > 0)) { 
             // INSTANT SYNC before logging the MPV session
             if (data.prefs.ankiEnabled) await pollAnki();
 
@@ -3201,19 +3329,32 @@ async function triggerEditAutoFillSearch() {
             container.innerHTML = "";
             res.results.forEach(item => {
                 let title = item.alttitle || item.title;
+                let enTitle = item.title;
                 let img = item.image ? item.image.url : "";
                 let hours = item.length_minutes ? Math.round(item.length_minutes / 60) : "";
                 let dbLink = item.id ? `https://vndb.org/${item.id}` : "";
                 
                 let div = document.createElement("div");
                 div.style.cssText = "display:flex; gap:10px; padding:8px; border-bottom:1px solid var(--border); cursor:pointer;";
-                div.onclick = () => {
+                div.onclick = async () => {
+                    container.innerHTML = `<div style="padding:10px; text-align:center; color:var(--accent);">📡 Scanning Jiten.moe for exact characters...</div>`;
+                    
+                    let jitenChars = await checkJitenWaterfall(title, enTitle);
+                    
                     document.getElementById("libEditNewName").value = title;
                     document.getElementById("libEditImg").value = img;
-                    if (hours) document.getElementById("libEditTarget").value = hours;
                     document.getElementById("libEditDbUrl").value = dbLink;
+                    
+                    if (jitenChars) {
+                        document.getElementById("libEditTarget").value = jitenChars;
+                        document.getElementById("libEditOverride").value = "chars";
+                        showToast(`✅ Auto-Filled ${jitenChars.toLocaleString()} Chars!`, "VN");
+                    } else {
+                        if (hours) document.getElementById("libEditTarget").value = hours;
+                        document.getElementById("libEditOverride").value = "hours";
+                        showToast(`✅ Auto-Filled ${hours ? hours+'h' : '(No time data)'}`, "VN");
+                    }
                     container.classList.add("hidden");
-                    showToast("✅ Edit Auto-Filled!", "VN");
                 };
                 div.innerHTML = `<img src="${img}" style="width:30px; height:40px; object-fit:cover;"><div style="font-size:11px;"><strong>${title}</strong><br>Length: ${hours ? hours+'h' : '?'}</div>`;
                 container.appendChild(div);
@@ -3290,22 +3431,41 @@ async function triggerAutoFillSearch() {
             
             container.innerHTML = "";
             res.results.forEach(item => {
-                let title = item.alttitle || item.title;
+                let jpTitle = item.alttitle || item.title;
+                let enTitle = item.title;
                 let img = item.image ? item.image.url : "";
                 let hours = item.length_minutes ? Math.round(item.length_minutes / 60) : "";
-                let dbLink = item.id ? `https://vndb.org/${item.id}` : ""; // Builds the VNDB link
+                let dbLink = item.id ? `https://vndb.org/${item.id}` : ""; 
                 
                 let div = document.createElement("div");
                 div.style.cssText = "display:flex; gap:10px; padding:8px; border-bottom:1px solid var(--border); cursor:pointer;";
-                div.onclick = () => {
-                    document.getElementById("newMediaInput").value = title;
+                div.onclick = async () => {
+                    container.innerHTML = `<div style="padding:10px; text-align:center; color:var(--accent);">📡 Scanning Jiten.moe...</div>`;
+                    
+                    let jitenChars = await checkJitenWaterfall(jpTitle, enTitle);
+                    
+                    document.getElementById("newMediaInput").value = enTitle;
                     document.getElementById("newMediaImg").value = img;
-                    document.getElementById("newMediaTarget").value = hours;
                     if (document.getElementById("newMediaDbUrl")) document.getElementById("newMediaDbUrl").value = dbLink;
+                    
+                    if (jitenChars) {
+                        document.getElementById("newMediaTarget").value = jitenChars;
+                        // This exact line physically changes the dropdown
+                        let overrideDropdown = document.getElementById("newMediaOverride");
+                        if (overrideDropdown) overrideDropdown.value = "chars";
+                        
+                        showToast(`✅ Auto-Filled ${jitenChars.toLocaleString()} Chars!`, "VN");
+                    } else {
+                        if (hours) document.getElementById("newMediaTarget").value = hours;
+                        // This exact line physically changes the dropdown
+                        let overrideDropdown = document.getElementById("newMediaOverride");
+                        if (overrideDropdown) overrideDropdown.value = "hours";
+                        
+                        showToast(`✅ Auto-Filled ${hours ? hours+'h' : '(No time data)'}`, "VN");
+                    }
                     container.classList.add("hidden");
-                    showToast(`✅ Auto-Filled ${hours ? hours+'h' : '(No time data)'}`, "VN");
                 };
-                div.innerHTML = `<img src="${img}" style="width:35px; height:50px; object-fit:cover; border-radius:4px;"><div style="font-size:12px;"><strong>${title}</strong><br><span style="opacity:0.6;">VNDB Length: ${hours ? hours+'h' : 'Unknown'}</span></div>`;
+                div.innerHTML = `<img src="${img}" style="width:35px; height:50px; object-fit:cover; border-radius:4px;"><div style="font-size:12px;"><strong>${enTitle}</strong><br><span style="opacity:0.6;">VNDB Length: ${hours ? hours+'h' : 'Unknown'}</span></div>`;
                 container.appendChild(div);
             });
         } catch(e) { container.innerHTML = "VNDB Search Error."; }
