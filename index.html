@@ -51,6 +51,14 @@ body.zen-mode .left { display: none; }
 body.zen-mode .right { width: 100%; padding: 40px; }
 body.zen-mode #zenContainer { display: block; }
 body.zen-mode #libraryView, body.zen-mode #analyticsView, body.zen-mode #compareView { display: none !important; }
+/* Clean Dropdown Widget Menu */
+.wid-dropdown { position: relative; display: flex; align-items: center; margin-right: auto; margin-left: 10px; padding-bottom: 15px; margin-bottom: -15px; }
+.wid-dropbtn { background: var(--card); border: 1px solid var(--border); color: var(--text); padding: 4px 10px; font-size: 16px; border-radius: 6px; cursor: pointer; transition: 0.2s; z-index: 50; position: relative;}
+.wid-dropbtn:hover { border-color: var(--accent); }
+.wid-drop-content { display: none; position: absolute; background-color: var(--card); min-width: 150px; box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.5); z-index: 50; border: 1px solid var(--border); border-radius: 6px; top: 100%; left: 0; flex-direction: column; overflow: hidden; padding: 4px 0; margin-top: -2px;}
+.wid-dropdown:hover .wid-drop-content { display: flex; }
+.wid-drop-content button { color: var(--text); padding: 10px 15px; display: flex; gap: 10px; align-items: center; background: transparent; border: none; width: 100%; text-align: left; cursor: pointer; font-size: 12px; font-weight: bold; transition: 0.1s;}
+.wid-drop-content button:hover { background-color: rgba(255,255,255,0.05); color: var(--accent); }
 
 /* WEBSOCKET HOOK UI */
 .hook-bar { display: flex; gap: 5px; margin-top: 4px; }
@@ -215,12 +223,20 @@ hr { border: 0; border-top: 1px solid var(--border); margin: 15px 0; }
             <option value="all">All Media</option>
         </select>
     </div>
-
+	<div class="wid-dropdown">
+            <button class="wid-dropbtn" title="Widget Menu">🗔</button>
+            <div class="wid-drop-content">
+                <button onclick="quickLaunchWidget('linux')">📏 Linux Panel</button>
+                <button onclick="quickLaunchWidget('float')">🎀 Glass Ribbon</button>
+                <button onclick="quickLaunchWidget('pill')">💊 Touch Pill</button>
+                <div style="height:1px; background:var(--border); width:100%; margin: 4px 0;"></div>
+                <button onclick="if(window.electronAPI) window.electronAPI.closeWidget()" style="color:#ff4444;">✕ Close Active</button>
+            </div>
+        </div>
     <div id="utilBtns" style="display:flex; gap:10px;">
         <button onclick="takeScreenshot()" onmouseenter="playAudio('hover.wav')">📸 Snap</button>
         <button onclick="openHistory()" onmouseenter="playAudio('hover.wav')">📜 History</button>
     </div>
-
     <button onclick="openSettings()" onmouseenter="playAudio('hover.wav')">⚙️ Settings</button>
     <button id="zenToggleBtn" onclick="toggleZenMode()" onmouseenter="playAudio('hover.wav')" title="Zen Screensaver" style="background:transparent; border:none; font-size:18px; padding:4px 8px; opacity:0.6;">⤢</button>
 </header>
@@ -405,6 +421,10 @@ hr { border: 0; border-top: 1px solid var(--border); margin: 15px 0; }
         </div> </div>
 </div>
 
+<div id="lightboxOverlay" class="overlay hidden" style="z-index: 9999;" onclick="closeModal('lightboxOverlay')">
+    <img id="lightboxImg" src="" style="max-width: 90vw; max-height: 90vh; border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.8);">
+</div>
+
 <div id="libEditOverlay" class="overlay hidden" style="z-index: 120;">
     <div class="modal" style="width: 320px;">
         <h3>Edit Media</h3>
@@ -418,12 +438,13 @@ hr { border: 0; border-top: 1px solid var(--border); margin: 15px 0; }
             </div>
         </div>
         <div id="libEditApiSearchContainer" class="hidden" style="max-height:150px; overflow-y:auto; background:var(--bg); border:1px solid var(--border); border-radius:4px; margin-bottom:15px;"></div>
-        <div style="margin-bottom:10px;">Cover Art (URL)<br><input type="text" id="libEditImg" placeholder="https://..." style="width:95%"></div>
+		<div style="margin-bottom:10px;">Cover Art (URL)<br><input type="text" id="libEditImg" placeholder="https://..." style="width:95%"></div>
 		<div style="margin-bottom:10px;">
 			<strong>Database URL</strong><br>
-			<input type="text" id="libEditDbUrl" placeholder="https://vndb.org/v..." style="width:100%">
+			<input type="text" id="libEditDbUrl" placeholder="https://vndb.org/v..." style="width:100%; margin-bottom:5px;">
+			<input type="text" id="libEditDbAlt" placeholder="Alt Link or Image Path (Right-click)" style="width:100%; font-size:11px; background:var(--input); color:var(--text); border:1px solid var(--border); padding:4px; border-radius:4px;">
 		</div>
-        <div class="flex-row">
+		<div class="flex-row">
 		<div>Status<br><select id="libEditStatus" style="width:100%"><option value="active">🟢 Active</option><option value="paused">⏸️ Paused</option><option value="completed">⭐ Completed</option><option value="dropped">❌ Dropped</option><option value="wishlist">📝 Wishlist</option></select></div>
             <div>Target & Override<span style="font-size:10px;opacity:0.6"></span><br>
 			<div style="display:flex; gap:2px;">
@@ -711,6 +732,7 @@ hr { border: 0; border-top: 1px solid var(--border); margin: 15px 0; }
                 <button class="set-tab-btn" onclick="switchSetTab('set-media')">📝 Media Types</button>
                 <button class="set-tab-btn" onclick="switchSetTab('set-pref')">⚙️ Preferences</button>
                 <button class="set-tab-btn" onclick="switchSetTab('set-int')">🔌 Connections</button>
+                <button class="set-tab-btn" onclick="switchSetTab('set-widgets')">🗔 Widgets</button>
                 <button class="set-tab-btn" onclick="switchSetTab('set-data')">💾 Data</button>
             </div>
             <div class="settings-body">
@@ -782,6 +804,7 @@ hr { border: 0; border-top: 1px solid var(--border); margin: 15px 0; }
 						<input type="checkbox" id="setLaunchSidebar" onchange="data.prefs.launchSidebar = this.checked; save();"> 
 						Auto-open sidebar when launching media
 					</label>
+					<label style="display:flex; align-items:center; gap:8px; margin-bottom:15px; font-size:12px; opacity:0.9; cursor:pointer;"><input type="checkbox" id="setCloseToTray" onchange="saveSettingsFast()"> Close to System Tray instead of quitting</label>
                     <div class="flex-row">
                         <div style="flex:1">Reset Hour (0-23)<br><input type="number" id="resetHour" min="0" max="23" style="width:90%" onchange="data.prefs.resetHour = parseInt(this.value)||0; save();"></div>
                         <div style="flex:1">Global AFK Pause (Sec)<br><input type="number" id="afkInput" placeholder="0 to disable" style="width:90%" onchange="updateAFK(this.value)"></div>
@@ -813,6 +836,9 @@ hr { border: 0; border-top: 1px solid var(--border); margin: 15px 0; }
                 <div id="set-int" class="set-section">
                     <h3>Connections</h3>
                     WebSocket URL (Textractor) <input id="wsUrl" style="width:100%; margin-bottom:10px;" placeholder="ws://localhost:55001" onchange="data.prefs.wsUrl = this.value; save();">
+					<label style="font-size: 12px; display: flex; align-items: center; gap: 8px; margin-bottom: 15px;">
+						<input type="checkbox" id="setHookerRequireTimer"> Pause text hooking when timer is stopped
+					</label>
                     <div style="margin-top: 15px;">
                         Anime Player (.exe) <br>
                         <div style="display:flex; gap:5px;">
@@ -831,6 +857,38 @@ hr { border: 0; border-top: 1px solid var(--border); margin: 15px 0; }
                     </label>
                 </div>
 
+				<div id="set-widgets" class="set-section hidden">
+                    <h3>Widget Configuration</h3>
+                    
+                    <div style="display:flex; gap:10px; margin-bottom:15px;">
+                        <button id="tabWidLinux" onclick="loadSpecificWidgetSettings('linux')" style="flex:1; padding:8px; background:var(--accent); color:#000; border:none; border-radius:4px; font-weight:bold; cursor:pointer;">Linux Panel</button>
+                        <button id="tabWidFloat" onclick="loadSpecificWidgetSettings('float')" style="flex:1; padding:8px; background:var(--input); color:var(--text); border:1px solid var(--border); border-radius:4px; font-weight:bold; cursor:pointer;">Glass Ribbon</button>
+                        <button id="tabWidPill"  onclick="loadSpecificWidgetSettings('pill')" style="flex:1; padding:8px; background:var(--input); color:var(--text); border:1px solid var(--border); border-radius:4px; font-weight:bold; cursor:pointer;">Touch Pill</button>
+                    </div>
+
+                    <div style="background:var(--header); padding:15px; border-radius:6px; border:1px solid var(--border); margin-bottom:15px;">
+                        <input type="hidden" id="widCurrentEdit" value="linux">
+                        
+                        <strong style="display:block; margin-bottom:10px;">Target Monitor</strong>
+                        <select id="widMonitor" style="width:100%; font-size:12px; padding:6px; background:var(--input); color:var(--text); border:1px solid var(--border); border-radius:4px; margin-bottom:15px;" onchange="saveSpecificWidgetSettings()"></select>
+
+                        <strong style="display:block; margin-bottom:10px;">Active Modules</strong>
+                        <div style="display:flex; gap:15px; font-size:12px; margin-bottom:15px;">
+                            <label><input type="checkbox" id="widModTime" onchange="saveSpecificWidgetSettings()"> Timer</label>
+                            <label><input type="checkbox" id="widModChars" onchange="saveSpecificWidgetSettings()"> Characters</label>
+                            <label><input type="checkbox" id="widModCph" onchange="saveSpecificWidgetSettings()"> Speed (CPH)</label>
+                            <label><input type="checkbox" id="widModCards" onchange="saveSpecificWidgetSettings()"> Cards</label>
+                        </div>
+                        
+                        <div id="widScaleContainer" style="margin-bottom: 15px;">Scale <span id="widScVal">1.0</span><br><input type="range" id="widScSlider" min="0.5" max="1" step="0.05" value="1.0" oninput="document.getElementById('widScVal').textContent=this.value; saveSpecificWidgetSettings();" style="width:100%;"></div>
+                        
+                        <div id="widExpandContainer" style="display:none; margin-top:10px;">
+                            <label style="display:flex; align-items:center; gap:8px; font-size:12px; opacity:0.9;"><input type="checkbox" id="widAlwaysExpand" onchange="saveSpecificWidgetSettings()"> Force Pill to always expand</label>
+                        </div>
+                    </div>
+                </div>
+				
+				
                 <div id="set-data" class="set-section">
                     <h3>Data Management</h3>
                     <button onclick="openHiddenMediaModal()" style="width:100%; margin-bottom: 15px; background: var(--header); border: 1px solid var(--border); padding: 10px;">👁️ Manage Hidden Media</button>
@@ -846,7 +904,7 @@ hr { border: 0; border-top: 1px solid var(--border); margin: 15px 0; }
             </div>
         </div>
         <div style="padding: 15px; border-top: 1px solid var(--border); background: var(--header); text-align: right;">
-            <button onclick="closeSettings()" style="background:var(--accent); color:#000; font-weight:bold; padding: 8px 25px;">Done</button>
+            <button onclick="saveSettingsFast(); closeModal('settingsOverlay');" style="background:var(--accent); color:#000; font-weight:bold; padding:8px 20px; border:none; border-radius:4px; cursor:pointer;">Done</button>
         </div>
     </div>
 </div>
@@ -1210,16 +1268,36 @@ async function addEntry() {
 
     if (h <= 0 && u <= 0 && c <= 0 && mined <= 0) { showToast("⚠️ ALERT: Please enter a valid amount.", "Alert"); return; }
     
-    data.entries.push({date, type:t, hours:h, chars:c, units:u, cards: mined, media:mediaSelect.value}); 
+    // --- THE ACTUAL SAVE LOGIC ---
+    // We wrap this in a const so we can call it either immediately, or after the confirm box
+    const finalizeSave = () => {
+        data.entries.push({date, type:t, hours:h, chars:c, units:u, cards: mined, media:mediaSelect.value}); 
 
-    if (hasUnits && mediaSelect.value && data.mediaData[mediaSelect.value]) {
-        data.mediaData[mediaSelect.value].lastUnitMin = parseFloat(document.getElementById('epLength').value) || 0;
+        if (hasUnits && mediaSelect.value && data.mediaData[mediaSelect.value]) {
+            data.mediaData[mediaSelect.value].lastUnitMin = parseFloat(document.getElementById('epLength').value) || 0;
+        }
+        hookedLines = []; save(); updateAll(); playAudio('save.wav'); 
+        document.querySelectorAll('.big').forEach(el => { el.classList.remove('stat-animate'); void el.offsetWidth; el.classList.add('stat-animate'); }); 
+        ["logHours","logMinutes","logChars","logUnits","logMined"].forEach(id => { let el = document.getElementById(id); if(el) el.value = ""; }); 
+        checkAutoComplete(mediaSelect.value); renderLibrary();
+        nukeFocus();
+    };
+
+    // --- STRICT TIMER & ZERO HOUR SAFEGUARD ---
+    let tracksHours = config.inputs.includes('hours');
+    let isTimerActiveButPaused = (typeof timerInterval !== 'undefined' && timerInterval !== null && typeof isTimerPaused !== 'undefined' && isTimerPaused);
+    
+    let rawH = parseFloat(document.getElementById('logHours').value) || 0;
+    let rawM = parseFloat(document.getElementById('logMinutes').value) || 0;
+
+    // Trigger if the category uses time and the boxes are empty/0, OR if the timer is paused
+    if ((tracksHours && (rawH === 0 && rawM === 0)) || isTimerActiveButPaused) {
+        showConfirm("The timer is currently paused, or your logged time is 0.\n\nAre you sure you want to save this entry?", () => {
+            finalizeSave(); // Runs only if they click Yes in your custom modal
+        });
+    } else {
+        finalizeSave(); // Runs immediately if no warning is needed
     }
-    hookedLines = []; save(); updateAll(); playAudio('save.wav'); 
-    document.querySelectorAll('.big').forEach(el => { el.classList.remove('stat-animate'); void el.offsetWidth; el.classList.add('stat-animate'); }); 
-    ["logHours","logMinutes","logChars","logUnits","logMined"].forEach(id => { let el = document.getElementById(id); if(el) el.value = ""; }); 
-    checkAutoComplete(mediaSelect.value); renderLibrary();
-    nukeFocus();
 }
 
 /* ===============================
@@ -1447,6 +1525,36 @@ let editLibMediaName = ""; let editLibMediaType = "";
 
 function toggleLibView() { data.prefs.libView = data.prefs.libView === 'grid' ? 'list' : 'grid'; document.getElementById('libViewToggle').textContent = data.prefs.libView === 'grid' ? '🖼️' : '☰'; save(); renderLibrary(); }
 
+function handleRightClickAlt(rawUrl) {
+    if (!rawUrl) return;
+    let url = rawUrl.trim();
+    
+    // Automatically convert Windows paths (C:\...) to browser-friendly file URIs
+    if (url.match(/^[a-zA-Z]:\\/)) {
+        url = 'file:///' + url.replace(/\\/g, '/');
+    }
+
+    // Check if it's an image
+    if (url.match(/\.(jpeg|jpg|gif|png|webp)$/i)) {
+        let imgEl = document.getElementById('lightboxImg');
+        let overlay = document.getElementById('lightboxOverlay');
+        
+        if (imgEl && overlay) {
+            imgEl.src = url;
+            overlay.classList.remove('hidden');
+        } else {
+            console.error("Lightbox HTML is missing from the document!");
+        }
+    } else {
+        // Otherwise, treat it as a normal link or app
+        if (window.electronAPI) {
+            window.electronAPI.launchApps([url]);
+        } else {
+            window.open(url, '_blank');
+        }
+    }
+}
+
 function renderLibrary() {
     const container = document.getElementById("mainLibraryContainer");
     let mode = data.prefs.libView || 'grid';
@@ -1488,12 +1596,13 @@ function renderLibrary() {
         }
 
         items.push({ 
-            name: name, type: profile.type, status: stat, target: profile.target, 
-            metricOverride: profile.metricOverride, 
-            img: profile.img || "", paths: profile.paths || ["","",""], 
-            dbUrl: profile.dbUrl || "", // <-- DB Url fetched here
-            blur: profile.blur || false, stats: mediaStats[name] || { hours: 0, chars: 0, units: 0, last: 0 } 
-        });
+			name: name, type: profile.type, status: stat, target: profile.target, 
+			metricOverride: profile.metricOverride, 
+			img: profile.img || "", paths: profile.paths || ["","",""], 
+			dbUrl: profile.dbUrl || "",
+			dbAlt: profile.dbAlt || "", // <-- Just this one new line
+			blur: profile.blur || false, stats: mediaStats[name] || { hours: 0, chars: 0, units: 0, last: 0 } 
+		});
     });
 
     const sortVal = { 'active': 1, 'paused': 2, 'wishlist': 3, 'completed': 4, 'dropped': 5 };
@@ -1555,8 +1664,16 @@ function renderLibrary() {
         let launchBtn = item.paths.some(p => p.trim() !== "") ? `<button class="lib-btn" onclick="event.stopPropagation(); selectFromLibrary('${item.type}', '${item.name}'); fireMediaLaunch('${item.name}');" style="background:var(--accent); color:#000;">🚀</button>` : '';
         
         // Our shiny new Database Button!
-        let dbBtn = item.dbUrl ? `<button class="lib-btn" onclick="window.open('${item.dbUrl}', '_blank'); event.stopPropagation();" title="Open Database">🌐</button>` : '';
-
+		let dbBtn = '';
+		if (item.dbUrl || item.dbAlt) {
+			// Escape backslashes and single quotes so the HTML parser doesn't swallow them
+			let safeDbAlt = item.dbAlt ? item.dbAlt.replace(/\\/g, '\\\\').replace(/'/g, "\\'") : '';
+			
+			let leftClick = item.dbUrl ? `if(window.electronAPI){window.electronAPI.launchApps(['${item.dbUrl}'])}else{window.open('${item.dbUrl}', '_blank')};` : '';
+			let rightClick = item.dbAlt ? `handleRightClickAlt('${safeDbAlt}');` : '';
+			
+			dbBtn = `<button class="lib-btn" onclick="event.stopPropagation(); ${leftClick}" oncontextmenu="event.preventDefault(); event.stopPropagation(); ${rightClick}" title="${item.dbAlt ? 'L-Click: DB | R-Click: Alt Link/Image' : 'Open Database'}">🌐</button>`;
+		}
         // Theme colors and glowing dots
         let currTheme = {...themes, ...data.prefs.customThemes}[data.prefs.theme] || themes.Dark;
         let tColor = currTheme[item.type.toLowerCase()] || stringToColor(item.type);
@@ -2126,6 +2243,7 @@ function stopTimerFull() {
         
         playAudio('timer.wav'); 
         showToast("⏹️ Timer Stopped", "Overall");
+        if (typeof broadcastToWidget === 'function') broadcastToWidget();
     };
 
     if ((logH && parseFloat(logH.value) > 0) || (logM && parseFloat(logM.value) > 0)) {
@@ -2501,9 +2619,83 @@ function deleteEntry(i) {
     }); 
 }
 
-let ws = null; let wsConnected = false; let hookedLines = [];
-function toggleHooker() { if (wsConnected) { if (ws) ws.close(); wsConnected = false; document.getElementById("mainHookBtn").classList.remove("on"); document.getElementById("zenHookBtn").style.color = ""; document.getElementById("zenHookBtn").style.borderColor = ""; } else { connectWebSocket(); playAudio('connect.wav'); } nukeFocus(); }
-function connectWebSocket() { try { let url = data.prefs.wsUrl || "ws://localhost:55001"; ws = new WebSocket(url); ws.onopen = () => { wsConnected = true; document.getElementById("mainHookBtn").classList.add("on"); document.getElementById("zenHookBtn").style.color = "#0f0"; document.getElementById("zenHookBtn").style.borderColor = "#0f0"; }; ws.onmessage = (e) => { let rawData = e.data.trim(); let actualText = rawData; try { let parsed = JSON.parse(rawData); if (parsed.sentence) actualText = parsed.sentence; else if (parsed.data && parsed.data.text) actualText = parsed.data.text; else if (parsed.message) actualText = parsed.message; } catch (err) {} if(actualText) { let recentLines = hookedLines.slice(-10); if (recentLines.some(l => l.text === actualText)) return; let cleanText = actualText.replace(/[^\p{L}\p{N}]/gu, ''); let charCount = [...cleanText].length; if (charCount > 0) { hookedLines.push({ id: Date.now(), text: actualText, length: charCount }); updateCharInputFromHook(); } } }; ws.onclose = () => { wsConnected = false; document.getElementById("mainHookBtn").classList.remove("on"); document.getElementById("zenHookBtn").style.color = ""; document.getElementById("zenHookBtn").style.borderColor = ""; }; ws.onerror = (err) => { wsConnected = false; }; } catch(e) {} }
+let ws = null; 
+let wsConnected = false; 
+let hookedLines = [];
+let lastHookWarningTime = 0;
+
+function toggleHooker() { 
+    if (wsConnected) { 
+        if (ws) ws.close(); 
+        wsConnected = false; 
+        document.getElementById("mainHookBtn").classList.remove("on"); 
+        document.getElementById("zenHookBtn").style.color = ""; 
+        document.getElementById("zenHookBtn").style.borderColor = ""; 
+    } else { 
+        connectWebSocket(); 
+        playAudio('connect.wav'); 
+    } 
+    nukeFocus(); 
+}
+
+function connectWebSocket() { 
+    try { 
+        let url = data.prefs.wsUrl || "ws://localhost:55001"; 
+        ws = new WebSocket(url); 
+        
+        ws.onopen = () => { 
+            wsConnected = true; 
+            document.getElementById("mainHookBtn").classList.add("on"); 
+            document.getElementById("zenHookBtn").style.color = "#0f0"; 
+            document.getElementById("zenHookBtn").style.borderColor = "#0f0"; 
+        }; 
+        
+        ws.onmessage = (e) => { 
+            let rawData = e.data.trim(); 
+            let actualText = rawData; 
+            try { 
+                let parsed = JSON.parse(rawData); 
+                if (parsed.sentence) actualText = parsed.sentence; 
+                else if (parsed.data && parsed.data.text) actualText = parsed.data.text; 
+                else if (parsed.message) actualText = parsed.message; 
+            } catch (err) {} 
+            
+            if(actualText) { 
+                let isRunning = (timerInterval !== null && !isTimerPaused);
+                if (data.prefs.hookerRequireTimer && !isRunning) {
+                    let now = Date.now();
+                    if (now - lastHookWarningTime > 15000) { 
+                        lastHookWarningTime = now;
+                        showToast("⏸️ Text ignored! Timer is paused.", "Alert");
+                        playAudio('close.wav');
+                    }
+                    return; 
+                }
+
+                let recentLines = hookedLines.slice(-10); 
+                if (recentLines.some(l => l.text === actualText)) return; 
+                let cleanText = actualText.replace(/[^\p{L}\p{N}]/gu, ''); 
+                let charCount = [...cleanText].length; 
+                if (charCount > 0) { 
+                    hookedLines.push({ id: Date.now(), text: actualText, length: charCount }); 
+                    updateCharInputFromHook(); 
+                } 
+            } 
+        }; 
+        
+        ws.onclose = () => { 
+            wsConnected = false; 
+            document.getElementById("mainHookBtn").classList.remove("on"); 
+            document.getElementById("zenHookBtn").style.color = ""; 
+            document.getElementById("zenHookBtn").style.borderColor = ""; 
+        }; 
+        
+        ws.onerror = (err) => { 
+            wsConnected = false; 
+        }; 
+    } catch(e) {} 
+}
+
 function updateCharInputFromHook() { document.getElementById("logChars").value = hookedLines.reduce((acc, l) => acc + l.length, 0); }
 function openAuditModal() { let container = document.getElementById("auditList"); if (hookedLines.length === 0) container.innerHTML = "<div style='opacity:0.6; text-align:center;'>No lines hooked yet.</div>"; else renderAuditList(); playAudio('audit.wav'); document.getElementById("auditOverlay").classList.remove("hidden"); }
 function renderAuditList() { let container = document.getElementById("auditList"); container.innerHTML = ""; [...hookedLines].reverse().forEach(line => { let div = document.createElement("div"); div.style.display = "flex"; div.style.justifyContent = "space-between"; div.style.borderBottom = "1px solid var(--border)"; div.style.padding = "4px 0"; div.innerHTML = `<div style="flex:1; word-break: break-all; margin-right:10px;">${line.text}</div><div style="color:var(--accent); width:30px; text-align:right;">${line.length}</div><button onclick="deleteHookLine(${line.id})" style="background:transparent; border:none; color:#ff4444; margin-left:10px;">✕</button>`; container.appendChild(div); }); }
@@ -2543,21 +2735,156 @@ async function pollAnki() {
 }
 setInterval(pollAnki, 15000);
 
-// --- SETTINGS LOGIC ---
-function switchSetTab(id) { document.querySelectorAll('.set-section').forEach(el => el.classList.remove('active')); document.querySelectorAll('.set-tab-btn').forEach(el => el.classList.remove('active')); document.getElementById(id).classList.add('active'); event.target.classList.add('active'); }
+// --- WIDGET BROADCASTER ---
+function broadcastToWidget() {
+    if (!window.electronAPI || !window.electronAPI.sendWidgetData) return;
+    
+    let liveMs = accumulatedMs;
+    if (timerInterval && !isTimerPaused) { liveMs += (Date.now() - startTime); }
+    
+    let chars = parseInt(document.getElementById("logChars")?.value) || 0;
+    let cards = parseInt(document.getElementById("logMined")?.value) || 0;
+    let elapsedHours = liveMs / 3600000;
+    let cph = elapsedHours > 0 ? Math.floor(chars / elapsedHours) : 0;
+    
+    window.electronAPI.sendWidgetData({
+        timeStr: formatZenTime(liveMs),
+        isRunning: (timerInterval !== null && !isTimerPaused),
+        isPaused: isTimerPaused, // <-- NEW: Explicitly pass the pause state!
+        chars: chars,
+        cards: cards,
+        cph: cph,
+        mediaName: document.getElementById("mediaSelect")?.value || "No Media"
+    });
+}
+
+// Creates default settings if they don't exist yet
+function getWidgetDefaults() {
+    if (!data.prefs.widgets) data.prefs.widgets = {};
+    const defaults = { monitor: 'auto', scale: 1.0, expanded: false, modTime: true, modChars: true, modCph: true, modCards: true };
+    if (!data.prefs.widgets.linux) data.prefs.widgets.linux = { ...defaults };
+    if (!data.prefs.widgets.float) data.prefs.widgets.float = { ...defaults };
+    if (!data.prefs.widgets.pill) data.prefs.widgets.pill = { ...defaults };
+    return data.prefs.widgets;
+}
+
+async function quickLaunchWidget(type) {
+    if (!window.electronAPI) return showToast("Requires Desktop App", "Alert");
+    let isActive = await window.electronAPI.isWidgetActive();
+    if (isActive) return showToast("Widget already running! Close it first.", "Alert");
+
+    let widgets = getWidgetDefaults();
+    let wp = widgets[type];
+    
+    window.electronAPI.launchWidget({
+        type: type, 
+        scale: wp.scale, 
+        alwaysExpanded: wp.expanded,
+        modTime: wp.modTime, 
+        modChars: wp.modChars, 
+        modCph: wp.modCph, 
+        modCards: wp.modCards,
+        bounds: (wp.monitor && wp.monitor !== 'auto') ? JSON.parse(wp.monitor) : null
+    });
+    
+    setTimeout(broadcastToWidget, 500); 
+}
+
+function loadSpecificWidgetSettings(type) {
+    let widgets = getWidgetDefaults();
+    let wp = widgets[type];
+    
+    document.getElementById("widCurrentEdit").value = type;
+    
+    // Toggle active tab colors
+    ['linux', 'float', 'pill'].forEach(t => {
+        let btn = document.getElementById('tabWid' + t.charAt(0).toUpperCase() + t.slice(1));
+        if(t === type) { btn.style.background = 'var(--accent)'; btn.style.color = '#000'; btn.style.border = 'none'; }
+        else { btn.style.background = 'var(--input)'; btn.style.color = 'var(--text)'; btn.style.border = '1px solid var(--border)'; }
+    });
+
+    // Populate inputs
+    document.getElementById("widMonitor").value = wp.monitor;
+    document.getElementById("widScSlider").value = wp.scale;
+    document.getElementById("widScVal").textContent = wp.scale;
+    document.getElementById("widAlwaysExpand").checked = wp.expanded;
+    document.getElementById("widModTime").checked = wp.modTime;
+    document.getElementById("widModChars").checked = wp.modChars;
+    document.getElementById("widModCph").checked = wp.modCph;
+    document.getElementById("widModCards").checked = wp.modCards;
+
+    // Show/Hide specific settings
+    document.getElementById("widScaleContainer").style.display = (type === 'linux') ? 'none' : 'block';
+    document.getElementById("widExpandContainer").style.display = (type === 'pill') ? 'block' : 'none';
+}
+
+function saveSpecificWidgetSettings() {
+    let type = document.getElementById("widCurrentEdit").value;
+    let widgets = getWidgetDefaults();
+    
+    widgets[type] = {
+        monitor: document.getElementById("widMonitor").value,
+        scale: parseFloat(document.getElementById("widScSlider").value),
+        expanded: document.getElementById("widAlwaysExpand").checked,
+        modTime: document.getElementById("widModTime").checked,
+        modChars: document.getElementById("widModChars").checked,
+        modCph: document.getElementById("widModCph").checked,
+        modCards: document.getElementById("widModCards").checked
+    };
+    
+    data.prefs.widgets = widgets;
+    saveData();
+}
+
+function switchSetTab(tabId) {
+    const tabs = ['set-app', 'set-media', 'set-pref', 'set-int', 'set-widgets', 'set-data'];
+    
+    // 1. Toggle the actual content sections
+    tabs.forEach(t => {
+        let el = document.getElementById(t);
+        if (el) {
+            if (t === tabId) {
+                el.classList.add('active');
+                el.classList.remove('hidden');
+            } else {
+                el.classList.remove('active');
+                el.classList.add('hidden');
+            }
+        }
+    });
+    
+    // 2. Toggle the visual active states on the sidebar buttons
+    document.querySelectorAll('.set-tab-btn').forEach(btn => {
+        if (btn.getAttribute('onclick').includes(tabId)) {
+            btn.classList.add('active');
+            // Clear any old inline styles that were breaking the hover effects
+            btn.style.background = '';
+            btn.style.color = '';
+            btn.style.borderColor = '';
+        } else {
+            btn.classList.remove('active');
+            btn.style.background = '';
+            btn.style.color = '';
+            btn.style.borderColor = '';
+        }
+    });
+}
 
 function openSettings() { 
-    openModal("settingsOverlay"); populateThemeSelect(); renderMediaTypesSettings();
+    openModal("settingsOverlay"); 
+    populateThemeSelect(); 
+    renderMediaTypesSettings();
     document.getElementById("setBlurCph").checked = data.prefs.blurCph || false;
-	document.getElementById("setBgUrl").value = data.prefs.bgUrl || "";
+    document.getElementById("setBgUrl").value = data.prefs.bgUrl || "";
     document.getElementById("setBgDim").value = data.prefs.bgDim !== undefined ? data.prefs.bgDim : 0.7;
     document.getElementById("setBgDimVal").textContent = document.getElementById("setBgDim").value;
-	document.getElementById("setGoalPace").checked = data.prefs.showGoalPace !== false;
+    document.getElementById("setGoalPace").checked = data.prefs.showGoalPace !== false;
     document.getElementById("setGoalHistory").checked = data.prefs.showGoalHistory !== false;
     document.getElementById("setGoalTrajectory").checked = data.prefs.showTrajectory !== false;
     document.getElementById("resetHour").value = data.prefs.resetHour || 0; 
     document.getElementById("cardWidthSlider").value = data.prefs.cardWidth || 220;
     document.getElementById("cardHeightSlider").value = data.prefs.cardHeight || 100;
+	document.getElementById("setHookerRequireTimer").checked = data.prefs.hookerRequireTimer === true;
     
     // Load Trend Settings
     document.getElementById("chartStyleSelect").value = data.prefs.chartStyle || "line";
@@ -2572,11 +2899,26 @@ function openSettings() {
     document.getElementById("wsUrl").value = data.prefs.wsUrl || "ws://localhost:55001"; 
     document.getElementById("muteSounds").checked = data.prefs.mute;
     document.getElementById("prefHideSidebar").checked = data.prefs.hideSidebarInLibrary === true;
-	document.getElementById("setLaunchSidebar").checked = data.prefs.launchSidebar === true;
+    document.getElementById("setLaunchSidebar").checked = data.prefs.launchSidebar === true;
     
     // Load Anki Settings
     document.getElementById("setAnkiEnabled").checked = data.prefs.ankiEnabled === true;
     document.getElementById("setAnkiAlways").checked = data.prefs.ankiAlways === true;
+    
+	document.getElementById("setCloseToTray").checked = data.prefs.closeToTray === true;
+    // Fetch real monitors for Widgets and load active tab
+    if (window.electronAPI && window.electronAPI.getDisplays) {
+        window.electronAPI.getDisplays().then(displays => {
+            let sel = document.getElementById("widMonitor");
+            sel.innerHTML = '<option value="auto">Auto (Current Mouse Monitor)</option>';
+            displays.forEach(d => {
+                let isPrim = d.isPrimary ? " (Primary)" : "";
+                sel.innerHTML += `<option value='${JSON.stringify(d.bounds)}'>Monitor ${d.index}${isPrim} - ${d.bounds.width}x${d.bounds.height}</option>`;
+            });
+            // Forces the UI to load whichever widget tab you select
+            loadSpecificWidgetSettings(document.getElementById("widCurrentEdit").value || 'linux'); 
+        });
+    }
 }
 
 function saveSettingsFast() { 
@@ -2587,11 +2929,19 @@ function saveSettingsFast() {
     data.prefs.blurCph = document.getElementById("setBlurCph").checked; 
 	data.prefs.bgUrl = document.getElementById("setBgUrl").value.trim();
     data.prefs.bgDim = parseFloat(document.getElementById("setBgDim").value);
+	data.prefs.hookerRequireTimer = document.getElementById("setHookerRequireTimer").checked;
     applyWallpaper();
     
     data.prefs.ankiEnabled = document.getElementById('setAnkiEnabled').checked;
     data.prefs.ankiAlways = document.getElementById('setAnkiAlways').checked;
     
+	data.prefs.closeToTray = document.getElementById("setCloseToTray").checked;
+    
+    // Instantly update the backend when the box is checked
+    if (window.electronAPI && window.electronAPI.updateTraySetting) {
+        window.electronAPI.updateTraySetting(data.prefs.closeToTray);
+    }
+	
     save(); 
     updateCharts(); 
     updateAll(); 
@@ -2999,13 +3349,13 @@ if (window.electronAPI) {
     });
 }
 
-// Override Edit Media to include Notes
 const oldOpenLibEdit = openLibEdit;
 openLibEdit = function(name) {
     oldOpenLibEdit(name);
     let profile = data.mediaData[name];
     document.getElementById("libEditNotes").value = profile.notes || "";
-	document.getElementById("libEditDbUrl").value = profile.dbUrl || "";
+    document.getElementById("libEditDbUrl").value = profile.dbUrl || "";
+    document.getElementById("libEditDbAlt").value = profile.dbAlt || "";
 };
 
 const oldSaveLibraryEdit = saveLibraryEdit;
@@ -3013,10 +3363,13 @@ saveLibraryEdit = function() {
     let oldName = editLibMediaName;
     let newName = document.getElementById("libEditNewName").value.trim();
     if (!newName) return oldSaveLibraryEdit(); 
-    let profileToUpdate = (newName !== oldName) ? data.mediaData[newName] : data.mediaData[oldName];
+    
     oldSaveLibraryEdit(); 
+    
     if (data.mediaData[newName]) {
         data.mediaData[newName].notes = document.getElementById("libEditNotes").value;
+        data.mediaData[newName].dbUrl = document.getElementById("libEditDbUrl").value.trim();
+        data.mediaData[newName].dbAlt = document.getElementById("libEditDbAlt").value.trim();
         save();
     }
 };
@@ -3118,6 +3471,7 @@ function toggleTimer() {
             let zc = document.getElementById("zenClock");
             if(zc) zc.textContent = formatZenTime(elapsedMs); 
             if (typeof updateCharInputFromHook === 'function') updateCharInputFromHook();
+            if (typeof broadcastToWidget === 'function') broadcastToWidget();
         }, 1000);
     } else {
         let logH = document.getElementById('logHours');
@@ -3157,11 +3511,15 @@ function pauseTimer(e) {
     const zenBtn = document.getElementById("zenTimerBtn");
     
     if(!isTimerPaused) {
-        accumulatedMs += (Date.now() - startTime); clearInterval(timerInterval); timerInterval = null; isTimerPaused = true; 
-        if(btn) { btn.textContent = "⏸"; btn.style.background = "#f39c12"; btn.style.borderColor = "#f39c12"; btn.style.animation = "none"; }
-        if(zenBtn) { zenBtn.textContent = "⏸ PAUSED"; zenBtn.style.background = "#f39c12"; zenBtn.style.borderColor = "#f39c12"; zenBtn.style.animation = "none"; }
+        accumulatedMs += (Date.now() - startTime); 
+        clearInterval(timerInterval); 
+        timerInterval = null; 
+        isTimerPaused = true; 
+        if(btn) { btn.textContent = "||"; btn.style.background = "#f39c12"; btn.style.borderColor = "#f39c12"; btn.style.animation = "none"; }
+        if(zenBtn) { zenBtn.textContent = "|| PAUSED"; zenBtn.style.background = "#f39c12"; zenBtn.style.borderColor = "#f39c12"; zenBtn.style.animation = "none"; }
     } else {
-        startTime = Date.now(); isTimerPaused = false; 
+        startTime = Date.now(); 
+        isTimerPaused = false; 
         if(btn) { btn.textContent = "■"; btn.style.background = ""; btn.style.borderColor = ""; btn.style.animation = ""; }
         if(zenBtn) { zenBtn.textContent = "■ STOP"; zenBtn.style.background = ""; zenBtn.style.borderColor = ""; zenBtn.style.animation = ""; }
         
@@ -3172,8 +3530,10 @@ function pauseTimer(e) {
             let zc = document.getElementById("zenClock");
             if(zc) zc.textContent = formatZenTime(elapsedMs); 
             if (typeof updateCharInputFromHook === 'function') updateCharInputFromHook();
+            if (typeof broadcastToWidget === 'function') broadcastToWidget();
         }, 1000); 
     } 
+    if (typeof broadcastToWidget === 'function') broadcastToWidget(); // <-- Guaranteed execution!
     nukeFocus();
 }
 
@@ -3252,6 +3612,8 @@ function updateCharInputFromHook() {
     if (timerInterval && !isTimerPaused) { liveMs += (Date.now() - startTime); }
     let elapsedHours = liveMs / 3600000;
     if (zenSpeed && elapsedHours > 0) { zenSpeed.textContent = Math.floor(totalChars / elapsedHours).toLocaleString() + " chars/hr"; }
+    
+    if (typeof broadcastToWidget === 'function') broadcastToWidget();
 }
 
 let currentActiveDay = getLocalDateStr(new Date());
@@ -3479,7 +3841,10 @@ function initOS() {
     if (data.prefs.cardWidth) document.documentElement.style.setProperty('--card-width', data.prefs.cardWidth + 'px');
     if (data.prefs.cardHeight) document.documentElement.style.setProperty('--card-height', data.prefs.cardHeight + 'px');
     if (window.electronAPI) window.electronAPI.setAfkThreshold(data.prefs.afkTimer);
-    
+    if (window.electronAPI && window.electronAPI.updateTraySetting) {
+        window.electronAPI.updateTraySetting(data.prefs.closeToTray === true);
+    }
+	
     // --- Restore global sidebar state on boot (silent mode) ---
     if (data.prefs.sidebarOpen === false && typeof toggleSidebar === 'function') {
         toggleSidebar(false, true); 
@@ -3490,6 +3855,16 @@ function initOS() {
         window.electronAPI.getAppVersion().then(version => {
             let versionDisplay = document.getElementById("appVersionDisplay");
             if (versionDisplay) versionDisplay.textContent = `v${version}`;
+        });
+    }
+
+	if (window.electronAPI && window.electronAPI.onTriggerWidgetAction) {
+        window.electronAPI.onTriggerWidgetAction((action) => {
+            if (action === 'toggle-timer') {
+                if (!timerInterval && !isTimerPaused) toggleTimer(); else pauseTimer();
+            } else if (action === 'stop-timer') {
+                stopTimerFull();
+            }
         });
     }
 

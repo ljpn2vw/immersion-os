@@ -13,4 +13,21 @@ contextBridge.exposeInMainWorld('electronAPI', {
   onAppClosed: (callback) => ipcRenderer.on('app-closed', (event, mediaName) => callback(mediaName)),
   searchAPI: (opts) => ipcRenderer.invoke('search-api', opts),
   getAppVersion: () => ipcRenderer.invoke('get-app-version'),
+  // Widget Controls
+    launchWidget: (config) => ipcRenderer.invoke('launch-widget', config),
+    closeWidget: () => ipcRenderer.send('close-widget'),
+    
+    // Main App -> Widget
+    sendWidgetData: (data) => ipcRenderer.send('send-widget-data', data),
+    onWidgetInitConfig: (callback) => ipcRenderer.on('widget-init-config', (event, config) => callback(config)),
+    onUpdateWidgetUI: (callback) => ipcRenderer.on('update-widget-ui', (event, data) => callback(data)),
+    
+    // Widget -> Main App
+    sendWidgetAction: (action) => ipcRenderer.send('widget-action', action),
+    onTriggerWidgetAction: (callback) => ipcRenderer.on('trigger-widget-action', (event, action) => callback(action)),
+	
+	getDisplays: () => ipcRenderer.invoke('get-displays'),
+	resizeWidget: (size) => ipcRenderer.send('resize-widget', size),
+	isWidgetActive: () => ipcRenderer.invoke('is-widget-active'),
+	updateTraySetting: (enabled) => ipcRenderer.send('update-tray-setting', enabled),
 });
