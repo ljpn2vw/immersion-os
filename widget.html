@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<style>
+    :root { --accent: #4cc9f0; --bg-color: 15, 17, 21; --text: #e6e6e6; --widget-scale: 1; }
+    body { margin: 0; font-family: 'Segoe UI', sans-serif; color: var(--text); background: transparent; overflow: hidden; zoom: var(--widget-scale); }
+
+    /* 1. LINUX PANEL */
+    .linux-panel { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(var(--bg-color), 0.9); backdrop-filter: blur(10px); border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; align-items: center; padding: 0 15px; box-sizing: border-box; font-size: 11px; user-select: none; -webkit-app-region: drag; }
+    .lp-section { display: flex; align-items: center; gap: 15px; }
+    .lp-item { display: flex; align-items: center; gap: 4px; opacity: 0.8; }
+    .lp-accent { color: var(--accent); font-weight: bold; font-family: monospace; font-size: 12px;}
+    .lp-btn { background: transparent; border: none; color: var(--text); cursor: pointer; opacity: 0.6; font-weight: bold; font-size: 10px; transition: 0.2s; padding: 2px 6px; -webkit-app-region: no-drag; }
+    .lp-btn:hover { opacity: 1; color: var(--accent); }
+    .lp-btn.active { color: #ff4444; }
+
+    /* 2. FLOAT BAR */
+    .pc-bar { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(var(--bg-color), 0.9); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); border-bottom: 2px solid var(--accent); border-radius: 6px; display: flex; align-items: center; justify-content: center; gap: 12px; padding: 4px 10px; box-sizing: border-box; user-select: none; -webkit-app-region: drag; }
+    .drag-handle { opacity: 0.5; font-size: 12px; padding-right: 5px; cursor: move; }
+    .widget-btn { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: var(--text); border-radius: 4px; padding: 4px 8px; font-weight: bold; font-size:11px; cursor: pointer; transition: 0.2s; -webkit-app-region: no-drag; }
+    .widget-btn.active { background: #ff4444; color: white; border-color: #ff4444; }
+    .stat-block { display: flex; flex-direction: column; align-items: center; min-width: 45px; }
+    .stat-val { font-size: 13px; font-weight: bold; color: var(--accent); font-family: monospace;}
+    .stat-lbl { font-size: 9px; opacity: 0.6; text-transform: uppercase; letter-spacing: 1px; }
+
+    /* 3. TOUCH PILL (Redesigned) */
+    .mobile-pill { 
+        position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; box-sizing: border-box; 
+        background: rgba(var(--bg-color), 0.95); backdrop-filter: blur(15px); 
+        border: 1px solid rgba(255,255,255,0.15); border-radius: 12px; /* Sleek rounded rectangle */
+        padding: 0 12px; display: flex; align-items: center; gap: 8px; 
+        cursor: pointer; overflow: hidden; user-select: none; flex-direction: column; justify-content: center;
+    }
+    
+    .pill-drag { -webkit-app-region: drag; font-size: 14px; opacity: 0.3; cursor: grab; padding: 10px 5px; margin-left: -5px; display: flex; align-items: center; }
+    .pill-drag:hover { opacity: 0.8; }
+    
+    .pill-collapsed { display: flex; align-items: center; gap: 8px; width: 100%; height: 100%; pointer-events: none; }
+    .pill-icon { font-size: 14px; animation: pulse 2s infinite; color: #ff4444; }
+    .pill-time { font-weight: bold; font-size: 15px; color: var(--accent); font-family: monospace; }
+    
+    .pill-expanded { display: none; flex-direction: column; gap: 10px; width: 100%; height: 100%; padding: 12px 0 16px 0; box-sizing: border-box; }
+    .mobile-pill.expanded { padding: 0 12px; justify-content: flex-start; }
+    .mobile-pill.expanded .pill-collapsed { display: none; }
+    .mobile-pill.expanded .pill-expanded { display: flex; }
+    
+    /* New Expanded Layout */
+    .pill-header { display: flex; justify-content: space-between; align-items: center; width: 100%; }
+    .pill-title { font-weight: bold; font-size: 13px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; opacity: 0.9; flex: 1; padding-right: 10px; }
+    .pill-time-large { color: var(--accent); font-family: monospace; font-size: 16px; font-weight: bold; }
+    
+    .pill-stats-container { display: flex; justify-content: space-between; gap: 8px; width: 100%; }
+    .pill-stat-box { flex: 1; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.05); border-radius: 6px; padding: 6px 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+    .pill-stat-val { font-size: 14px; font-weight: bold; color: var(--text); font-family: monospace; }
+    .pill-stat-lbl { font-size: 9px; opacity: 0.5; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
+    
+    .pill-controls { display: flex; gap: 8px; width: 100%; margin-top: 2px; }
+    .pill-btn { flex: 1; padding: 6px 0; font-size: 11px; font-weight: bold; -webkit-app-region: no-drag; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.1); color: var(--text); border-radius: 6px; cursor: pointer; transition: 0.2s; }
+    .pill-btn:hover { background: rgba(255,255,255,0.2); }
+    
+    @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+    .hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<div class="linux-panel hidden" id="wid-linux">
+    <div class="lp-section">
+        <span style="font-weight:bold; letter-spacing:1px; opacity:0.8;">IMMERSION</span>
+        <span style="opacity:0.3;">|</span>
+        <span style="opacity:0.8; font-weight:bold;" id="linux-media">No Media</span>
+    </div>
+    <div class="lp-section mod-time">
+        <button class="lp-btn" id="linux-play" onclick="sendAction('toggle-timer')">▶ PLAY</button>
+        <span class="lp-accent" id="linux-time">00:00:00</span>
+    </div>
+    <div class="lp-section">
+        <div class="lp-item mod-chars">📝 <span class="lp-accent" id="linux-chars">0</span> C</div>
+        <div class="lp-item mod-cph">⚡ <span class="lp-accent" id="linux-cph">0</span> CPH</div>
+        <div class="lp-item mod-cards" style="color:#ffd700;">🎴 <span class="lp-accent" style="color:#ffd700;" id="linux-cards">0</span></div>
+        <span style="opacity:0.3; margin: 0 5px;">|</span>
+        <button class="lp-btn" style="font-size:12px; opacity:0.5; padding:0;" onclick="sendAction('close')">✕</button>
+    </div>
+</div>
+
+<div class="pc-bar hidden" id="wid-float">
+    <div class="drag-handle">⠿</div>
+    <button class="widget-btn" id="float-play" onclick="sendAction('toggle-timer')">▶</button>
+    <div style="width: 1px; height: 20px; background: rgba(255,255,255,0.1); margin: 0 2px;"></div>
+    <div class="stat-block mod-time"><div class="stat-val" id="float-time">00:00</div><div class="stat-lbl">Timer</div></div>
+    <div class="stat-block mod-chars"><div class="stat-val" id="float-chars">0</div><div class="stat-lbl">Chars</div></div>
+    <div class="stat-block mod-cph"><div class="stat-val" id="float-cph">0</div><div class="stat-lbl">CPH</div></div>
+    <div class="stat-block mod-cards" style="color:#ffd700;"><div class="stat-val" style="color:#ffd700;" id="float-cards">0</div><div class="stat-lbl">Cards</div></div>
+    <div style="width: 1px; height: 20px; background: rgba(255,255,255,0.1); margin: 0 2px;"></div>
+    <button class="widget-btn" style="background:transparent; border:none; padding: 2px; opacity: 0.5;" onclick="sendAction('close')">✕</button>
+</div>
+
+<div class="mobile-pill hidden" id="wid-pill" onclick="togglePill()">
+    
+    <div class="pill-collapsed">
+        <div class="pill-drag" title="Drag me!" onclick="event.stopPropagation();">⠿</div>
+        <span class="pill-icon" id="pill-icon">||</span>
+        <span class="pill-time mod-time" id="pill-time-small">00:00:00</span>
+    </div>
+    
+    <div class="pill-expanded">
+        <div class="pill-header">
+            <div class="pill-drag" style="padding:0 5px 0 0;" title="Drag me!" onclick="event.stopPropagation();">⠿</div>
+            <span class="pill-title" id="pill-media">No Media</span>
+            <span class="pill-time-large mod-time" id="pill-time-large">00:00:00</span>
+        </div>
+        
+        <div class="pill-stats-container">
+            <div class="pill-stat-box mod-chars">
+                <div class="pill-stat-val" id="pill-chars" style="color:var(--accent);">0</div>
+                <div class="pill-stat-lbl">Chars</div>
+            </div>
+            <div class="pill-stat-box mod-cph">
+                <div class="pill-stat-val" id="pill-cph">0</div>
+                <div class="pill-stat-lbl">CPH</div>
+            </div>
+            <div class="pill-stat-box mod-cards">
+                <div class="pill-stat-val" id="pill-cards" style="color:#ffd700;">0</div>
+                <div class="pill-stat-lbl">Cards</div>
+            </div>
+        </div>
+        
+        <div class="pill-controls">
+            <button class="pill-btn" id="pill-play" style="background:var(--accent); color:#000; border:none;" onclick="event.stopPropagation(); sendAction('toggle-timer')">▶ PLAY</button>
+            <button class="pill-btn" onclick="event.stopPropagation(); sendAction('stop-timer')">■ STOP</button>
+            <button class="pill-btn" style="flex: 0.5;" onclick="event.stopPropagation(); sendAction('close')">✕</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const root = document.documentElement;
+    let configState = { type: 'linux', alwaysExpanded: false };
+
+    window.electronAPI.onWidgetInitConfig((config) => {
+        configState = config;
+        root.style.setProperty('--widget-scale', config.scale || 1.0);
+        
+        document.getElementById('wid-linux').classList.add('hidden');
+        document.getElementById('wid-float').classList.add('hidden');
+        document.getElementById('wid-pill').classList.add('hidden');
+
+        document.querySelectorAll('.mod-time').forEach(el => el.style.display = config.modTime ? '' : 'none');
+        document.querySelectorAll('.mod-chars').forEach(el => el.style.display = config.modChars ? '' : 'none');
+        document.querySelectorAll('.mod-cph').forEach(el => el.style.display = config.modCph ? '' : 'none');
+        document.querySelectorAll('.mod-cards').forEach(el => el.style.display = config.modCards ? '' : 'none');
+
+        if (config.type === 'linux') document.getElementById('wid-linux').classList.remove('hidden');
+        if (config.type === 'float') document.getElementById('wid-float').classList.remove('hidden');
+        if (config.type === 'pill') {
+            let p = document.getElementById('wid-pill');
+            p.classList.remove('hidden');
+            if (config.alwaysExpanded) {
+                p.classList.add('expanded');
+                p.style.cursor = 'default';
+            }
+        }
+    });
+
+    window.electronAPI.onUpdateWidgetUI((data) => {
+        let formatK = (num) => num >= 1000 ? (num/1000).toFixed(1) + 'k' : num;
+
+        // Text Updates
+        document.getElementById('linux-media').textContent = data.mediaName || "No Media";
+        document.getElementById('linux-time').textContent = data.timeStr;
+        document.getElementById('linux-chars').textContent = formatK(data.chars);
+        document.getElementById('linux-cph').textContent = formatK(data.cph);
+        document.getElementById('linux-cards').textContent = '+' + data.cards;
+
+        document.getElementById('float-time').textContent = data.timeStr; 
+        document.getElementById('float-chars').textContent = formatK(data.chars);
+        document.getElementById('float-cph').textContent = formatK(data.cph);
+        document.getElementById('float-cards').textContent = '+' + data.cards;
+
+        document.getElementById('pill-media').textContent = data.mediaName || "No Media";
+        document.getElementById('pill-time-small').textContent = data.timeStr;
+        document.getElementById('pill-time-large').textContent = data.timeStr;
+        document.getElementById('pill-chars').textContent = formatK(data.chars);
+        document.getElementById('pill-cph').textContent = formatK(data.cph);
+        document.getElementById('pill-cards').textContent = '+' + data.cards;
+
+        // Button States
+        let lPlay = document.getElementById('linux-play');
+        let fPlay = document.getElementById('float-play');
+        let pIcon = document.getElementById('pill-icon');
+        let pPlay = document.getElementById('pill-play');
+
+        if (data.isRunning) {
+            lPlay.textContent = "|| PAUSE"; lPlay.classList.add('active'); lPlay.style.color = "";
+            fPlay.textContent = "||"; fPlay.classList.add('active'); fPlay.style.color = "";
+            pIcon.textContent = "▶"; pIcon.style.animation = "pulse 2s infinite";
+            pPlay.textContent = "|| PAUSE"; pPlay.style.background = "#ff4444"; pPlay.style.color = "#fff"; pPlay.style.border = "none";
+        } else if (data.isPaused) {
+            lPlay.textContent = "▶ RESUME"; lPlay.classList.remove('active'); lPlay.style.color = "#f39c12";
+            fPlay.textContent = "▶"; fPlay.classList.remove('active'); fPlay.style.color = "#f39c12";
+            pIcon.textContent = "||"; pIcon.style.animation = "none";
+            pPlay.textContent = "▶ RESUME"; pPlay.style.background = "#f39c12"; pPlay.style.color = "#fff"; pPlay.style.border = "none";
+        } else {
+            lPlay.textContent = "▶ PLAY"; lPlay.classList.remove('active'); lPlay.style.color = "";
+            fPlay.textContent = "▶"; fPlay.classList.remove('active'); fPlay.style.color = "";
+            pIcon.textContent = "||"; pIcon.style.animation = "none";
+            pPlay.textContent = "▶ PLAY"; pPlay.style.background = "var(--accent)"; pPlay.style.color = "#000"; pPlay.style.border = "none";
+        }
+    });
+
+    function sendAction(action) {
+        if (action === 'close') window.electronAPI.closeWidget();
+        else window.electronAPI.sendWidgetAction(action);
+    }
+
+    // New Toggle Logic with Exact Sizing!
+    function togglePill() {
+        if (!configState.alwaysExpanded) {
+            let p = document.getElementById('wid-pill');
+            p.classList.toggle('expanded');
+            
+            let scale = configState.scale || 1.0;
+            
+            // Multiply the physical resize command by the user's scale setting
+            if (p.classList.contains('expanded')) {
+                window.electronAPI.resizeWidget({ width: Math.round(320 * scale), height: Math.round(150 * scale) });
+            } else {
+                window.electronAPI.resizeWidget({ width: Math.round(150 * scale), height: Math.round(55 * scale) });
+            }
+        }
+    }
+</script>
+</body>
+</html>

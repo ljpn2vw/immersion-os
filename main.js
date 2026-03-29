@@ -4,6 +4,7 @@ const path = require('path');
 let mainWindow;
 let widgetWindow = null;
 let tray = null;
+let referenceWindow = null;
 let closeToTrayEnabled = false;
 let isQuitting = false;
 
@@ -248,6 +249,146 @@ ipcMain.on('register-hotkeys', (event, keys) => {
   globalShortcut.unregisterAll(); 
   if (keys.save) globalShortcut.register(keys.save, () => { mainWindow.webContents.send('trigger-save'); });
   if (keys.timer) globalShortcut.register(keys.timer, () => { mainWindow.webContents.send('trigger-timer'); });
+  if (keys.dbAlt) globalShortcut.register(keys.dbAlt, () => { mainWindow.webContents.send('trigger-db-alt'); });
+  if (keys.dbMain) globalShortcut.register(keys.dbMain, () => { mainWindow.webContents.send('trigger-db-main'); });
+});
+
+// --- QUICK REFERENCE OVERLAY ---
+ipcMain.handle('toggle-reference-window', (event, { url, isImage }) => {
+    // If it's already open, hitting the hotkey closes it instantly
+    if (referenceWindow) {
+        referenceWindow.close();
+        return;
+    }
+    if (!url) return;
+
+    // Get the monitor where the user's mouse currently is
+    let bounds = screen.getDisplayNearestPoint(screen.getCursorScreenPoint()).bounds;
+    
+    // For images, we take up the whole screen. For websites, we use an 85% popup.
+    let w = isImage ? bounds.width : Math.floor(bounds.width * 0.85);
+    let h = isImage ? bounds.height : Math.floor(bounds.height * 0.85);
+    let x = isImage ? bounds.x : bounds.x + Math.floor((bounds.width - w) / 2);
+    let y = isImage ? bounds.y : bounds.y + Math.floor((bounds.height - h) / 2);
+
+    referenceWindow = new BrowserWindow({
+        width: w, height: h, x: x, y: y,
+        frame: false, alwaysOnTop: true, skipTaskbar: true,
+        transparent: isImage, // Magic: Makes the window invisible so we can use CSS blur
+        backgroundColor: isImage ? undefined : '#0f1115',
+        webPreferences: {
+            nodeIntegration: false,
+            contextIsolation: true,
+            webSecurity: false 
+        }
+    });
+
+    // Close on Escape key
+    referenceWindow.webContents.on('before-input-event', (event, input) => {
+        if (input.key === 'Escape') referenceWindow.close();
+    });
+
+    referenceWindow.on('closed', () => { referenceWindow = null; });
+
+    if (isImage) {
+        let safeUrl = url.replace(/\\/g, '/');
+        if (safeUrl.match(/^[a-zA-Z]:\//)) safeUrl = 'file:///' + safeUrl;
+
+        // Injected HTML with CSS Blur, Zooming, and Panning logic
+        let html = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <style>
+                body {
+                    margin: 0; padding: 0; width: 100vw; height: 100vh; overflow: hidden;
+                    background: rgba(0, 0, 0, 0.65); /* Dims the background */
+                    backdrop-filter: blur(10px); /* Blurs the background */
+                    display: flex; align-items: center; justify-content: center;
+                    font-family: sans-serif;
+                }
+                #img-container {
+                    display: flex; align-items: center; justify-content: center;
+                    width: 100%; height: 100%;
+                    cursor: grab;
+                }
+                #img-container:active { cursor: grabbing; }
+                img {
+                    max-width: 95vw; max-height: 95vh; object-fit: contain;
+                    transition: transform 0.1s ease-out;
+                    user-select: none;
+                }
+                .close-btn {
+                    position: absolute; top: 20px; right: 20px;
+                    background: rgba(0,0,0,0.6); color: white; border: 1px solid rgba(255,255,255,0.2);
+                    padding: 8px 16px; border-radius: 6px; cursor: pointer; z-index: 999;
+                    font-weight: bold; transition: 0.2s; -webkit-app-region: no-drag;
+                }
+                .close-btn:hover { background: #ff4444; }
+            </style>
+        </head>
+        <body>
+            <div class="close-btn" onclick="window.close()">✕ Esc</div>
+            <div id="img-container">
+                <img id="viewer-img" src="${safeUrl}" draggable="false">
+            </div>
+
+            <script>
+                const img = document.getElementById('viewer-img');
+                const container = document.getElementById('img-container');
+                let scale = 1;
+                let isDragging = false;
+                let startX, startY, translateX = 0, translateY = 0;
+
+                // Zoom with Mouse Wheel
+                window.addEventListener('wheel', (e) => {
+                    e.preventDefault();
+                    const zoomSensitivity = 0.1;
+                    const delta = e.deltaY > 0 ? -zoomSensitivity : zoomSensitivity;
+                    scale = Math.max(0.1, Math.min(scale + delta, 15)); // Limits zoom from 0.1x to 15x
+                    updateTransform();
+                }, { passive: false });
+
+                // Pan with Mouse Drag
+                container.addEventListener('mousedown', (e) => {
+                    if (e.target.classList.contains('close-btn')) return;
+                    isDragging = true;
+                    startX = e.clientX - translateX;
+                    startY = e.clientY - translateY;
+                });
+
+                window.addEventListener('mouseup', () => { isDragging = false; });
+                window.addEventListener('mouseleave', () => { isDragging = false; });
+
+                window.addEventListener('mousemove', (e) => {
+                    if (!isDragging) return;
+                    e.preventDefault();
+                    translateX = e.clientX - startX;
+                    translateY = e.clientY - startY;
+                    updateTransform();
+                });
+
+                function updateTransform() {
+                    img.style.transform = \`translate(\${translateX}px, \${translateY}px) scale(\${scale})\`;
+                }
+            </script>
+        </body>
+        </html>`;
+        referenceWindow.loadURL("data:text/html;charset=utf-8," + encodeURIComponent(html));
+    } else {
+        // Load the website.
+        referenceWindow.loadURL(url);
+        referenceWindow.webContents.on('did-finish-load', () => {
+            referenceWindow.webContents.executeJavaScript(`
+                let dragBar = document.createElement('div');
+                dragBar.innerHTML = '<div style="flex:1; -webkit-app-region: drag; height:100%;"></div><div style="padding:0 15px; cursor:pointer; font-weight:bold; -webkit-app-region: no-drag; background:#ff4444; color:#fff; border-radius:4px; display:flex; align-items:center;" onclick="window.close()">✕ Esc</div>';
+                dragBar.style.cssText = 'position:fixed; top:0; left:0; width:100vw; height:30px; background:rgba(0,0,0,0.8); display:flex; z-index:2147483647; font-family:sans-serif; font-size:12px; transition: opacity 0.2s; opacity: 0.3;';
+                dragBar.onmouseover = () => dragBar.style.opacity = '1';
+                dragBar.onmouseout = () => dragBar.style.opacity = '0.3';
+                document.body.appendChild(dragBar);
+            `).catch(e => {});
+        });
+    }
 });
 
 app.on('will-quit', () => { 

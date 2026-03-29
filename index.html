@@ -831,8 +831,24 @@ hr { border: 0; border-top: 1px solid var(--border); margin: 15px 0; }
                             <button onclick="clearBind('timer')" style="background:#ff4444; color:#fff; padding:6px 10px; border:none; font-weight:bold;">X</button>
                         </div>
                     </div>
-                </div>
+										<div style="margin-top: 5px;">
+						Toggle Database <strong>Main URL</strong><br>
+						<div style="display:flex; gap:5px; align-items:center;">
+							<input id="hkDbMain" style="flex:1; cursor:pointer;" placeholder="Click and press keys..." readonly onkeydown="recordBind(event, 'dbMain')">
+							<button onclick="clearBind('dbMain')" style="background:#ff4444; color:#fff; padding:6px 10px; border:none; font-weight:bold;">X</button>
+						</div>
+					</div>
 
+					<div style="margin-top: 5px;">
+						Toggle Database <strong>Image/Alt</strong> Link<br>
+						<div style="display:flex; gap:5px; align-items:center;">
+							<input id="hkDbAlt" style="flex:1; cursor:pointer;" placeholder="Click and press keys..." readonly onkeydown="recordBind(event, 'dbAlt')">
+							<button onclick="clearBind('dbAlt')" style="background:#ff4444; color:#fff; padding:6px 10px; border:none; font-weight:bold;">X</button>
+						</div>
+					</div>
+
+                </div>
+		
                 <div id="set-int" class="set-section">
                     <h3>Connections</h3>
                     WebSocket URL (Textractor) <input id="wsUrl" style="width:100%; margin-bottom:10px;" placeholder="ws://localhost:55001" onchange="data.prefs.wsUrl = this.value; save();">
@@ -947,6 +963,8 @@ if (data.prefs.trendCurve === undefined) data.prefs.trendCurve = 'smooth';
 if (data.prefs.trendFill === undefined) data.prefs.trendFill = true;
 if (data.prefs.showTrajectory === undefined) data.prefs.showTrajectory = true;
 if (data.prefs.theme === "dark") data.prefs.theme = "Dark"; // Auto-fix casing for old saves
+if (!data.prefs.hotkeys.dbAlt) data.prefs.hotkeys.dbAlt = "";
+if (!data.prefs.hotkeys.dbMain) data.prefs.hotkeys.dbMain = "";
 
 Object.keys(data.mediaConfig).forEach(t => { 
     if(!data.media[t]) data.media[t] = [];  
@@ -1198,9 +1216,10 @@ function populateMedia() {
         let o = document.createElement("option"); o.textContent = m; 
         if(ms) ms.appendChild(o); 
     }); 
-    
+    if (data.prefs.lastMedia && Array.from(ms.options).some(o => o.value === data.prefs.lastMedia)) {
+        ms.value = data.prefs.lastMedia;
+    }
     let config = data.mediaConfig[t] || { inputs: ['hours'], unitName: 'Units' };
-    
     document.getElementById("hoursMinFields")?.classList.toggle("hidden", !config.inputs.includes('hours')); 
     document.getElementById("charField")?.classList.toggle("hidden", !config.inputs.includes('chars')); 
     
@@ -1223,7 +1242,9 @@ function handleMediaSelectChange() {
     let epInput = document.getElementById("epLength");
 
     if (!m || !epInput) return;
-
+	data.prefs.lastMedia = m;
+		save();
+		
     let profile = data.mediaData[m];
     let conf = data.mediaConfig[t] || {};
     
@@ -2900,6 +2921,8 @@ function openSettings() {
     document.getElementById("muteSounds").checked = data.prefs.mute;
     document.getElementById("prefHideSidebar").checked = data.prefs.hideSidebarInLibrary === true;
     document.getElementById("setLaunchSidebar").checked = data.prefs.launchSidebar === true;
+	document.getElementById("hkDbAlt").value = data.prefs.hotkeys.dbAlt || ""; 
+	document.getElementById("hkDbMain").value = data.prefs.hotkeys.dbMain || "";
     
     // Load Anki Settings
     document.getElementById("setAnkiEnabled").checked = data.prefs.ankiEnabled === true;
@@ -3182,20 +3205,29 @@ function recordBind(e, type) {
     keys.push(keyStr); 
     
     let finalBind = keys.join('+'); 
-    document.getElementById(type === 'save' ? 'hkSave' : 'hkTimer').value = finalBind; 
+    
+    // FIX: Dynamically target the correct input ID based on the type
+    let inputId = 'hk' + type.charAt(0).toUpperCase() + type.slice(1);
+    let inputEl = document.getElementById(inputId);
+    if (inputEl) inputEl.value = finalBind; 
+    
     data.prefs.hotkeys[type] = finalBind; 
     save(); 
     updateElectronHotkeys(); 
     updateShortcutText(); 
 }
-function clearBind(type) { data.prefs.hotkeys[type] = ""; document.getElementById(type === 'save' ? 'hkSave' : 'hkTimer').value = ""; save(); updateElectronHotkeys(); updateShortcutText(); }
-function updateShortcutText() { 
-    let saveStr = data.prefs.hotkeys.save ? `Save (${data.prefs.hotkeys.save})` : ""; 
-    let timerStr = data.prefs.hotkeys.timer ? `Timer (${data.prefs.hotkeys.timer})` : ""; 
-    let parts = [saveStr, timerStr].filter(x => x);
-    let finalStr = parts.length > 0 ? `Shortcuts: ${parts.join(' | ')} | Right-Click ▶ to Pause` : "Right-Click ▶ to Pause";
-    let el = document.getElementById("shortcutHint"); 
-    if (el) el.textContent = finalStr; 
+
+function clearBind(type) { 
+    data.prefs.hotkeys[type] = ""; 
+    
+    // FIX: Dynamically target the correct input ID to clear it
+    let inputId = 'hk' + type.charAt(0).toUpperCase() + type.slice(1);
+    let inputEl = document.getElementById(inputId);
+    if (inputEl) inputEl.value = ""; 
+    
+    save(); 
+    updateElectronHotkeys(); 
+    updateShortcutText(); 
 }
 function setAnimePlayer(input) { if (input.files && input.files[0]) { let path = input.files[0].path; if(path) { document.getElementById("animePlayerPath").value = path; data.prefs.animePlayer = path; save(); } } }
 
@@ -3347,6 +3379,28 @@ if (window.electronAPI) {
         let logU = document.getElementById("logUnits");
         if (logU) logU.value = (parseInt(logU.value) || 0) + data.pages;
     });
+	window.electronAPI.onTriggerDbAlt(() => { handleReferenceHotkey('alt'); });
+    window.electronAPI.onTriggerDbMain(() => { handleReferenceHotkey('main'); });
+
+    function handleReferenceHotkey(type) {
+        // Target whatever media is currently selected in the logging sidebar
+        let selectedMedia = document.getElementById("mediaSelect").value;
+        if (!selectedMedia) return;
+        
+        let profile = data.mediaData[selectedMedia];
+        if (!profile) return;
+
+        let rawUrl = type === 'alt' ? profile.dbAlt : profile.dbUrl;
+        if (!rawUrl || rawUrl.trim() === "") {
+            showToast(`⚠️ No ${type === 'alt' ? 'Alt Image/Link' : 'Main Database URL'} set for ${selectedMedia}.`, "Alert");
+            return;
+        }
+
+        let url = rawUrl.trim();
+        let isImage = !!url.match(/\.(jpeg|jpg|gif|png|webp)$/i);
+
+        window.electronAPI.toggleReferenceWindow({ url: url, isImage: isImage });
+    }
 }
 
 const oldOpenLibEdit = openLibEdit;

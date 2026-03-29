@@ -30,4 +30,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
 	resizeWidget: (size) => ipcRenderer.send('resize-widget', size),
 	isWidgetActive: () => ipcRenderer.invoke('is-widget-active'),
 	updateTraySetting: (enabled) => ipcRenderer.send('update-tray-setting', enabled),
+	toggleReferenceWindow: (data) => ipcRenderer.invoke('toggle-reference-window', data),
+	onTriggerDbAlt: (callback) => ipcRenderer.on('trigger-db-alt', () => callback()),
+	onTriggerDbMain: (callback) => ipcRenderer.on('trigger-db-main', () => callback()),
 });
