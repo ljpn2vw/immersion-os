@@ -13,6 +13,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   onAppClosed: (callback) => ipcRenderer.on('app-closed', (event, mediaName) => callback(mediaName)),
   searchAPI: (opts) => ipcRenderer.invoke('search-api', opts),
   getAppVersion: () => ipcRenderer.invoke('get-app-version'),
+  createBackup: (dataStr) => ipcRenderer.send('create-backup', dataStr),
   // Widget Controls
     launchWidget: (config) => ipcRenderer.invoke('launch-widget', config),
     closeWidget: () => ipcRenderer.send('close-widget'),

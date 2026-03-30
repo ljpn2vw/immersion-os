@@ -440,6 +440,14 @@ hr { border: 0; border-top: 1px solid var(--border); margin: 15px 0; }
         <div id="libEditApiSearchContainer" class="hidden" style="max-height:150px; overflow-y:auto; background:var(--bg); border:1px solid var(--border); border-radius:4px; margin-bottom:15px;"></div>
 		<div style="margin-bottom:10px;">Cover Art (URL)<br><input type="text" id="libEditImg" placeholder="https://..." style="width:95%"></div>
 		<div style="margin-bottom:10px;">
+			Folder Grouping<br>
+			<select id="libEditFolderSelect" style="width:100%; margin-bottom: 5px; background:var(--input); color:var(--text); border:1px solid var(--border); padding:4px; border-radius:4px;" onchange="document.getElementById('libEditFolderNew').classList.toggle('hidden', this.value !== 'new')">
+				<option value="none">None</option>
+				<option value="new">+ Create New Folder...</option>
+			</select>
+			<input type="text" id="libEditFolderNew" class="hidden" placeholder="New folder name..." style="width:100%; background:var(--input); color:var(--text); border:1px solid var(--border); padding:4px; border-radius:4px;">
+		</div>
+		<div style="margin-bottom:10px;">
 			<strong>Database URL</strong><br>
 			<input type="text" id="libEditDbUrl" placeholder="https://vndb.org/v..." style="width:100%; margin-bottom:5px;">
 			<input type="text" id="libEditDbAlt" placeholder="Alt Link or Image Path (Right-click)" style="width:100%; font-size:11px; background:var(--input); color:var(--text); border:1px solid var(--border); padding:4px; border-radius:4px;">
@@ -749,7 +757,25 @@ hr { border: 0; border-top: 1px solid var(--border); margin: 15px 0; }
                             <button onclick="deleteCurrentTheme()" style="flex:1; background:#ff4444; color:#fff; padding: 6px;">🗑️ Delete</button>
                         </div>
                     </div>
-                    
+                    <div style="background:var(--header); padding:15px; border-radius:6px; border:1px solid var(--border); margin-bottom:15px;">
+						<strong style="display:block; margin-bottom:10px;">📌 Default Library View</strong>
+						<div class="flex-row" style="margin-bottom:0;">
+							<div style="flex:1">Filter<br><select id="setDefaultFilter" style="width:100%" onchange="saveSettingsFast()"><option value="all">All Media</option></select></div>
+							<div style="flex:1">Status<br><select id="setDefaultStatus" style="width:100%" onchange="saveSettingsFast()">
+								<option value="default">👁️ Default</option>
+								<option value="active">🟢 Active</option>
+								<option value="paused">⏸️ Paused</option>
+								<option value="completed">⭐ Completed</option>
+								<option value="dropped">❌ Dropped</option>
+								<option value="wishlist">📝 Wishlist</option>
+							</select></div>
+							<div style="flex:1">Sort<br><select id="setDefaultSort" style="width:100%" onchange="saveSettingsFast()">
+								<option value="status">⇅ Sort: Status</option>
+								<option value="recent">⇅ Sort: Recent</option>
+								<option value="alpha">⇅ Sort: A-Z</option>
+							</select></div>
+						</div>
+					</div>
                     <strong style="display:block; margin-bottom:8px; margin-top:20px;">Trend Chart Settings</strong>
                     <div class="flex-row" style="background:var(--header); padding:15px; border-radius:6px; border:1px solid var(--border); margin-bottom:15px;">
                         <div style="flex:1">Chart Style<br><select id="chartStyleSelect" style="width:100%" onchange="saveSettingsFast()"><option value="line">Line Graph</option><option value="bar">Bar Graph</option></select></div>
@@ -846,7 +872,39 @@ hr { border: 0; border-top: 1px solid var(--border); margin: 15px 0; }
 							<button onclick="clearBind('dbAlt')" style="background:#ff4444; color:#fff; padding:6px 10px; border:none; font-weight:bold;">X</button>
 						</div>
 					</div>
-
+				<hr style="margin: 15px 0; border-color: rgba(255,255,255,0.05);">
+                    <h4>🧠 Smart Estimates (ETA)</h4>
+                    <label style="font-size: 12px; display: flex; align-items: center; gap: 8px; margin-bottom: 10px;">
+                        <input type="checkbox" id="setEtaEnabled" onchange="document.getElementById('etaSettingsBlock').style.opacity = this.checked ? '1' : '0.5'"> Enable Smart ETAs
+                    </label>
+                    <div id="etaSettingsBlock" style="background:var(--header); padding:10px; border-radius:6px; border:1px solid var(--border); margin-bottom:15px; font-size: 11px;">
+                        <div style="display:flex; gap:10px; margin-bottom:12px;">
+                            <label><input type="checkbox" id="setEtaLibrary"> On Library Cards</label>
+                            <label><input type="checkbox" id="setEtaShelf"> On Active Shelf</label>
+                            <label><input type="checkbox" id="setEtaGoals"> On Goals</label>
+                        </div>
+                        <div style="display:flex; gap:10px;">
+                            <div style="flex:1;">
+                                Format<br>
+                                <select id="setEtaFormat" style="width:100%; font-size:11px; padding:4px;">
+                                    <option value="time">Hours Left (~14h left)</option>
+                                    <option value="days">Days Left (10d left)</option>
+                                    <option value="date">Target Date (Est: Nov 2)</option>
+                                </select>
+                            </div>
+                            <div style="flex:1;">
+                                Calculation Window<br>
+                                <select id="setEtaWindow" style="width:100%; font-size:11px; padding:4px;">
+                                    <option value="7">7 Days</option>
+                                    <option value="14">14 Days</option>
+                                    <option value="30">30 Days</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div style="margin-top:8px; opacity:0.6; font-style:italic;">
+                            * Uses global speed for the media type until 2 hours or 2 days are logged for a specific item.
+                        </div>
+                    </div>
                 </div>
 		
                 <div id="set-int" class="set-section">
@@ -936,6 +994,7 @@ hr { border: 0; border-top: 1px solid var(--border); margin: 15px 0; }
             <button onclick="closeCustomTheme()">Cancel</button>
         </div>
     </div>
+	
 </div>
 
 <script>
@@ -953,8 +1012,11 @@ const defaultMediaConfig = {
 };
 
 let data = JSON.parse(localStorage.getItem("ImmersionOS_data"));
-if (!data) data = { entries: [], media: {}, xp: {}, goals: [], archivedGoals: [], achievements: [], prefs: {theme:"Dark", defaultEpLength:20, lastType:"VN", customThemes: {}, resetHour: 0, hotkeys: {save: "", timer: ""}, mute: false, wsUrl: "ws://localhost:55001", cardSize: 220, volume: 0.5, chartStyle: 'line', trendCurve: 'smooth', trendFill: true, animePlayer: 'mpv', afkTimer: 30}, links: [] };
+if (!data) data = { entries: [], media: {}, goals: [], archivedGoals: [], prefs: {theme:"Dark", defaultEpLength:20, lastType:"VN", customThemes: {}, resetHour: 0, hotkeys: {save: "", timer: ""}, mute: false, wsUrl: "ws://localhost:55001", cardSize: 220, volume: 0.5, chartStyle: 'line', trendCurve: 'smooth', trendFill: true, animePlayer: 'mpv', afkTimer: 30}, links: [] };
 
+// Purge leftovers from old saves
+if (data.xp) delete data.xp;
+if (data.achievements) delete data.achievements;
 if (!data.mediaConfig) data.mediaConfig = defaultMediaConfig;
 if (!data.general) data.general = {};
 if (!data.mediaData) data.mediaData = {};
@@ -965,6 +1027,12 @@ if (data.prefs.showTrajectory === undefined) data.prefs.showTrajectory = true;
 if (data.prefs.theme === "dark") data.prefs.theme = "Dark"; // Auto-fix casing for old saves
 if (!data.prefs.hotkeys.dbAlt) data.prefs.hotkeys.dbAlt = "";
 if (!data.prefs.hotkeys.dbMain) data.prefs.hotkeys.dbMain = "";
+if (data.prefs.etaEnabled === undefined) data.prefs.etaEnabled = true;
+if (data.prefs.etaFormat === undefined) data.prefs.etaFormat = 'time';
+if (data.prefs.etaWindow === undefined) data.prefs.etaWindow = '14';
+if (data.prefs.etaLibrary === undefined) data.prefs.etaLibrary = true;
+if (data.prefs.etaShelf === undefined) data.prefs.etaShelf = true;
+if (data.prefs.etaGoals === undefined) data.prefs.etaGoals = true;
 
 Object.keys(data.mediaConfig).forEach(t => { 
     if(!data.media[t]) data.media[t] = [];  
@@ -1084,6 +1152,7 @@ function switchView(viewName, silent = false) {
     let compView = document.getElementById('compareView');
 
     if (viewName === 'library') {
+		if (libBtn.classList.contains('active')) return;
         if (!silent) playAudio('tab_lib.wav');
         libBtn.classList.add('active'); anaBtn.classList.remove('active');
         libView.classList.remove('hidden'); anaView.classList.add('hidden'); filters.classList.add('hidden');
@@ -1196,6 +1265,8 @@ function populateDropdowns() {
         let o = `<option value="${t}">${t}</option>`;
         logType.innerHTML += o; libFilterMain.innerHTML += o; mediaFilter.innerHTML += o;
         document.getElementById("histType").innerHTML += o; document.getElementById("gType").innerHTML += o;
+		let defFil = document.getElementById("setDefaultFilter");
+		if(defFil) defFil.innerHTML += o;
     });
 
     if (types.includes(currentLog)) logType.value = currentLog;
@@ -1377,10 +1448,21 @@ function renderShelf() {
         else if (activeMetric === 'hours') dispAmt = amt.toFixed(1);
         else dispAmt = amt.toLocaleString();
 
-        let item = document.createElement("div"); item.className = "shelf-item"; 
+		let item = document.createElement("div"); item.className = "shelf-item"; 
         item.onclick = () => viewSpecificAnalytics(name);
-        item.innerHTML = `<span><strong>${name}</strong> <span style="opacity:0.6; font-size:10px">(${d.type})</span></span> <span>${d.hours.toFixed(1)}h | ${dispAmt} ${amtStr}</span>`; 
-        container.appendChild(item); 
+        
+        // NEW: Hover swap for ETA
+        let etaStr = (data.prefs.etaEnabled && data.prefs.etaShelf !== false) ? getSmartETA(name) : null;
+        let rightSide = `<span>${d.hours.toFixed(1)}h | ${dispAmt} ${amtStr}</span>`;
+        
+        if (etaStr) {
+            rightSide = `<span class="shelf-stats" style="display:block;">${d.hours.toFixed(1)}h | ${dispAmt} ${amtStr}</span><span class="shelf-eta" style="display:none; color:var(--accent); font-weight:bold;">${etaStr}</span>`;
+            item.onmouseenter = () => { item.querySelector('.shelf-stats').style.display = 'none'; item.querySelector('.shelf-eta').style.display = 'block'; };
+            item.onmouseleave = () => { item.querySelector('.shelf-stats').style.display = 'block'; item.querySelector('.shelf-eta').style.display = 'none'; };
+        }
+
+        item.innerHTML = `<span><strong>${name}</strong> <span style="opacity:0.6; font-size:10px">(${d.type})</span></span> <div style="display:flex; justify-content:flex-end; align-items:center; min-width:100px;">${rightSide}</div>`; 
+        container.appendChild(item);
     }); 
 
     if (topMedia.length > 4) {
@@ -1576,6 +1658,108 @@ function handleRightClickAlt(rawUrl) {
     }
 }
 
+/* ===============================
+SMART ETA ESTIMATOR
+=============================== */
+function getSmartETA(mediaName) {
+    if (!data.prefs.etaEnabled) return null;
+    let profile = data.mediaData[mediaName];
+    if (!profile || !profile.target || profile.status === 'completed' || profile.status === 'dropped') return null;
+
+    let conf = data.mediaConfig[profile.type] || { progressMetric: 'units' };
+    let metric = profile.metricOverride && profile.metricOverride !== 'default' ? profile.metricOverride : (conf.progressMetric || 'units');
+
+    let target = profile.target;
+    let prog = 0;
+    let windowDays = parseInt(data.prefs.etaWindow) || 14;
+    
+    // Create cutoff date for the rolling window
+    let cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - windowDays);
+    let cutoffStr = getLocalDateStr(cutoff);
+
+    let specHours = 0, specMetric = 0, specChars = 0, specValidCphH = 0;
+    let specDays = new Set();
+    let globHours = 0, globMetric = 0, globChars = 0, globValidCphH = 0;
+
+    // Phase 1: Total Progress & Window Data Extraction
+    data.entries.forEach(e => {
+        if (e.media === mediaName) {
+            if (metric === 'chars') prog += (e.chars || 0);
+            else if (metric === 'hours') prog += (e.hours || 0);
+            else prog += (e.units || e.eps || e.pages || 0);
+        }
+
+        if (e.date >= cutoffStr) {
+            if (e.media === mediaName) {
+                specHours += (e.hours || 0);
+                specChars += (e.chars || 0);
+                specMetric += (metric === 'chars' ? (e.chars||0) : metric === 'hours' ? (e.hours||0) : (e.units||e.eps||e.pages||0));
+                specDays.add(e.date);
+                if (e.chars > 0 && e.hours > 0) specValidCphH += e.hours;
+            }
+            if (e.type === profile.type) {
+                globHours += (e.hours || 0);
+                globChars += (e.chars || 0);
+                globMetric += (metric === 'chars' ? (e.chars||0) : metric === 'hours' ? (e.hours||0) : (e.units||e.eps||e.pages||0));
+                if (e.chars > 0 && e.hours > 0) globValidCphH += e.hours;
+            }
+        }
+    });
+
+    if (prog >= target) return null;
+    let rem = target - prog;
+
+    // Phase 2: Threshold Check (2 hours OR 2 separate days)
+    let isSpecific = (specHours >= 2 || specDays.size >= 2);
+    
+    let activeValidCphH = isSpecific ? specValidCphH : globValidCphH;
+    let activeChars = isSpecific ? specChars : globChars;
+    let activeMetricSum = isSpecific ? specMetric : globMetric;
+    let activeHoursSum = isSpecific ? specHours : globHours;
+
+    let avgCph = activeValidCphH > 0 ? (activeChars / activeValidCphH) : 0;
+    let avgDailyH = activeHoursSum / windowDays;
+    let avgDailyM = activeMetricSum / windowDays;
+
+    let hoursLeft = 0;
+    let daysLeft = 0;
+
+    // Phase 3: The Math
+    if (metric === 'chars') {
+        if (avgCph <= 0 || avgDailyH <= 0) return null; 
+        hoursLeft = rem / avgCph;
+        daysLeft = hoursLeft / avgDailyH;
+    } else if (metric === 'hours') {
+        if (avgDailyH <= 0) return null;
+        hoursLeft = rem;
+        daysLeft = rem / avgDailyH;
+    } else {
+        if (avgDailyM <= 0) return null;
+        daysLeft = rem / avgDailyM;
+        hoursLeft = daysLeft * avgDailyH;
+    }
+
+    // Phase 4: Formatting
+    let format = data.prefs.etaFormat || 'time'; 
+    let ast = isSpecific ? "" : " (*)";
+    let res = "";
+
+    if (format === 'time') {
+        res = `~${hoursLeft.toFixed(1)}h left`;
+    } else if (format === 'days') {
+        res = `${Math.ceil(daysLeft)}d left`;
+    } else if (format === 'date') {
+        let d = new Date();
+        d.setDate(d.getDate() + Math.ceil(daysLeft));
+        res = `Est: ${d.toLocaleString('default', { month: 'short' })} ${d.getDate()}`;
+    }
+
+    return res + ast;
+}
+
+window.currentLibraryFolder = null; // Global state for navigation
+
 function renderLibrary() {
     const container = document.getElementById("mainLibraryContainer");
     let mode = data.prefs.libView || 'grid';
@@ -1586,16 +1770,13 @@ function renderLibrary() {
     let sort = document.getElementById("libSortMain").value;
     let statusFilter = document.getElementById("libStatusFilter") ? document.getElementById("libStatusFilter").value : "default";
 
-    // Track all metrics so overrides can pull from the right pool
     let mediaStats = {};
     data.entries.forEach(e => {
         if(!e.media) return; 
         if(!mediaStats[e.media]) mediaStats[e.media] = { hours: 0, chars: 0, units: 0, last: 0 };
-        
         mediaStats[e.media].hours += e.hours;
         mediaStats[e.media].chars += (e.chars || 0);
         mediaStats[e.media].units += (e.units || e.eps || e.pages || 0);
-        
         let dTime = new Date(e.date).getTime(); 
         if (dTime > mediaStats[e.media].last) mediaStats[e.media].last = dTime;
     });
@@ -1610,29 +1791,58 @@ function renderLibrary() {
         if (profile.hidden && filter === "YouTube") return; 
         if (filter !== "all" && profile.type !== filter) return;
 
-        if (statusFilter === "default") {
-            if (stat === "wishlist") return; 
-        } else {
-            if (stat !== statusFilter) return;
-        }
+        if (statusFilter === "default") { if (stat === "wishlist") return; } 
+        else { if (stat !== statusFilter) return; }
 
         items.push({ 
 			name: name, type: profile.type, status: stat, target: profile.target, 
 			metricOverride: profile.metricOverride, 
 			img: profile.img || "", paths: profile.paths || ["","",""], 
-			dbUrl: profile.dbUrl || "",
-			dbAlt: profile.dbAlt || "", // <-- Just this one new line
-			blur: profile.blur || false, stats: mediaStats[name] || { hours: 0, chars: 0, units: 0, last: 0 } 
+			dbUrl: profile.dbUrl || "", dbAlt: profile.dbAlt || "", 
+			blur: profile.blur || false, stats: mediaStats[name] || { hours: 0, chars: 0, units: 0, last: 0 },
+            folder: profile.folder || "" 
 		});
     });
 
+    // --- FOLDER GROUPING LOGIC ---
+    let displayItems = [];
+    let folders = {};
+    
+    items.forEach(item => {
+        if (item.folder && window.currentLibraryFolder === null) {
+            if (!folders[item.folder]) {
+                folders[item.folder] = { isFolder: true, name: item.folder, type: 'Folder', status: 'active', stats: { hours: 0, last: 0, count: 0 }, items: [] };
+            }
+            folders[item.folder].items.push(item);
+            folders[item.folder].stats.hours += item.stats.hours;
+            folders[item.folder].stats.count++;
+            if (item.stats.last > folders[item.folder].stats.last) folders[item.folder].stats.last = item.stats.last;
+        } else if (window.currentLibraryFolder !== null) {
+            if (item.folder === window.currentLibraryFolder) displayItems.push(item);
+        } else {
+            displayItems.push(item);
+        }
+    });
+
+    if (window.currentLibraryFolder === null) {
+        Object.values(folders).forEach(f => displayItems.push(f));
+    }
+
+    // --- UI NAVIGATION UPDATE ---
+    let titleEl = document.getElementById("libTitle");
+    if (window.currentLibraryFolder) {
+        titleEl.innerHTML = `<button onclick="window.currentLibraryFolder=null; renderLibrary()" style="background:transparent; border:none; color:var(--text); font-size:16px; cursor:pointer; font-weight:bold; margin-right:10px;" title="Go Back">🔙</button> 📁 ${window.currentLibraryFolder}`;
+    } else {
+        titleEl.innerHTML = `📚 Media Collection`;
+    }
+
     const sortVal = { 'active': 1, 'paused': 2, 'wishlist': 3, 'completed': 4, 'dropped': 5 };
     if (sort === 'status') {
-        items.sort((a,b) => (sortVal[a.status] - sortVal[b.status]) || a.name.localeCompare(b.name));
+        displayItems.sort((a,b) => (sortVal[a.status] - sortVal[b.status]) || a.name.localeCompare(b.name));
     } else if (sort === 'alpha') {
-        items.sort((a,b) => a.name.localeCompare(b.name));
+        displayItems.sort((a,b) => a.name.localeCompare(b.name));
     } else if (sort === 'recent') {
-        items.sort((a,b) => {
+        displayItems.sort((a,b) => {
             let aDone = (a.status === 'completed' || a.status === 'dropped') ? 1 : 0;
             let bDone = (b.status === 'completed' || b.status === 'dropped') ? 1 : 0;
             if (aDone !== bDone) return aDone - bDone;
@@ -1640,21 +1850,42 @@ function renderLibrary() {
         });
     }
 
-    if (mode === 'list' && items.length > 0) {
+    if (mode === 'list' && displayItems.length > 0) {
         container.innerHTML += `<div style="display:flex; padding: 0 15px 8px 15px; font-size:11px; opacity:0.6; text-transform:uppercase; font-weight:bold; align-items:center;">
-            <div style="flex:1;">Media Title</div>
-            <div style="display:flex; gap:15px; align-items:center;">
-                <div style="width:130px; text-align:center;">Actions</div>
-                <div style="width:120px; text-align:right;">Progress</div>
-                <div style="width:90px; text-align:right;">Total</div>
-                <div style="width:60px; text-align:right;">Time</div>
-            </div>
-        </div>`;
+            <div style="flex:1;">Media Title</div><div style="display:flex; gap:15px; align-items:center;">
+            <div style="width:130px; text-align:center;">Actions</div><div style="width:120px; text-align:right;">Progress</div>
+            <div style="width:90px; text-align:right;">Total</div><div style="width:60px; text-align:right;">Time</div></div></div>`;
     }
 
-    items.forEach(item => {
+    displayItems.forEach(item => {
+        // --- RENDER FOLDERS ---
+        if (item.isFolder) {
+            if (mode === 'grid') {
+                let imgs = item.items.map(i => i.img).filter(img => img).slice(0, 4);
+                let bgHtml = `<div class="card-bg" style="background:#222;"></div>`;
+                if (imgs.length > 0) {
+                    let gridHtml = imgs.map(img => `<div style="background: url('${img}') center/cover; width:${imgs.length > 1 ? '50%' : '100%'}; height:${imgs.length > 2 ? '50%' : '100%'};"></div>`).join('');
+                    bgHtml = `<div class="card-bg" style="display:flex; flex-wrap:wrap;">${gridHtml}</div>`;
+                }
+                
+                let card = document.createElement("div"); card.className = `lib-card active`; card.onmouseenter = () => playAudio('hover.wav');
+                card.onclick = () => { window.currentLibraryFolder = item.name; renderLibrary(); playAudio('open.wav'); };
+                card.innerHTML = `${bgHtml}<div class="card-gradient" style="background: linear-gradient(to bottom, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0.95) 100%);"></div><div class="card-content">
+                <div style="font-size:16px; font-weight:bold; text-shadow:0 2px 4px rgba(0,0,0,0.8);">📁 ${item.name}</div>
+                <div style="font-size:11px; opacity:0.8; margin-bottom:5px;">Folder • ${item.stats.count} items</div>
+                <div style="flex:1"></div>
+                <div style="font-size:11px; opacity:0.9; margin-top:8px; display:flex; gap:10px;"><span>⏱️ ${item.stats.hours.toFixed(1)}h Total</span></div></div>`;
+                container.appendChild(card);
+            } else {
+                container.innerHTML += `<div class="list-item active" onclick="window.currentLibraryFolder='${item.name}'; renderLibrary(); playAudio('open.wav');" style="display: flex; align-items: center; justify-content: space-between; height: 100%;">
+                    <div style="flex:1;"><strong style="margin:0;">📁 ${item.name}</strong> <span style="font-size:10px; opacity:0.6; margin-left:8px;">(${item.stats.count} items)</span></div>
+                    <div style="display:flex; align-items:center; gap:15px; height: 100%;"><div style="width:60px; text-align:right; font-size:12px;">${item.stats.hours.toFixed(1)}h</div></div></div>`;
+            }
+            return;
+        }
+
+        // --- RENDER NORMAL MEDIA (Unchanged Logic) ---
         let conf = data.mediaConfig[item.type] || {unitName:'Units', inputs:[], progressMetric: 'units', emoji: '📦'};
-        
         let activeMetric = item.metricOverride && item.metricOverride !== 'default' ? item.metricOverride : (conf.progressMetric || 'units');
         let amt = 0; let amtStr = conf.unitName || 'Units';
         
@@ -1662,48 +1893,29 @@ function renderLibrary() {
         else if (activeMetric === 'hours') { amt = item.stats.hours; amtStr = 'Hours'; }
         else { amt = item.stats.units; }
         
-        let dispAmt = amt;
-        let dispTarget = item.target;
-        
-        if (activeMetric === 'chars') {
-            if (amt >= 1000) dispAmt = (amt/1000).toFixed(1) + 'k';
-            if (item.target >= 1000) dispTarget = (item.target/1000).toFixed(1) + 'k';
-        } else if (activeMetric === 'hours') {
-            dispAmt = amt.toFixed(1);
-            if (item.target > 0) dispTarget = item.target.toFixed(1);
-        } else {
-            dispAmt = amt.toLocaleString();
-            if (item.target > 0) dispTarget = item.target.toLocaleString();
-        }
+        let dispAmt = amt; let dispTarget = item.target;
+        if (activeMetric === 'chars') { if (amt >= 1000) dispAmt = (amt/1000).toFixed(1) + 'k'; if (item.target >= 1000) dispTarget = (item.target/1000).toFixed(1) + 'k'; } 
+        else if (activeMetric === 'hours') { dispAmt = amt.toFixed(1); if (item.target > 0) dispTarget = item.target.toFixed(1); } 
+        else { dispAmt = amt.toLocaleString(); if (item.target > 0) dispTarget = item.target.toLocaleString(); }
 
         let pct = item.target > 0 ? Math.min((amt / item.target) * 100, 100).toFixed(0) : 0;
         let emoji = conf.emoji || '📦';
         
-        // --- BUTTON HTML BUILDERS ---
         let statsBtn = `<button class="lib-btn" onclick="event.stopPropagation(); viewSpecificAnalytics('${item.name}')" title="Media Analytics">📊</button>`;
         let quickAdd = (item.type === 'Anime' || conf.unitName === 'Eps') ? `<button class="lib-btn" onclick="event.stopPropagation(); quickAddEpisode('${item.name}')">+1</button>` : '';
         let launchBtn = item.paths.some(p => p.trim() !== "") ? `<button class="lib-btn" onclick="event.stopPropagation(); selectFromLibrary('${item.type}', '${item.name}'); fireMediaLaunch('${item.name}');" style="background:var(--accent); color:#000;">🚀</button>` : '';
         
-        // Our shiny new Database Button!
 		let dbBtn = '';
 		if (item.dbUrl || item.dbAlt) {
-			// Escape backslashes and single quotes so the HTML parser doesn't swallow them
 			let safeDbAlt = item.dbAlt ? item.dbAlt.replace(/\\/g, '\\\\').replace(/'/g, "\\'") : '';
-			
 			let leftClick = item.dbUrl ? `if(window.electronAPI){window.electronAPI.launchApps(['${item.dbUrl}'])}else{window.open('${item.dbUrl}', '_blank')};` : '';
 			let rightClick = item.dbAlt ? `handleRightClickAlt('${safeDbAlt}');` : '';
-			
 			dbBtn = `<button class="lib-btn" onclick="event.stopPropagation(); ${leftClick}" oncontextmenu="event.preventDefault(); event.stopPropagation(); ${rightClick}" title="${item.dbAlt ? 'L-Click: DB | R-Click: Alt Link/Image' : 'Open Database'}">🌐</button>`;
 		}
-        // Theme colors and glowing dots
+
         let currTheme = {...themes, ...data.prefs.customThemes}[data.prefs.theme] || themes.Dark;
         let tColor = currTheme[item.type.toLowerCase()] || stringToColor(item.type);
-        
-        let statusIcon = item.status === 'completed' ? '⭐' : 
-                         (item.status === 'paused' ? '⏸️' : 
-                         (item.status === 'dropped' ? '❌' : 
-                         (item.status === 'wishlist' ? '📝' : 
-                         `<span style="display:inline-block; width:10px; height:10px; border-radius:50%; background:${tColor}; box-shadow: 0 0 8px ${tColor}; margin-right:4px;"></span>`)));
+        let statusIcon = item.status === 'completed' ? '⭐' : (item.status === 'paused' ? '⏸️' : (item.status === 'dropped' ? '❌' : (item.status === 'wishlist' ? '📝' : `<span style="display:inline-block; width:10px; height:10px; border-radius:50%; background:${tColor}; box-shadow: 0 0 8px ${tColor}; margin-right:4px;"></span>`)));
 
         if (mode === 'grid') {
             let card = document.createElement("div"); card.className = `lib-card ${item.status}`; card.onmouseenter = () => playAudio('hover.wav');
@@ -1712,9 +1924,7 @@ function renderLibrary() {
             let middleHtml = item.target > 0 ? `<div class="progress" style="margin: 8px 0 4px 0; background:rgba(0,0,0,0.5); pointer-events:auto;"><div class="progress-fill" style="width:${pct}%"></div></div><div style="font-size:11px; display:flex; justify-content:space-between; opacity:0.9;"><span>${dispAmt} / ${dispTarget}</span><span style="font-weight:bold; color:var(--accent);">${pct}%</span></div>` : `<span style="position:absolute; bottom:12px; right:12px; font-size:10px; font-weight:bold; color:var(--accent); opacity:0.8; pointer-events:none;">ONGOING</span>`;
             let badgeHtml = item.status === 'completed' ? '<div class="badge-completed">⭐ COMPLETED</div>' : '';
             
-            // Notice ${dbBtn} added to the .lib-actions div right here!
             card.innerHTML = `${bgHtml}<div class="card-gradient"></div>${badgeHtml}<div class="card-content"><div class="lib-actions">${launchBtn}${dbBtn}${statsBtn}${quickAdd}<button class="lib-btn" onclick="event.stopPropagation(); openLibEdit('${item.name}')">✎</button></div><div style="font-size:16px; font-weight:bold; padding-right:110px; word-wrap:break-word; text-shadow:0 2px 4px rgba(0,0,0,0.8);">${item.name}</div><div style="font-size:11px; opacity:0.8; margin-bottom:5px; text-shadow:0 1px 2px rgba(0,0,0,0.8);">${statusIcon} ${item.type}</div><div style="flex:1"></div>${middleHtml}<div style="font-size:11px; opacity:0.9; margin-top:8px; display:flex; gap:10px; text-shadow:0 1px 2px rgba(0,0,0,0.8);"><span>⏱️ ${item.stats.hours.toFixed(1)}h</span><span>${emoji} ${dispAmt} ${amtStr}</span></div></div>`;
-            
             container.appendChild(card);
         } else {
             let middleHtml = item.target > 0 ? `<div style="width:120px; display:flex; align-items:center; justify-content:flex-end;"><span style="font-size:11px; color:var(--accent); margin:0;">${pct}% (${dispAmt}/${dispTarget})</span></div>` : `<div style="width:120px; display:flex; align-items:center; justify-content:flex-end;"><span style="font-size:11px; opacity:0.6; margin:0;">Ongoing</span></div>`;            
@@ -1722,21 +1932,11 @@ function renderLibrary() {
             let timeHtml = `<div style="width:60px; display:flex; align-items:center; justify-content:flex-end; font-size:12px; margin:0;">${item.stats.hours.toFixed(1)}h</div>`;
             
             container.innerHTML += `<div class="list-item ${item.status}" onclick="selectFromLibrary('${item.type}', '${item.name}'); fireMediaLaunch('${item.name}');" style="display: flex; align-items: center; justify-content: space-between; height: 100%;">
-                <div style="flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; padding-right: 15px; display: flex; align-items: center;">
-                    <strong style="margin:0;">${item.name}</strong> <span style="font-size:10px; opacity:0.6; margin-left:8px;">(${item.type})</span>
-                </div>
-                <div style="display:flex; align-items:center; gap:15px; height: 100%;">
-                    <div style="width:130px; display:flex; gap:5px; justify-content:center; align-items:center; opacity:0; transition: opacity 0.2s ease;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0" onclick="event.stopPropagation()">
-                        ${launchBtn}${dbBtn}${statsBtn}${quickAdd}<button class="lib-btn" onclick="openLibEdit('${item.name}')">✎</button>
-                    </div>
-                    ${middleHtml}
-                    ${dispAmtHtml}
-                    ${timeHtml}
-                </div>
-            </div>`;
+                <div style="flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; padding-right: 15px; display: flex; align-items: center;"><strong style="margin:0;">${item.name}</strong> <span style="font-size:10px; opacity:0.6; margin-left:8px;">(${item.type})</span></div>
+                <div style="display:flex; align-items:center; gap:15px; height: 100%;"><div style="width:130px; display:flex; gap:5px; justify-content:center; align-items:center; opacity:0; transition: opacity 0.2s ease;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0" onclick="event.stopPropagation()">${launchBtn}${dbBtn}${statsBtn}${quickAdd}<button class="lib-btn" onclick="openLibEdit('${item.name}')">✎</button></div>${middleHtml}${dispAmtHtml}${timeHtml}</div></div>`;
         }
     });
-    if (items.length === 0) container.innerHTML = "<div style='opacity:0.6; grid-column:1/-1;'>No media found matching these filters.</div>";
+    if (items.length === 0 && displayItems.length === 0) container.innerHTML = "<div style='opacity:0.6; grid-column:1/-1;'>No media found matching these filters.</div>";
 }
 
 function viewSpecificAnalytics(mediaName) { 
@@ -1852,20 +2052,37 @@ function openLibEdit(name) {
     document.getElementById("libEditImg").value = profile.img || "";
     document.getElementById("libEditStatus").value = profile.status || 'active';
     document.getElementById("libEditTarget").value = profile.target || "";
-    
-    // Load the metric override
-    let overrideDropdown = document.getElementById("libEditOverride");
-    if (overrideDropdown) overrideDropdown.value = profile.metricOverride || 'default';
-    
+    document.getElementById("libEditOverride").value = profile.metricOverride || 'default';
     document.getElementById("libEditHidden").checked = profile.hidden === true;
     document.getElementById("libEditBlur").checked = profile.blur || false;
     document.getElementById("libEditAuto").checked = profile.autoComplete !== false;
+
+    // --- SMART FOLDER DROPDOWN ---
+    let folderSel = document.getElementById("libEditFolderSelect");
+    folderSel.innerHTML = '<option value="none">None</option>';
+    let existingFolders = new Set();
+    Object.values(data.mediaData).forEach(m => { if (m.folder) existingFolders.add(m.folder); });
+    
+    existingFolders.forEach(f => { folderSel.innerHTML += `<option value="${f}">${f}</option>`; });
+    folderSel.innerHTML += '<option value="new">+ Create New Folder...</option>';
+
+    if (profile.folder && existingFolders.has(profile.folder)) {
+        folderSel.value = profile.folder;
+        document.getElementById("libEditFolderNew").classList.add("hidden");
+    } else {
+        folderSel.value = "none";
+        document.getElementById("libEditFolderNew").classList.add("hidden");
+    }
+    document.getElementById("libEditFolderNew").value = "";
+    // -----------------------------
 
     currentLibEditPaths = (profile.paths || [""]).filter(p => p.trim() !== "");
     if (currentLibEditPaths.length === 0) currentLibEditPaths = [""];
     renderLibEditPaths();
     
     document.getElementById("libEditNotes").value = profile.notes || "";
+    document.getElementById("libEditDbUrl").value = profile.dbUrl || "";
+    document.getElementById("libEditDbAlt").value = profile.dbAlt || "";
     
     openModal("libEditOverlay");
 }
@@ -1876,12 +2093,11 @@ function saveLibraryEdit() {
     let newName = document.getElementById("libEditNewName").value.trim();
     let newImg = document.getElementById("libEditImg").value.trim();
     let newTarget = parseFloat(document.getElementById("libEditTarget").value) || 0;
-    let newBlur = document.getElementById("libEditBlur").checked; 
-    let newHidden = document.getElementById("libEditHidden").checked; 
-    let newAuto = document.getElementById("libEditAuto").checked;
-    let newNotes = document.getElementById("libEditNotes").value;
-    let newDbUrl = document.getElementById("libEditDbUrl").value.trim(); 
-	let newOverride = document.getElementById("libEditOverride").value;
+    
+    // Process Folder Selection
+    let folderSel = document.getElementById("libEditFolderSelect").value;
+    let folderNew = document.getElementById("libEditFolderNew").value.trim();
+    let finalFolder = folderSel === "new" ? folderNew : (folderSel === "none" ? "" : folderSel);
 
     let newPaths = [];
     if (typeof currentLibEditPaths !== 'undefined') {
@@ -1895,26 +2111,24 @@ function saveLibraryEdit() {
         if (data.mediaData[newName]) { alert("Name already exists."); return; }
         data.mediaData[newName] = {...data.mediaData[editLibMediaName]};
         delete data.mediaData[editLibMediaName];
-        
         data.entries.forEach(e => { if(e.media === editLibMediaName) e.media = newName; });
-        let shelfIdx = (data.shelf || []).findIndex(x => x.name === editLibMediaName);
-        if (shelfIdx !== -1) data.shelf[shelfIdx].name = newName;
-        
         editLibMediaName = newName;
     }
 
     let p = data.mediaData[editLibMediaName];
     p.img = newImg;
     p.target = newTarget;
-    p.blur = newBlur;
-    p.hidden = newHidden;
-    p.autoComplete = newAuto;
-    p.notes = newNotes;
-    p.dbUrl = newDbUrl; 
-    p.metricOverride = newOverride;
+    p.blur = document.getElementById("libEditBlur").checked;
+    p.hidden = document.getElementById("libEditHidden").checked;
+    p.autoComplete = document.getElementById("libEditAuto").checked;
+    p.metricOverride = document.getElementById("libEditOverride").value;
     p.paths = newPaths;
+    p.notes = document.getElementById("libEditNotes").value;
+    p.dbUrl = document.getElementById("libEditDbUrl").value.trim(); 
+    p.dbAlt = document.getElementById("libEditDbAlt").value.trim();
+    p.folder = finalFolder; // Apply folder
 
-    save(); updateAll(); renderLibrary(); closeModal('libEditOverlay');
+    save(); updateAll(); renderLibrary(); closeModal('libEditOverlay'); // Forces immediate redraw
 }
 
 function deleteLibraryMedia() { 
@@ -2129,10 +2343,22 @@ function renderGoals() {
                 let diff = prog - expectedProg;
                 let diffStr = Math.abs(diff).toFixed(g.metric==='hours'?1:0);
                 
+                // NEW: Goal ETA
+                let etaGoalStr = "";
+                if (data.prefs.etaEnabled && data.prefs.etaGoals !== false && daysElapsed > 0) {
+                    let avgDailyGoalProg = prog / daysElapsed;
+                    if (avgDailyGoalProg > 0) {
+                        let daysToFinish = (g.target - prog) / avgDailyGoalProg;
+                        let estDate = new Date(todayStr);
+                        estDate.setDate(estDate.getDate() + Math.ceil(daysToFinish));
+                        etaGoalStr = ` • Est: ${estDate.toLocaleString('default', {month:'short'})} ${estDate.getDate()}`;
+                    }
+                }
+
                 if (diff >= 0) {
-                    trajectoryHtml = `<span class="goal-trajectory" style="color:var(--accent);">📈 Ahead by ${diffStr}${pLabel}</span>`;
+                    trajectoryHtml = `<span class="goal-trajectory" style="color:var(--accent);">📈 Ahead by ${diffStr}${pLabel}${etaGoalStr}</span>`;
                 } else {
-                    trajectoryHtml = `<span class="goal-trajectory" style="color:#ff4444;">📉 Behind by ${diffStr}${pLabel}</span>`;
+                    trajectoryHtml = `<span class="goal-trajectory" style="color:#ff4444;">📉 Behind by ${diffStr}${pLabel}${etaGoalStr}</span>`;
                 }
             }
         } 
@@ -2688,7 +2914,7 @@ function connectWebSocket() {
                     if (now - lastHookWarningTime > 15000) { 
                         lastHookWarningTime = now;
                         showToast("⏸️ Text ignored! Timer is paused.", "Alert");
-                        playAudio('close.wav');
+                        playAudio('paused.wav');
                     }
                     return; 
                 }
@@ -2906,6 +3132,16 @@ function openSettings() {
     document.getElementById("cardWidthSlider").value = data.prefs.cardWidth || 220;
     document.getElementById("cardHeightSlider").value = data.prefs.cardHeight || 100;
 	document.getElementById("setHookerRequireTimer").checked = data.prefs.hookerRequireTimer === true;
+	document.getElementById("setEtaEnabled").checked = data.prefs.etaEnabled;
+    document.getElementById('etaSettingsBlock').style.opacity = data.prefs.etaEnabled ? '1' : '0.5';
+    document.getElementById("setEtaLibrary").checked = data.prefs.etaLibrary;
+    document.getElementById("setEtaShelf").checked = data.prefs.etaShelf;
+    document.getElementById("setEtaGoals").checked = data.prefs.etaGoals;
+    document.getElementById("setEtaFormat").value = data.prefs.etaFormat || 'time';
+    document.getElementById("setEtaWindow").value = data.prefs.etaWindow || '14';
+	document.getElementById("setDefaultFilter").value = data.prefs.defaultLibFilter || "all";
+	document.getElementById("setDefaultStatus").value = data.prefs.defaultLibStatus || "default";
+	document.getElementById("setDefaultSort").value = data.prefs.defaultLibSort || "status";
     
     // Load Trend Settings
     document.getElementById("chartStyleSelect").value = data.prefs.chartStyle || "line";
@@ -2952,6 +3188,15 @@ function saveSettingsFast() {
     data.prefs.blurCph = document.getElementById("setBlurCph").checked; 
 	data.prefs.bgUrl = document.getElementById("setBgUrl").value.trim();
     data.prefs.bgDim = parseFloat(document.getElementById("setBgDim").value);
+	data.prefs.etaEnabled = document.getElementById("setEtaEnabled").checked;
+    data.prefs.etaLibrary = document.getElementById("setEtaLibrary").checked;
+    data.prefs.etaShelf = document.getElementById("setEtaShelf").checked;
+    data.prefs.etaGoals = document.getElementById("setEtaGoals").checked;
+    data.prefs.etaFormat = document.getElementById("setEtaFormat").value;
+    data.prefs.etaWindow = document.getElementById("setEtaWindow").value;
+	data.prefs.defaultLibFilter = document.getElementById("setDefaultFilter").value;
+	data.prefs.defaultLibStatus = document.getElementById("setDefaultStatus").value;
+	data.prefs.defaultLibSort = document.getElementById("setDefaultSort").value;
 	data.prefs.hookerRequireTimer = document.getElementById("setHookerRequireTimer").checked;
     applyWallpaper();
     
@@ -3410,6 +3655,7 @@ openLibEdit = function(name) {
     document.getElementById("libEditNotes").value = profile.notes || "";
     document.getElementById("libEditDbUrl").value = profile.dbUrl || "";
     document.getElementById("libEditDbAlt").value = profile.dbAlt || "";
+    document.getElementById("libEditFolder").value = profile.folder || ""; // LOAD
 };
 
 const oldSaveLibraryEdit = saveLibraryEdit;
@@ -3424,6 +3670,7 @@ saveLibraryEdit = function() {
         data.mediaData[newName].notes = document.getElementById("libEditNotes").value;
         data.mediaData[newName].dbUrl = document.getElementById("libEditDbUrl").value.trim();
         data.mediaData[newName].dbAlt = document.getElementById("libEditDbAlt").value.trim();
+        data.mediaData[newName].folder = document.getElementById("libEditFolder").value.trim(); // SAVE
         save();
     }
 };
@@ -3569,6 +3816,7 @@ function pauseTimer(e) {
         clearInterval(timerInterval); 
         timerInterval = null; 
         isTimerPaused = true; 
+		playAudio('pause.wav');
         if(btn) { btn.textContent = "||"; btn.style.background = "#f39c12"; btn.style.borderColor = "#f39c12"; btn.style.animation = "none"; }
         if(zenBtn) { zenBtn.textContent = "|| PAUSED"; zenBtn.style.background = "#f39c12"; zenBtn.style.borderColor = "#f39c12"; zenBtn.style.animation = "none"; }
     } else {
@@ -3679,8 +3927,13 @@ setInterval(() => {
         let dInp = document.getElementById('logDate'); if (dInp) dInp.value = currentActiveDay;
         if (typeof updateStats === 'function') updateStats();
         
+        // --- TRIGGER AUTO BACKUP ---
+        if (window.electronAPI && window.electronAPI.createBackup) {
+            window.electronAPI.createBackup(JSON.stringify(data));
+        }
+        
         let toast = document.createElement('div');
-        toast.innerHTML = `📅 <strong>A new day has begun!</strong><br>Logs are now targeting ${currentActiveDay}.`;
+        toast.innerHTML = `📅 <strong>A new day has begun!</strong><br>Logs are now targeting ${currentActiveDay}. Backup created.`;
         toast.style.cssText = "position:fixed; bottom:20px; right:20px; background:var(--accent); color:#000; padding:12px 20px; border-radius:8px; font-size:13px; font-weight:bold; z-index:9999; opacity:0; transition:opacity 0.5s ease; box-shadow: 0 4px 10px rgba(0,0,0,0.5); pointer-events:none;";
         document.body.appendChild(toast);
         setTimeout(() => toast.style.opacity = '1', 100);
@@ -3931,6 +4184,9 @@ function initOS() {
     document.getElementById('tabLibrary').classList.remove('active');
     document.getElementById('tabAnalytics').classList.remove('active');
 
+	if (data.prefs.defaultLibFilter) document.getElementById("libFilterMain").value = data.prefs.defaultLibFilter;
+	if (data.prefs.defaultLibStatus) document.getElementById("libStatusFilter").value = data.prefs.defaultLibStatus;
+	if (data.prefs.defaultLibSort) document.getElementById("libSortMain").value = data.prefs.defaultLibSort;
     let isLibraryActive = data.prefs.lastView === 'analytics' ? false : true;
     if (isLibraryActive) switchView('library', true);
     else switchView('analytics', true);

@@ -491,3 +491,31 @@ ipcMain.handle('search-api', async (event, { type, q }) => {
         return { error: e.message };
     }
 });
+
+const fs = require('fs');
+
+ipcMain.on('create-backup', (event, jsonData) => {
+    try {
+        const backupDir = path.join(app.getPath('userData'), 'Backups');
+        if (!fs.existsSync(backupDir)) fs.mkdirSync(backupDir);
+
+        // Name format: ImmersionOS_Backup_2026-03-30.json
+        const dateStr = new Date().toISOString().split('T')[0];
+        const filePath = path.join(backupDir, `ImmersionOS_Backup_${dateStr}.json`);
+
+        fs.writeFileSync(filePath, jsonData, 'utf-8');
+        console.log("Auto-backup saved to:", filePath);
+
+        // Read all backups, sort by newest first, and delete anything older than 3 days
+        let files = fs.readdirSync(backupDir)
+            .filter(f => f.startsWith('ImmersionOS_Backup_'))
+            .map(f => ({ name: f, path: path.join(backupDir, f), time: fs.statSync(path.join(backupDir, f)).mtime.getTime() }))
+            .sort((a, b) => b.time - a.time);
+
+        for (let i = 3; i < files.length; i++) {
+            fs.unlinkSync(files[i].path);
+        }
+    } catch (err) {
+        console.error("Failed to create backup:", err);
+    }
+});
