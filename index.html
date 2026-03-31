@@ -12,9 +12,10 @@
 ::-webkit-scrollbar-thumb { background-color: var(--border); border-radius: 10px; border: 4px solid transparent; background-clip: padding-box; }
 ::-webkit-scrollbar-thumb:hover { background-color: var(--accent); }
 ::-webkit-scrollbar-corner { background: transparent; }
-body{ margin:0; font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background:var(--bg); color:var(--text); transition: background 0.3s; overflow-x: hidden; }
+:root { --font-main: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+body{ margin:0; font-family: var(--font-main); background:var(--bg); color:var(--text); transition: background 0.3s; overflow-x: hidden; }
 header{ padding:12px; background:var(--header); display:flex; gap:10px; align-items:center; box-shadow:0 2px 10px rgba(0,0,0,.4); z-index:10; }
-select,input,button{ background:var(--input); color:var(--text); border:1px solid var(--border); padding:6px; border-radius: 4px; font-family: inherit; }
+select,input,button,textarea{ font-family: var(--font-main); background:var(--input); color:var(--text); border:1px solid var(--border); padding:6px; border-radius: 4px; }
 button{cursor:pointer; transition: 0.2s;} 
 button:hover{ opacity: 0.75; }
 .layout{ display:flex; height:calc(100vh - 55px); width: 100vw; overflow: hidden; }
@@ -66,7 +67,7 @@ body.zen-mode #libraryView, body.zen-mode #analyticsView, body.zen-mode #compare
 .hook-btn.on { color: #0f0; border-color: #0f0; box-shadow: 0 0 8px rgba(0,255,0,0.2); }
 
 /* LIBRARY GRIDS & LIST VIEW */
-#libraryView, #analyticsView, #compareView { padding: 0 20px; display: flex; flex-direction: column; flex: 1; }
+#libraryView, #analyticsView, #compareView { padding: 0 20px; display: flex; flex-direction: column; flex: 1; position: relative; z-index: 10; }
 .lib-toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 1px solid var(--border); padding-bottom: 8px; }
 .minimal-select { background: transparent; border: none; color: #888; font-weight: bold; cursor: pointer; font-size: 14px; outline: none; }
 .minimal-select:hover { color: var(--accent); }
@@ -74,6 +75,61 @@ body.zen-mode #libraryView, body.zen-mode #analyticsView, body.zen-mode #compare
 .grid-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(var(--card-width), 1fr)); gap: 15px; margin-top: 10px; padding-bottom: 20px; }
 .list-container { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; padding-bottom: 20px; }
 
+/* --- PURE CSS 3D HOVER --- */
+.lib-card {
+    transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.3s ease;
+    transform-style: preserve-3d;
+}
+.lib-card:hover {
+    /* Fixed 3D tilt: forces perspective first, then lifts and tilts */
+    transform: perspective(1000px) translateY(-5px) scale(1.05) rotateX(10deg) rotateY(-10deg);
+    box-shadow: -15px 15px 25px rgba(0,0,0,0.6);
+    z-index: 10;
+}
+.card-bg {
+    transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.lib-card:hover .card-bg {
+    transform: scale(1.08) translateZ(-10px); /* Pushes the image deep into the card */
+}
+
+/* --- THEATER MODE --- */
+#mainLibraryContainer.is-tracking .lib-card:not(.active-track) {
+    opacity: 0.3;
+    filter: grayscale(0.8) blur(2px);
+    transform: scale(0.98);
+}
+#mainLibraryContainer.is-tracking .lib-card.active-track {
+    box-shadow: 0 0 30px var(--accent);
+    border-color: var(--accent);
+    transform: scale(1.02);
+    z-index: 15;
+}
+#mainLibraryContainer.is-tracking .list-item:not(.active-track) {
+    opacity: 0.4;
+    filter: grayscale(0.8);
+}
+#mainLibraryContainer.is-tracking .list-item.active-track {
+    border-color: var(--accent);
+    background: var(--card);
+    box-shadow: inset 4px 0 0 var(--accent);
+}
+
+
+@keyframes breathingBorder {
+    0% { border-right-color: var(--border); box-shadow: inset -2px 0 10px transparent; }
+    50% { border-right-color: var(--accent); box-shadow: inset -4px 0 20px rgba(0,0,0,0.2); }
+    100% { border-right-color: var(--border); box-shadow: inset -2px 0 10px transparent; }
+}
+.left.tracking { animation: breathingBorder 3s infinite ease-in-out; }
+
+@keyframes cardCascade {
+    from { opacity: 0; transform: translateY(20px) scale(0.98); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
+.lib-card, .list-item { 
+    animation: cardCascade 0.3s cubic-bezier(0.2, 0.8, 0.2, 1) both; 
+}
 .lib-card { background: var(--header); border: 1px solid var(--border); border-radius: 6px; padding: 15px; position: relative; transition: 0.2s; cursor: pointer; min-height: var(--card-height); display: flex; flex-direction: column; justify-content: flex-end; overflow: hidden; color: #fff; /* Forces text to be white on all themes */ }
 .lib-card:hover { border-color: var(--accent); transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
 .lib-card.paused { opacity: 0.5; filter: grayscale(0.6); }
@@ -134,7 +190,10 @@ body.zen-mode #libraryView, body.zen-mode #analyticsView, body.zen-mode #compare
 .progress-fill{ height:100%; background:var(--accent); width:0%; transition:width .4s ease; }
 .heatmap-container { display: flex; flex-wrap: wrap; gap: 3px; background: var(--header); padding: 10px; border-radius: 6px; }
 .heatmap-day { width: 12px; height: 12px; background: #1a1d24; border-radius: 2px; position: relative; }
-.heatmap-day:hover::after { content: attr(data-info); position: absolute; bottom: 15px; left: 50%; transform: translateX(-50%); background: #000; color: #fff; padding: 4px; border-radius: 4px; font-size: 10px; white-space: nowrap; z-index: 20; }
+#heatmapTooltip { position: fixed; pointer-events: none; z-index: 1000; background: rgba(20, 24, 32, 0.7); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); padding: 10px 15px; border-radius: 8px; color: #fff; box-shadow: 0 10px 30px rgba(0,0,0,0.5); opacity: 0; transition: opacity 0.2s ease; transform: translate(-50%, -100%); margin-top: -10px; font-size: 12px; }
+.ht-title { font-weight: bold; margin-bottom: 6px; font-size: 13px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 4px; }
+.ht-row { display: flex; justify-content: space-between; gap: 15px; margin-bottom: 3px; }
+.ht-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; }
 .heatmap-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
 #goalsHeader, #shelfHeader { display: flex; justify-content: space-between; align-items: center; margin-top:10px; }
 .goal-icons { opacity: 0; transition: 0.2s; display: flex; gap: 8px; }
@@ -188,6 +247,62 @@ hr { border: 0; border-top: 1px solid var(--border); margin: 15px 0; }
 .tab-btn:hover { background: var(--card); color: var(--text); }
 .tab-btn.active { background: var(--card); border: 1px solid var(--border); color: var(--accent); box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
 #headerFilters { display: flex; gap: 10px; transition: 0.2s; align-items: center; }
+
+/* --- CUSTOM CONTEXT MENU --- */
+.ctx-item { padding: 8px 12px; border-radius: 4px; cursor: pointer; color: var(--text); display: flex; align-items: center; gap: 10px; transition: background 0.1s, color 0.1s; font-weight: bold; }
+.ctx-item:hover { background: var(--accent); color: #000; }
+.ctx-divider { height: 1px; background: rgba(255,255,255,0.1); margin: 4px 0; }
+
+/* --- THE CRYSTAL UI OVERRIDE --- */
+body.crystal-ui {
+    --bg: rgba(15, 18, 25, 0.3) !important; 
+    --card: rgba(255, 255, 255, 0.03) !important;
+    --header: rgba(255, 255, 255, 0.05) !important;
+    --border: rgba(255, 255, 255, 0.12) !important;
+    --input: rgba(0, 0, 0, 0.2) !important;
+    --text: #ffffff !important; /* Forces all text to white */
+}
+
+/* 1. Frosted Glass on all main panels AND the header */
+body.crystal-ui #sidebar, body.crystal-ui .right, body.crystal-ui header {
+    backdrop-filter: blur(var(--glass-blur, 15px)) saturate(150%);
+    -webkit-backdrop-filter: blur(var(--glass-blur, 15px)) saturate(150%);
+}
+
+body.crystal-ui header {
+    position: relative !important; /* CRITICAL: z-index doesn't work without this! */
+    z-index: 99 !important; 
+}
+
+/* 2. The Glass Cards */
+body.crystal-ui .lib-card, body.crystal-ui .list-item, body.crystal-ui .set-section, body.crystal-ui .stat-card {
+    background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.01) 100%) !important;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    box-shadow: 
+        inset 1px 1px 1px rgba(255, 255, 255, 0.15), 
+        inset -1px -1px 1px rgba(0, 0, 0, 0.2),
+        0 8px 32px rgba(0, 0, 0, 0.4) !important;
+    border: 1px solid rgba(255, 255, 255, 0.05) !important;
+}
+
+/* 3. Sidebar */
+body.crystal-ui #sidebar {
+    background: linear-gradient(to right, rgba(15, 18, 25, 0.6), rgba(15, 18, 25, 0.4)) !important;
+    border-right: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: inset -1px 0 0 rgba(0,0,0,0.5);
+}
+
+/* Bulletproof the dropdown popup itself and add frosted glass */
+body.crystal-ui .wid-drop-content {
+    z-index: 10000 !important;
+    background: linear-gradient(135deg, rgba(20, 24, 32, 0.6) 0%, rgba(20, 24, 32, 0.4) 100%) !important;
+    backdrop-filter: blur(16px) saturate(150%);
+    -webkit-backdrop-filter: blur(16px) saturate(150%);
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.6) !important;
+}
+
 </style>
 </head>
 <body>
@@ -199,7 +314,7 @@ hr { border: 0; border-top: 1px solid var(--border); margin: 15px 0; }
         <button id="tabLibrary" class="tab-btn active" onclick="switchView('library')" onmouseenter="playAudio('hover.wav')">📚 Library</button>
         <button id="tabAnalytics" class="tab-btn" onclick="switchView('analytics')" onmouseenter="playAudio('hover.wav')">📊 Analytics</button>
     </div>
-
+	<div id="aotIndicator" class="hidden" style="font-size:18px; margin-left:12px; cursor:help; text-shadow:0 0 10px var(--accent); transition: opacity 0.2s;" title="Always on Top is Active">📌</div>
     <div style="flex:1"></div>
 
     <div id="headerFilters" class="hidden">
@@ -224,15 +339,16 @@ hr { border: 0; border-top: 1px solid var(--border); margin: 15px 0; }
         </select>
     </div>
 	<div class="wid-dropdown">
-            <button class="wid-dropbtn" title="Widget Menu">🗔</button>
-            <div class="wid-drop-content">
-                <button onclick="quickLaunchWidget('linux')">📏 Linux Panel</button>
-                <button onclick="quickLaunchWidget('float')">🎀 Glass Ribbon</button>
-                <button onclick="quickLaunchWidget('pill')">💊 Touch Pill</button>
-                <div style="height:1px; background:var(--border); width:100%; margin: 4px 0;"></div>
-                <button onclick="if(window.electronAPI) window.electronAPI.closeWidget()" style="color:#ff4444;">✕ Close Active</button>
-            </div>
-        </div>
+		<button class="wid-dropbtn" title="Widget Menu">🗔</button>
+		<div class="wid-drop-content">
+			<button onclick="quickLaunchWidget('linux')">📏 Linux Panel</button>
+			<button onclick="quickLaunchWidget('float')">🎀 Glass Ribbon</button>
+			<button onclick="quickLaunchWidget('pill')">💊 Touch Pill</button>
+			<button onclick="quickLaunchWidget('hud')">📟 Text HUD</button>
+			<div style="height:1px; background:var(--border); width:100%; margin: 4px 0;"></div>
+			<button onclick="if(window.electronAPI) window.electronAPI.closeWidget()" style="color:#ff4444;">✕ Close Active</button>
+		</div>
+	</div>
     <div id="utilBtns" style="display:flex; gap:10px;">
         <button onclick="takeScreenshot()" onmouseenter="playAudio('hover.wav')">📸 Snap</button>
         <button onclick="openHistory()" onmouseenter="playAudio('hover.wav')">📜 History</button>
@@ -310,7 +426,8 @@ hr { border: 0; border-top: 1px solid var(--border); margin: 15px 0; }
     </div>
 
     <div class="right" id="dashboardRight">
-        
+    
+		<div id="immersiveBanner" style="position: absolute; top: 0; left: 0; width: 100%; height: 45vh; background-size: cover; background-position: center 20%; filter: blur(8px) brightness(0.6); -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 0%, transparent 100%); mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 0%, transparent 100%); pointer-events: none; z-index: 0; transition: background-image 0.5s ease, opacity 0.5s ease; opacity: 0;"></div>        
         <div id="zenContainer">
             <button class="zen-exit" onclick="toggleZenMode()">✕</button>
             <button onclick="toggleZenSettings()" style="position:absolute; top:10px; right:40px; background:transparent; border:none; font-size:20px; opacity:0.5; cursor:pointer; z-index:9999;">⚙️</button>
@@ -748,6 +865,7 @@ hr { border: 0; border-top: 1px solid var(--border); margin: 15px 0; }
                     <h3>Appearance</h3>
                     <label style="display:flex; align-items:center; gap:8px; margin-bottom:20px; background:var(--header); padding:10px; border-radius:6px; border:1px solid var(--border);">
                         <input type="checkbox" id="setBlurCph" onchange="saveSettingsFast()"> <strong>Blur Reading Speed</strong>
+						<input type="checkbox" id="setImmersiveBanner" onchange="saveSettingsFast()"> <strong>Show Immersive Banner in Analytics</strong>
                     </label>
                     <div style="background:var(--header); padding:15px; border-radius:6px; border:1px solid var(--border); margin-bottom:15px;">
                         <strong style="display:block; margin-bottom:8px;">Theme Selection</strong>
@@ -757,6 +875,11 @@ hr { border: 0; border-top: 1px solid var(--border); margin: 15px 0; }
                             <button onclick="deleteCurrentTheme()" style="flex:1; background:#ff4444; color:#fff; padding: 6px;">🗑️ Delete</button>
                         </div>
                     </div>
+					<strong style="display:block; margin-bottom:8px; margin-top:20px;">Fonts</strong>
+					<div class="flex-row" style="background:var(--header); padding:15px; border-radius:6px; border:1px solid var(--border); margin-bottom:15px;">
+						<div style="flex:1">Preset<br><select id="setFontPreset" style="width:100%" onchange="handleFontPresetChange()"><option value="default">Default (Segoe UI)</option><option value="mono">Monospace (Consolas)</option><option value="jp">Japanese (Meiryo)</option><option value="custom">✏️ Custom...</option></select></div>
+						<div style="flex:1" id="customFontContainer" class="hidden">Exact Font Name<br><input type="text" id="setCustomFont" style="width:100%" placeholder="e.g. Comic Sans MS" onchange="saveSettingsFast()"></div>
+					</div>
                     <div style="background:var(--header); padding:15px; border-radius:6px; border:1px solid var(--border); margin-bottom:15px;">
 						<strong style="display:block; margin-bottom:10px;">📌 Default Library View</strong>
 						<div class="flex-row" style="margin-bottom:0;">
@@ -802,19 +925,41 @@ hr { border: 0; border-top: 1px solid var(--border); margin: 15px 0; }
                     </label>
 					<hr>
                     <div style="background:var(--header); padding:15px; border-radius:6px; border:1px solid var(--border); margin-bottom:15px;">
-                        <strong style="display:block; margin-bottom:8px;">Custom Wallpaper</strong>
-                        <input type="text" id="setBgUrl" placeholder="Image URL (e.g. https://...)" style="width:100%; margin-bottom:10px; font-size:12px; padding:6px; background:var(--input); color:var(--text); border:1px solid var(--border); border-radius:4px;" onchange="saveSettingsFast()">
-                        <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:5px;">
-                            <span>Dimness Overlay</span>
-                            <span id="setBgDimVal">0.7</span>
-                        </div>
-                        <input type="range" id="setBgDim" min="0" max="1" step="0.05" oninput="document.getElementById('setBgDimVal').textContent = this.value; saveSettingsFast();" style="width:100%;">
-                    </div>
-                </div>
+						<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+							<strong style="margin:0;">Custom Wallpaper</strong>
+							<label style="font-size:12px; cursor:pointer; display:flex; align-items:center; gap:5px;">
+								<input type="checkbox" id="setBgEnable" onchange="saveSettingsFast()"> Enable
+							</label>
+						</div>
+						
+						<input type="text" id="setBgUrl" placeholder="Image URL (e.g. https://...)" style="width:100%; margin-bottom:10px; font-size:12px; padding:6px; background:var(--input); color:var(--text); border:1px solid var(--border); border-radius:4px;" onchange="saveSettingsFast()">
+						
+						<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+							<span style="font-size:12px;">Show In:</span>
+							<select id="setBgView" onchange="saveSettingsFast()" style="width:60%; font-size:11px; padding:4px; background:var(--input); color:var(--text); border:1px solid var(--border); border-radius:4px;">
+								<option value="both">Both Views</option>
+								<option value="library">Library Only</option>
+								<option value="analytics">Analytics Only</option>
+							</select>
+						</div>
 
-                <div id="set-media" class="set-section">
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-                        <h3 style="margin:0;">Media Types</h3>
+						<div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:5px;">
+							<span>Dimness Overlay</span><span id="setBgDimVal">0.7</span>
+						</div>
+						<input type="range" id="setBgDim" min="0" max="1" step="0.05" oninput="document.getElementById('setBgDimVal').textContent = this.value; saveSettingsFast();" style="width:100%; margin-bottom:10px;">
+						
+						<div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:5px;">
+							<span>Background Blur</span><span id="setBgBlurVal">0px</span>
+						</div>
+						<input type="range" id="setBgBlur" min="0" max="30" step="1" oninput="document.getElementById('setBgBlurVal').textContent = this.value + 'px'; saveSettingsFast();" style="width:100%;">
+
+						<label style="display:flex; align-items:center; gap:8px; margin-top:15px; font-size: 13px; font-weight: bold; color: var(--accent); cursor: pointer;">
+							<input type="checkbox" id="setCrystalUi" onchange="saveSettingsFast()"> ✨ Enable Crystal Glass UI
+						</label>
+				</div>
+            </div> <div id="set-media" class="set-section">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                    <h3 style="margin:0;">Media Types</h3>
                         <button onclick="openMediaTypeEditor(null)" style="background:var(--accent); color:#000; font-weight:bold; padding:4px 12px;">+ Add Type</button>
                     </div>
                     <div id="mediaTypeContainer"></div>
@@ -870,6 +1015,14 @@ hr { border: 0; border-top: 1px solid var(--border); margin: 15px 0; }
 						<div style="display:flex; gap:5px; align-items:center;">
 							<input id="hkDbAlt" style="flex:1; cursor:pointer;" placeholder="Click and press keys..." readonly onkeydown="recordBind(event, 'dbAlt')">
 							<button onclick="clearBind('dbAlt')" style="background:#ff4444; color:#fff; padding:6px 10px; border:none; font-weight:bold;">X</button>
+						</div>
+					</div>
+					
+					<div style="margin-top: 5px;">
+						Toggle Always On Top<br>
+						<div style="display:flex; gap:5px; align-items:center;">
+							<input id="hkAlwaysOnTop" style="flex:1; cursor:pointer;" placeholder="Click and press keys..." readonly onkeydown="recordBind(event, 'alwaysOnTop')">
+							<button onclick="clearBind('alwaysOnTop')" style="background:#ff4444; color:#fff; padding:6px 10px; border:none; font-weight:bold;">X</button>
 						</div>
 					</div>
 				<hr style="margin: 15px 0; border-color: rgba(255,255,255,0.05);">
@@ -934,11 +1087,17 @@ hr { border: 0; border-top: 1px solid var(--border); margin: 15px 0; }
 				<div id="set-widgets" class="set-section hidden">
                     <h3>Widget Configuration</h3>
                     
-                    <div style="display:flex; gap:10px; margin-bottom:15px;">
-                        <button id="tabWidLinux" onclick="loadSpecificWidgetSettings('linux')" style="flex:1; padding:8px; background:var(--accent); color:#000; border:none; border-radius:4px; font-weight:bold; cursor:pointer;">Linux Panel</button>
-                        <button id="tabWidFloat" onclick="loadSpecificWidgetSettings('float')" style="flex:1; padding:8px; background:var(--input); color:var(--text); border:1px solid var(--border); border-radius:4px; font-weight:bold; cursor:pointer;">Glass Ribbon</button>
-                        <button id="tabWidPill"  onclick="loadSpecificWidgetSettings('pill')" style="flex:1; padding:8px; background:var(--input); color:var(--text); border:1px solid var(--border); border-radius:4px; font-weight:bold; cursor:pointer;">Touch Pill</button>
-                    </div>
+                    <strong style="display:block; margin-bottom:10px; margin-top:-5px;">⏸️ Full-Screen Pause Overlay</strong>
+					<select id="setPauseMonitor" style="width:100%; font-size:12px; padding:6px; background:var(--input); color:var(--text); border:1px solid var(--border); border-radius:4px; margin-bottom:15px;" onchange="saveSettingsFast()">
+						<option value="disabled">Disabled</option>
+					</select>
+
+					<div style="display:flex; gap:10px; margin-bottom:15px;">
+						<button id="tabWidLinux" onclick="loadSpecificWidgetSettings('linux')" style="flex:1; padding:8px; background:var(--accent); color:#000; border:none; border-radius:4px; font-weight:bold; cursor:pointer;">Linux Panel</button>
+						<button id="tabWidFloat" onclick="loadSpecificWidgetSettings('float')" style="flex:1; padding:8px; background:var(--input); color:var(--text); border:1px solid var(--border); border-radius:4px; font-weight:bold; cursor:pointer;">Glass</button>
+						<button id="tabWidPill"  onclick="loadSpecificWidgetSettings('pill')" style="flex:1; padding:8px; background:var(--input); color:var(--text); border:1px solid var(--border); border-radius:4px; font-weight:bold; cursor:pointer;">Touch Pill</button>
+						<button id="tabWidHud"   onclick="loadSpecificWidgetSettings('hud')" style="flex:1; padding:8px; background:var(--input); color:var(--text); border:1px solid var(--border); border-radius:4px; font-weight:bold; cursor:pointer;">Text HUD</button>
+					</div>
 
                     <div style="background:var(--header); padding:15px; border-radius:6px; border:1px solid var(--border); margin-bottom:15px;">
                         <input type="hidden" id="widCurrentEdit" value="linux">
@@ -952,10 +1111,19 @@ hr { border: 0; border-top: 1px solid var(--border); margin: 15px 0; }
                             <label><input type="checkbox" id="widModChars" onchange="saveSpecificWidgetSettings()"> Characters</label>
                             <label><input type="checkbox" id="widModCph" onchange="saveSpecificWidgetSettings()"> Speed (CPH)</label>
                             <label><input type="checkbox" id="widModCards" onchange="saveSpecificWidgetSettings()"> Cards</label>
+							<div style="width:2px; background:var(--border); margin: 0 5px;"></div>
+							<label><input type="checkbox" id="widResizable" onchange="saveSpecificWidgetSettings()"> Resizable</label>
                         </div>
                         
                         <div id="widScaleContainer" style="margin-bottom: 15px;">Scale <span id="widScVal">1.0</span><br><input type="range" id="widScSlider" min="0.5" max="1" step="0.05" value="1.0" oninput="document.getElementById('widScVal').textContent=this.value; saveSpecificWidgetSettings();" style="width:100%;"></div>
                         
+						<div id="widLayoutContainer" style="display:none; margin-bottom:15px;">
+							<strong style="display:block; margin-bottom:5px;">HUD Layout</strong>
+							<select id="widLayout" style="width:100%; font-size:12px; padding:6px; background:var(--input); color:var(--text); border:1px solid var(--border); border-radius:4px;" onchange="saveSpecificWidgetSettings()">
+								<option value="vertical">Vertical</option>
+								<option value="horizontal">Horizontal</option>
+							</select>
+						</div>
                         <div id="widExpandContainer" style="display:none; margin-top:10px;">
                             <label style="display:flex; align-items:center; gap:8px; font-size:12px; opacity:0.9;"><input type="checkbox" id="widAlwaysExpand" onchange="saveSpecificWidgetSettings()"> Force Pill to always expand</label>
                         </div>
@@ -997,6 +1165,8 @@ hr { border: 0; border-top: 1px solid var(--border); margin: 15px 0; }
 	
 </div>
 
+<div id="customContextMenu" class="hidden" style="position:fixed; z-index:9999; background:rgba(20, 24, 32, 0.85); backdrop-filter:blur(15px); -webkit-backdrop-filter:blur(15px); border:1px solid rgba(255,255,255,0.15); border-radius:8px; box-shadow:0 10px 30px rgba(0,0,0,0.8); padding:5px; min-width:180px; font-size:13px; display:flex; flex-direction:column;">
+    </div>
 <script>
 /* ===============================
 CORE DATA INITIALIZATION
@@ -1061,6 +1231,62 @@ async function checkJitenWaterfall(jpTitle, enTitle) {
     }
     return null;
 }
+
+// --- CUSTOM CONTEXT MENU LOGIC ---
+document.addEventListener('contextmenu', (e) => {
+	if (e.target.closest('#timerBtn') || e.target.closest('.timer-display')) {
+			return;
+		}
+    e.preventDefault(); // Stop standard behavior
+    
+    let menu = document.getElementById('customContextMenu');
+    menu.innerHTML = ''; 
+
+    // Did they right-click a specific media item?
+    let card = e.target.closest('.lib-card') || e.target.closest('.list-item');
+
+    if (card && card.getAttribute('data-media')) {
+        let mediaName = card.getAttribute('data-media');
+        
+        // --- MEDIA SPECIFIC MENU ---
+        menu.innerHTML += `<div style="font-size:10px; opacity:0.6; padding:4px 12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:180px;">${mediaName}</div>`;
+        menu.innerHTML += `<div class="ctx-divider"></div>`;
+        menu.innerHTML += `<div class="ctx-item" onclick="openLibEdit('${mediaName.replace(/'/g, "\\'")}')">✏️ Edit Settings</div>`;
+        menu.innerHTML += `<div class="ctx-item" onclick="viewSpecificAnalytics('${mediaName.replace(/'/g, "\\'")}')">📊 View Analytics</div>`;
+        menu.innerHTML += `<div class="ctx-divider"></div>`;
+        menu.innerHTML += `<div class="ctx-item" onclick="quickAddEpisode('${mediaName.replace(/'/g, "\\'")}')">➕ Quick +1 Target</div>`;
+        
+    } else {
+        // --- GENERAL APP MENU ---
+        menu.innerHTML += `<div class="ctx-item" onclick="openSettings()">⚙️ Settings</div>`;
+        menu.innerHTML += `<div class="ctx-item" onclick="switchView('library')">📚 Media Library</div>`;
+        menu.innerHTML += `<div class="ctx-item" onclick="switchView('analytics')">📊 Analytics Dashboard</div>`;
+        menu.innerHTML += `<div class="ctx-divider"></div>`;
+        menu.innerHTML += `<div class="ctx-item" style="color:#ff4444;" onclick="if(window.electronAPI) window.electronAPI.quitApp(); else window.close();">❌ Quit Immersion OS</div>`;
+    }
+
+    // Unhide the menu and calculate where the mouse is
+    menu.classList.remove('hidden');
+    let x = e.clientX;
+    let y = e.clientY;
+    
+    // Prevent the menu from spawning off the edge of the screen
+    if (x + menu.offsetWidth > window.innerWidth) x -= menu.offsetWidth;
+    if (y + menu.offsetHeight > window.innerHeight) y -= menu.offsetHeight;
+
+    menu.style.left = x + 'px';
+    menu.style.top = y + 'px';
+});
+
+// Hide the menu if you left-click anywhere else
+document.addEventListener('click', (e) => {
+    if (e.button !== 2) { 
+        let menu = document.getElementById('customContextMenu');
+        if (menu && !menu.classList.contains('hidden')) {
+            menu.classList.add('hidden');
+        }
+    }
+});
 
 // --- DYNAMIC LAUNCH PATHS LOGIC ---
 let currentMtPaths = [];
@@ -1152,23 +1378,29 @@ function switchView(viewName, silent = false) {
     let compView = document.getElementById('compareView');
 
     if (viewName === 'library') {
-		if (libBtn.classList.contains('active')) return;
+        if (libBtn.classList.contains('active')) return; 
         if (!silent) playAudio('tab_lib.wav');
         libBtn.classList.add('active'); anaBtn.classList.remove('active');
+        
+        // --- HIDE BANNER IN LIBRARY ---
+        let banner = document.getElementById('immersiveBanner');
+        if (banner) banner.style.opacity = '0';
+        
         libView.classList.remove('hidden'); anaView.classList.add('hidden'); filters.classList.add('hidden');
         if (compView) compView.classList.add('hidden');
         data.prefs.lastView = 'library'; if (typeof save === 'function') save(); 
         
-        // --- UPDATED: Pass the 'silent' flag ---
         if (data.prefs.hideSidebarInLibrary) toggleSidebar(false, silent);
         
         renderLibrary();
     } else {
+        // If clicking Analytics while already on Analytics, reset to All Media
         if (anaBtn.classList.contains('active') && (!compView || compView.classList.contains('hidden'))) {
             document.getElementById('mediaFilter').value = 'all';
             if (typeof handleMediaFilterChange === 'function') handleMediaFilterChange();
             return;
         }
+        
         if (!silent) playAudio('tab_ana.wav');
         anaBtn.classList.add('active'); libBtn.classList.remove('active');
         anaView.classList.remove('hidden'); libView.classList.add('hidden');
@@ -1176,12 +1408,15 @@ function switchView(viewName, silent = false) {
         if (compView) compView.classList.add('hidden');
         data.prefs.lastView = 'analytics'; if (typeof save === 'function') save();
         
-        // --- UPDATED: Pass the 'silent' flag ---
         toggleSidebar(data.prefs.sidebarOpen !== false, silent);
 
-        updateAll(); 
+        // --- RESTORE BANNER IN ANALYTICS (if specific media is selected) ---
+        if (typeof handleMediaFilterChange === 'function') handleMediaFilterChange();
+        else updateAll(); 
+
         setTimeout(() => { if(typeof pie !== 'undefined' && pie) pie.resize(); if(typeof line !== 'undefined' && line) line.resize(); }, 100);
     }
+	if (typeof applyWallpaper === 'function') applyWallpaper();
 }
 
 function handleRangeChange() {
@@ -1193,9 +1428,52 @@ function handleRangeChange() {
 }
 
 function handleMediaFilterChange() { 
-    updateTrendOptions(); updateAll(); 
+    updateTrendOptions(); 
+    updateAll(); 
     let opts = document.querySelectorAll('.ghost-opt'); let mf = document.getElementById('mediaFilter');
     if (mf.value !== opts[0]?.value) opts.forEach(o => o.remove());
+
+		// --- IMMERSIVE BANNER LOGIC ---
+    let banner = document.getElementById('immersiveBanner');
+    if (banner) {
+        if (data.prefs.immersiveBanner !== false && mf.value !== 'all') {
+            let targetImg = "";
+            
+            if (data.mediaData[mf.value] && data.mediaData[mf.value].img) {
+                // 1. It's a Specific Media Item (e.g., Wuthering Waves)
+                targetImg = data.mediaData[mf.value].img;
+            } else if (data.mediaConfig[mf.value]) {
+                // 2. It's a Media Type (e.g., Anime or VN)
+                let typeLogs = data.entries.filter(e => e.type === mf.value && e.media && data.mediaData[e.media] && data.mediaData[e.media].img);
+                
+                // Helper to find the #1 most played media in a set of logs
+                let getTopArt = (logs) => {
+                    let sums = {};
+                    logs.forEach(e => sums[e.media] = (sums[e.media] || 0) + e.hours);
+                    let top = Object.entries(sums).sort((a,b) => b[1] - a[1])[0];
+                    return top ? data.mediaData[top[0]].img : "";
+                };
+                
+                // Try the last 14 days first...
+                let cutoff = getLocalDateStr(new Date(Date.now() - 14 * 86400000));
+                let recentLogs = typeLogs.filter(e => e.date >= cutoff);
+                
+                targetImg = getTopArt(recentLogs);
+                
+                // ... If nothing was played in the last 14 days, fallback to all-time
+                if (!targetImg) targetImg = getTopArt(typeLogs);
+            }
+            
+            if (targetImg) {
+                banner.style.backgroundImage = `url('${targetImg}')`;
+                banner.style.opacity = '1';
+            } else {
+                banner.style.opacity = '0';
+            }
+        } else {
+            banner.style.opacity = '0';
+        }
+    }
 }
 
 function updateTrendOptions() { 
@@ -1334,6 +1612,7 @@ function handleMediaSelectChange() {
         // Fallback for everything else
         epInput.value = 0;
     }
+	updateTheaterMode();
 }
 
 async function addEntry() {
@@ -1530,7 +1809,7 @@ function updateStats() {
         if (st === 'units' || st === 'eps' || st === 'pages') { val = u.toLocaleString(); label = `Total ${config.unitName || "Units"}`; bdown = "metric3"; dc = calculateDiffString(u, pu); }
         if (st === 'speed') { 
             val = cphH > 0 ? Math.floor(c/cphH).toLocaleString() : 0; 
-            label = "Reading Speed (C/Hr)"; 
+            label = "Reading Speed"; 
             if(data.prefs.blurCph) bc="blur-hover"; 
         }
         if (st === 'cards') { 
@@ -1808,7 +2087,7 @@ function renderLibrary() {
     let displayItems = [];
     let folders = {};
     
-    items.forEach(item => {
+    items.forEach((item, index) => {
         if (item.folder && window.currentLibraryFolder === null) {
             if (!folders[item.folder]) {
                 folders[item.folder] = { isFolder: true, name: item.folder, type: 'Folder', status: 'active', stats: { hours: 0, last: 0, count: 0 }, items: [] };
@@ -1868,7 +2147,7 @@ function renderLibrary() {
                     bgHtml = `<div class="card-bg" style="display:flex; flex-wrap:wrap;">${gridHtml}</div>`;
                 }
                 
-                let card = document.createElement("div"); card.className = `lib-card active`; card.onmouseenter = () => playAudio('hover.wav');
+                let card = document.createElement("div"); card.className = `lib-card active`; card.style.animationDelay = `${Math.min(index * 0.03, 0.5)}s`; card.onmouseenter = () => playAudio('hover.wav');
                 card.onclick = () => { window.currentLibraryFolder = item.name; renderLibrary(); playAudio('open.wav'); };
                 card.innerHTML = `${bgHtml}<div class="card-gradient" style="background: linear-gradient(to bottom, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0.95) 100%);"></div><div class="card-content">
                 <div style="font-size:16px; font-weight:bold; text-shadow:0 2px 4px rgba(0,0,0,0.8);">📁 ${item.name}</div>
@@ -1919,6 +2198,7 @@ function renderLibrary() {
 
         if (mode === 'grid') {
             let card = document.createElement("div"); card.className = `lib-card ${item.status}`; card.onmouseenter = () => playAudio('hover.wav');
+			card.setAttribute('data-media', item.name);
             card.onclick = (e) => { if(e.target.tagName !== 'BUTTON') { selectFromLibrary(item.type, item.name); fireMediaLaunch(item.name); } };
             let bgHtml = item.img ? `<div class="card-bg ${item.blur ? 'blur-cover' : ''}" style="background: url('${item.img}') center/cover;"></div>` : `<div class="card-bg"></div>`;
             let middleHtml = item.target > 0 ? `<div class="progress" style="margin: 8px 0 4px 0; background:rgba(0,0,0,0.5); pointer-events:auto;"><div class="progress-fill" style="width:${pct}%"></div></div><div style="font-size:11px; display:flex; justify-content:space-between; opacity:0.9;"><span>${dispAmt} / ${dispTarget}</span><span style="font-weight:bold; color:var(--accent);">${pct}%</span></div>` : `<span style="position:absolute; bottom:12px; right:12px; font-size:10px; font-weight:bold; color:var(--accent); opacity:0.8; pointer-events:none;">ONGOING</span>`;
@@ -1931,12 +2211,38 @@ function renderLibrary() {
             let dispAmtHtml = `<div style="width:90px; display:flex; align-items:center; justify-content:flex-end; font-size:12px; margin:0;">${emoji} ${dispAmt} ${amtStr}</div>`;
             let timeHtml = `<div style="width:60px; display:flex; align-items:center; justify-content:flex-end; font-size:12px; margin:0;">${item.stats.hours.toFixed(1)}h</div>`;
             
-            container.innerHTML += `<div class="list-item ${item.status}" onclick="selectFromLibrary('${item.type}', '${item.name}'); fireMediaLaunch('${item.name}');" style="display: flex; align-items: center; justify-content: space-between; height: 100%;">
-                <div style="flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; padding-right: 15px; display: flex; align-items: center;"><strong style="margin:0;">${item.name}</strong> <span style="font-size:10px; opacity:0.6; margin-left:8px;">(${item.type})</span></div>
-                <div style="display:flex; align-items:center; gap:15px; height: 100%;"><div style="width:130px; display:flex; gap:5px; justify-content:center; align-items:center; opacity:0; transition: opacity 0.2s ease;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0" onclick="event.stopPropagation()">${launchBtn}${dbBtn}${statsBtn}${quickAdd}<button class="lib-btn" onclick="openLibEdit('${item.name}')">✎</button></div>${middleHtml}${dispAmtHtml}${timeHtml}</div></div>`;
+            container.innerHTML += `<div class="list-item active" onclick="window.currentLibraryFolder='${item.name}'; renderLibrary(); playAudio('open.wav');" style="display: flex; align-items: center; justify-content: space-between; height: 100%; animation-delay: ${Math.min(index * 0.03, 0.5)}s;">
+				<div style="flex:1;"><strong style="margin:0;">📁 ${item.name}</strong> <span style="font-size:10px; opacity:0.6; margin-left:8px;">(${item.stats.count} items)</span></div>
+				<div style="display:flex; align-items:center; gap:15px; height: 100%;"><div style="width:60px; text-align:right; font-size:12px;">${item.stats.hours.toFixed(1)}h</div></div>
+			</div>`;
         }
     });
     if (items.length === 0 && displayItems.length === 0) container.innerHTML = "<div style='opacity:0.6; grid-column:1/-1;'>No media found matching these filters.</div>";
+	updateTheaterMode();
+}
+
+function updateTheaterMode() {
+    let container = document.getElementById("mainLibraryContainer");
+    if (!container) return;
+    
+    let isRunning = (timerInterval !== null && !isTimerPaused);
+    if (isRunning) {
+        container.classList.add("is-tracking");
+        let activeMedia = document.getElementById("mediaSelect")?.value;
+        
+        // Spotlight the active media, dim everything else
+        document.querySelectorAll('.lib-card, .list-item').forEach(el => {
+            if (el.getAttribute('data-media') === activeMedia) {
+                el.classList.add('active-track');
+            } else {
+                el.classList.remove('active-track');
+            }
+        });
+    } else {
+        // Turn the lights back on
+        container.classList.remove("is-tracking");
+        document.querySelectorAll('.active-track').forEach(el => el.classList.remove('active-track'));
+    }
 }
 
 function viewSpecificAnalytics(mediaName) { 
@@ -1945,6 +2251,9 @@ function viewSpecificAnalytics(mediaName) {
     if (!exists) { 
         let o = document.createElement("option"); o.value = mediaName; o.textContent = mediaName; o.className = "ghost-opt"; mf.appendChild(o); 
     } 
+
+    // SET THIS FIRST: Select the filter before switching views so it survives the cleanup!
+    mf.value = mediaName; 
 
     let anaBtn = document.getElementById('tabAnalytics');
     let compView = document.getElementById('compareView');
@@ -1958,10 +2267,7 @@ function viewSpecificAnalytics(mediaName) {
         closeComparePage();
     }
 
-    // 3. Set the filter AFTER view switching to avoid triggering the 'Reset' feature
-    mf.value = mediaName; 
-    
-    // 4. Update the UI and charts
+    // 3. Update the UI and charts
     handleMediaFilterChange(); 
 }
 let autoHookInterval = null;
@@ -2518,22 +2824,67 @@ function renderHeatmap() {
     const heatmap = document.getElementById("heatmap"); heatmap.innerHTML = ""; 
     document.getElementById("heatmapYear").textContent = currentHeatmapYear; 
     let startDate = new Date(currentHeatmapYear, 0, 1); let endDate = new Date(currentHeatmapYear, 11, 31); 
-    let dayHours = {}; 
     
-    data.entries.forEach(e => { let d = new Date(e.date); if(d.getFullYear() === currentHeatmapYear) { dayHours[e.date] = (dayHours[e.date] || 0) + e.hours; } }); 
+    let dayData = {}; 
     
-    // Dynamically grab the current theme's accent color!
+    // Group all data by Date, and then by Media Type
+    data.entries.forEach(e => { 
+        let d = new Date(e.date); 
+        if(d.getFullYear() === currentHeatmapYear) { 
+            if (!dayData[e.date]) dayData[e.date] = { total: 0, types: {} };
+            dayData[e.date].total += e.hours;
+            dayData[e.date].types[e.type] = (dayData[e.date].types[e.type] || 0) + e.hours;
+        } 
+    }); 
+    
     let accentHex = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#4cc9f0';
     let rgbVal = hexToRgb(accentHex);
+    let currTheme = {...themes, ...data.prefs.customThemes}[data.prefs.theme] || themes.Dark;
+    
+    // Ensure the tooltip div exists
+    let tooltip = document.getElementById("heatmapTooltip");
+    if (!tooltip) {
+        tooltip = document.createElement("div");
+        tooltip.id = "heatmapTooltip";
+        document.body.appendChild(tooltip);
+    }
 
     for(let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) { 
-        let dateStr = getLocalDateStr(d); let totalH = dayHours[dateStr] || 0; 
+        let dateStr = getLocalDateStr(d); 
+        let dData = dayData[dateStr] || { total: 0, types: {} }; 
+        
         let dayDiv = document.createElement("div"); dayDiv.className = "heatmap-day"; 
         
-        // Applies the theme color with dynamic opacity based on hours logged
-        if(totalH > 0) dayDiv.style.background = `rgba(${rgbVal}, ${0.2 + Math.min(totalH / 5, 1) * 0.8})`; 
+        if(dData.total > 0) dayDiv.style.background = `rgba(${rgbVal}, ${0.2 + Math.min(dData.total / 5, 1) * 0.8})`; 
         
-        dayDiv.setAttribute("data-info", `${formatDDMMYYYY(dateStr)}: ${totalH.toFixed(1)}h`); 
+        // --- NEW GLASSMORPHIC TOOLTIP LOGIC ---
+        dayDiv.onmouseenter = (e) => {
+            let rect = dayDiv.getBoundingClientRect();
+            
+            let html = `<div class="ht-title">${formatDDMMYYYY(dateStr)} - ${dData.total.toFixed(1)}h</div>`;
+            if (dData.total > 0) {
+                // Sort breakdown highest to lowest
+                let sortedTypes = Object.entries(dData.types).sort((a,b) => b[1] - a[1]);
+                sortedTypes.forEach(([t, h]) => {
+                    let tColor = currTheme[t.toLowerCase()] || stringToColor(t);
+                    html += `<div class="ht-row">
+                        <span><span class="ht-dot" style="background:${tColor}; box-shadow: 0 0 5px ${tColor};"></span>${t}</span>
+                        <strong>${h.toFixed(1)}h</strong>
+                    </div>`;
+                });
+            } else {
+                html += `<div style="opacity:0.6; font-style:italic;">No activity recorded</div>`;
+            }
+            
+            tooltip.innerHTML = html;
+            tooltip.style.opacity = '1';
+            tooltip.style.left = (rect.left + rect.width / 2) + 'px';
+            tooltip.style.top = rect.top + 'px';
+        };
+        
+        dayDiv.onmouseleave = () => { tooltip.style.opacity = '0'; };
+        // ----------------------------------------
+        
         heatmap.appendChild(dayDiv); 
     } 
 }
@@ -3008,10 +3359,11 @@ function broadcastToWidget() {
 // Creates default settings if they don't exist yet
 function getWidgetDefaults() {
     if (!data.prefs.widgets) data.prefs.widgets = {};
-    const defaults = { monitor: 'auto', scale: 1.0, expanded: false, modTime: true, modChars: true, modCph: true, modCards: true };
+    const defaults = { monitor: 'auto', scale: 1.0, expanded: false, layout: 'vertical', resizable: false, modTime: true, modChars: true, modCph: true, modCards: true };
     if (!data.prefs.widgets.linux) data.prefs.widgets.linux = { ...defaults };
     if (!data.prefs.widgets.float) data.prefs.widgets.float = { ...defaults };
     if (!data.prefs.widgets.pill) data.prefs.widgets.pill = { ...defaults };
+	if (!data.prefs.widgets.hud) data.prefs.widgets.hud = { ...defaults };
     return data.prefs.widgets;
 }
 
@@ -3024,15 +3376,17 @@ async function quickLaunchWidget(type) {
     let wp = widgets[type];
     
     window.electronAPI.launchWidget({
-        type: type, 
-        scale: wp.scale, 
-        alwaysExpanded: wp.expanded,
-        modTime: wp.modTime, 
-        modChars: wp.modChars, 
-        modCph: wp.modCph, 
-        modCards: wp.modCards,
-        bounds: (wp.monitor && wp.monitor !== 'auto') ? JSON.parse(wp.monitor) : null
-    });
+		type: type, 
+		scale: wp.scale, 
+		alwaysExpanded: wp.expanded,
+		layout: wp.layout || 'vertical',
+		resizable: wp.resizable,
+		modTime: wp.modTime, 
+		modChars: wp.modChars, 
+		modCph: wp.modCph, 
+		modCards: wp.modCards,
+		bounds: (wp.monitor && wp.monitor !== 'auto') ? JSON.parse(wp.monitor) : null
+	});
     
     setTimeout(broadcastToWidget, 500); 
 }
@@ -3044,7 +3398,7 @@ function loadSpecificWidgetSettings(type) {
     document.getElementById("widCurrentEdit").value = type;
     
     // Toggle active tab colors
-    ['linux', 'float', 'pill'].forEach(t => {
+    ['linux', 'float', 'pill', 'hud'].forEach(t => {
         let btn = document.getElementById('tabWid' + t.charAt(0).toUpperCase() + t.slice(1));
         if(t === type) { btn.style.background = 'var(--accent)'; btn.style.color = '#000'; btn.style.border = 'none'; }
         else { btn.style.background = 'var(--input)'; btn.style.color = 'var(--text)'; btn.style.border = '1px solid var(--border)'; }
@@ -3059,10 +3413,13 @@ function loadSpecificWidgetSettings(type) {
     document.getElementById("widModChars").checked = wp.modChars;
     document.getElementById("widModCph").checked = wp.modCph;
     document.getElementById("widModCards").checked = wp.modCards;
+	document.getElementById("widLayout").value = wp.layout || 'vertical';
+	document.getElementById("widResizable").checked = wp.resizable === true;
 
     // Show/Hide specific settings
     document.getElementById("widScaleContainer").style.display = (type === 'linux') ? 'none' : 'block';
     document.getElementById("widExpandContainer").style.display = (type === 'pill') ? 'block' : 'none';
+	document.getElementById("widLayoutContainer").style.display = (type === 'hud') ? 'block' : 'none';
 }
 
 function saveSpecificWidgetSettings() {
@@ -3073,14 +3430,31 @@ function saveSpecificWidgetSettings() {
         monitor: document.getElementById("widMonitor").value,
         scale: parseFloat(document.getElementById("widScSlider").value),
         expanded: document.getElementById("widAlwaysExpand").checked,
+		layout: document.getElementById("widLayout").value,
         modTime: document.getElementById("widModTime").checked,
         modChars: document.getElementById("widModChars").checked,
         modCph: document.getElementById("widModCph").checked,
-        modCards: document.getElementById("widModCards").checked
+        modCards: document.getElementById("widModCards").checked,
+		resizable: document.getElementById("widResizable").checked,
     };
     
     data.prefs.widgets = widgets;
     saveData();
+}
+
+function handleFontPresetChange() {
+    document.getElementById("customFontContainer").classList.toggle('hidden', document.getElementById("setFontPreset").value !== 'custom');
+    saveSettingsFast();
+}
+
+function applyFont() {
+    let preset = data.prefs.fontPreset || 'default';
+    let custom = data.prefs.customFont || '';
+    let fontStr = "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif";
+    if (preset === 'mono') fontStr = "Consolas, 'Courier New', monospace";
+    if (preset === 'jp') fontStr = "Meiryo, 'Yu Gothic', 'Noto Sans JP', sans-serif";
+    if (preset === 'custom' && custom) fontStr = `"${custom}", sans-serif`;
+    document.documentElement.style.setProperty('--font-main', fontStr);
 }
 
 function switchSetTab(tabId) {
@@ -3142,6 +3516,13 @@ function openSettings() {
 	document.getElementById("setDefaultFilter").value = data.prefs.defaultLibFilter || "all";
 	document.getElementById("setDefaultStatus").value = data.prefs.defaultLibStatus || "default";
 	document.getElementById("setDefaultSort").value = data.prefs.defaultLibSort || "status";
+	document.getElementById("setImmersiveBanner").checked = data.prefs.immersiveBanner !== false;
+	document.getElementById("setBgEnable").checked = data.prefs.bgEnable !== false;
+	document.getElementById("setCrystalUi").checked = data.prefs.crystalUi === true;
+	document.getElementById("setBgView").value = data.prefs.bgView || "both";
+	document.getElementById("setBgBlur").value = data.prefs.bgBlur || 0;
+	document.getElementById("setBgBlurVal").textContent = (data.prefs.bgBlur || 0) + "px";
+	
     
     // Load Trend Settings
     document.getElementById("chartStyleSelect").value = data.prefs.chartStyle || "line";
@@ -3159,6 +3540,9 @@ function openSettings() {
     document.getElementById("setLaunchSidebar").checked = data.prefs.launchSidebar === true;
 	document.getElementById("hkDbAlt").value = data.prefs.hotkeys.dbAlt || ""; 
 	document.getElementById("hkDbMain").value = data.prefs.hotkeys.dbMain || "";
+	document.getElementById("setFontPreset").value = data.prefs.fontPreset || "default";
+	document.getElementById("setCustomFont").value = data.prefs.customFont || ""; handleFontPresetChange();
+	document.getElementById("hkAlwaysOnTop").value = data.prefs.hotkeys.alwaysOnTop || "";
     
     // Load Anki Settings
     document.getElementById("setAnkiEnabled").checked = data.prefs.ankiEnabled === true;
@@ -3168,12 +3552,26 @@ function openSettings() {
     // Fetch real monitors for Widgets and load active tab
     if (window.electronAPI && window.electronAPI.getDisplays) {
         window.electronAPI.getDisplays().then(displays => {
+            
+            // --- 1. WIDGET MONITOR DROPDOWN (Your existing code) ---
             let sel = document.getElementById("widMonitor");
             sel.innerHTML = '<option value="auto">Auto (Current Mouse Monitor)</option>';
             displays.forEach(d => {
                 let isPrim = d.isPrimary ? " (Primary)" : "";
                 sel.innerHTML += `<option value='${JSON.stringify(d.bounds)}'>Monitor ${d.index}${isPrim} - ${d.bounds.width}x${d.bounds.height}</option>`;
             });
+
+            // --- 2. PAUSE OVERLAY DROPDOWN (The new code) ---
+            let pSel = document.getElementById("setPauseMonitor");
+            if (pSel) {
+                pSel.innerHTML = '<option value="disabled">Disabled</option><option value="auto">Auto (Current Mouse Monitor)</option>';
+                displays.forEach(d => {
+                    let isPrim = d.isPrimary ? " (Primary)" : "";
+                    pSel.innerHTML += `<option value='${JSON.stringify(d.bounds)}'>Monitor ${d.index}${isPrim} - ${d.bounds.width}x${d.bounds.height}</option>`;
+                });
+                pSel.value = data.prefs.pauseMonitor || 'disabled';
+            }
+
             // Forces the UI to load whichever widget tab you select
             loadSpecificWidgetSettings(document.getElementById("widCurrentEdit").value || 'linux'); 
         });
@@ -3198,7 +3596,26 @@ function saveSettingsFast() {
 	data.prefs.defaultLibStatus = document.getElementById("setDefaultStatus").value;
 	data.prefs.defaultLibSort = document.getElementById("setDefaultSort").value;
 	data.prefs.hookerRequireTimer = document.getElementById("setHookerRequireTimer").checked;
+	data.prefs.immersiveBanner = document.getElementById("setImmersiveBanner").checked;
+	data.prefs.bgEnable = document.getElementById("setBgEnable").checked;
+	data.prefs.crystalUi = document.getElementById("setCrystalUi").checked;
+	if (data.prefs.crystalUi) {
+		document.body.classList.add('crystal-ui');
+	} else {
+		document.body.classList.remove('crystal-ui');
+	}
+	data.prefs.bgView = document.getElementById("setBgView").value;
+	data.prefs.bgBlur = parseInt(document.getElementById("setBgBlur").value) || 0;
     applyWallpaper();
+	
+	data.prefs.fontPreset = document.getElementById("setFontPreset").value;
+	data.prefs.customFont = document.getElementById("setCustomFont").value.trim();
+	applyFont();
+
+	data.prefs.pauseMonitor = document.getElementById("setPauseMonitor").value;
+	if (window.electronAPI && window.electronAPI.updatePauseMonitor) {
+		window.electronAPI.updatePauseMonitor(data.prefs.pauseMonitor);
+	}
     
     data.prefs.ankiEnabled = document.getElementById('setAnkiEnabled').checked;
     data.prefs.ankiAlways = document.getElementById('setAnkiAlways').checked;
@@ -3230,24 +3647,41 @@ const themes = {
 	Dracula:{bg:"#282a36",card:"#343746",header:"#21222c",text:"#f8f8f2",accent:"#bd93f9",border:"#44475a",input:"#303241",anime:"#ef4444",vn:"#3b82f6",manga:"#a855f7",book:"#22c55e",audiobook:"#f59e0b",youtube:"#dc2626",other:"#14b8a6"},
 	Nord:{bg:"#2e3440",card:"#3b4252",header:"#2e3440",text:"#eceff4",accent:"#88c0d0",border:"#4c566a",input:"#434c5e",anime:"#ef4444",vn:"#3b82f6",manga:"#a855f7",book:"#22c55e",audiobook:"#f59e0b",youtube:"#dc2626",other:"#14b8a6"},
 	SolarizedDark:{bg:"#002b36",card:"#073642",header:"#002b36",text:"#93a1a1",accent:"#b58900",border:"#586e75",input:"#083c4a",anime:"#ef4444",vn:"#3b82f6",manga:"#a855f7",book:"#22c55e",audiobook:"#f59e0b",youtube:"#dc2626",other:"#14b8a6"},
-	SolarizedLight:{bg:"#fdf6e3",card:"#eee8d5",header:"#fdf6e3",text:"#073642",accent:"#268bd2",border:"#93a1a1",input:"#e4dcc7",anime:"#ef4444",vn:"#3b82f6",manga:"#a855f7",book:"#22c55e",audiobook:"#f59e0b",youtube:"#dc2626",other:"#14b8a6"}
+	SolarizedLight:{bg:"#fdf6e3",card:"#eee8d5",header:"#fdf6e3",text:"#073642",accent:"#268bd2",border:"#93a1a1",input:"#e4dcc7",anime:"#ef4444",vn:"#3b82f6",manga:"#a855f7",book:"#22c55e",audiobook:"#f59e0b",youtube:"#dc2626",other:"#14b8a6"},
 };
 
 
 
-function applyTheme(n) { let t = {...themes, ...data.prefs.customThemes}[n] || themes.Dark; Object.entries(t).forEach(([k,v]) => document.documentElement.style.setProperty(`--${k}`, v)); }
+function applyTheme(n) { let t = {...themes, ...data.prefs.customThemes}[n] || themes.Dark; Object.entries(t).forEach(([k,v]) => document.documentElement.style.setProperty(`--${k}`, v));}
 function applyWallpaper() {
     let url = data.prefs.bgUrl || "";
     let dim = data.prefs.bgDim !== undefined ? parseFloat(data.prefs.bgDim) : 0.7;
+    let blur = data.prefs.bgBlur || 0;
+    let enabled = data.prefs.bgEnable !== false;
+    let viewPref = data.prefs.bgView || 'both';
     
-    if (url) {
-        document.body.style.backgroundImage = `linear-gradient(rgba(0,0,0,${dim}), rgba(0,0,0,${dim})), url("${url.replace(/\\/g, '/')}")`;
-        document.body.style.backgroundSize = "cover";
-        document.body.style.backgroundPosition = "center";
-        document.body.style.backgroundAttachment = "fixed";
-    } else {
-        document.body.style.backgroundImage = "none";
+    // Determine which tab is currently active
+    let libBtn = document.getElementById('tabLibrary');
+    let activeView = (libBtn && libBtn.classList.contains('active')) ? 'library' : 'analytics';
+    let isVisibleInView = (viewPref === 'both') || (viewPref === activeView);
+
+    let bgLayer = document.getElementById("bgLayer");
+    if (!bgLayer) {
+        bgLayer = document.createElement("div");
+        bgLayer.id = "bgLayer";
+        // SCALE(1.1) fixes the blur glow by pushing the edges completely off-screen
+        bgLayer.style.cssText = "position:fixed; top:0; left:0; width:100%; height:100%; z-index:-1; background-size:cover; background-position:center; pointer-events:none; transform: scale(1.1);";
+        document.body.prepend(bgLayer);
     }
+
+    if (url && enabled && isVisibleInView) {
+        bgLayer.style.backgroundImage = `linear-gradient(rgba(0,0,0,${dim}), rgba(0,0,0,${dim})), url("${url.replace(/\\/g, '/')}")`;
+        bgLayer.style.filter = `blur(${blur}px)`;
+        bgLayer.style.opacity = "1";
+    } else {
+        bgLayer.style.opacity = "0";
+    }
+	document.documentElement.style.setProperty('--glass-blur', blur + 'px');
 }
 function openCustomTheme() { closeModal("settingsOverlay"); openModal("customThemeOverlay"); }
 function closeCustomTheme() { closeModal("customThemeOverlay"); openSettings(); }
@@ -3760,6 +4194,7 @@ function toggleTimer() {
     const zenBtn = document.getElementById("zenTimerBtn");
     
     if(!timerInterval && !isTimerPaused) {
+		document.getElementById('sidebar').classList.add('tracking');
         startTime = Date.now(); accumulatedMs = 0; isTimerPaused = false; 
         if(btn) { btn.textContent = "■"; btn.classList.add("active"); btn.style.background = ""; btn.style.borderColor = ""; }
         if(zenBtn) { zenBtn.textContent = "■ STOP"; zenBtn.classList.add("active"); zenBtn.style.background = ""; zenBtn.style.borderColor = ""; }
@@ -3779,6 +4214,7 @@ function toggleTimer() {
         let logM = document.getElementById('logMinutes');
         
         let stopLogic = () => {
+			document.getElementById('sidebar').classList.remove('tracking');
             if(!isTimerPaused) accumulatedMs += (Date.now() - startTime); 
             let elapsedHours = accumulatedMs / 3600000; 
             
@@ -3802,6 +4238,7 @@ function toggleTimer() {
         }
     } 
     nukeFocus();
+	updateTheaterMode();
 }
 
 function pauseTimer(e) {
@@ -3837,6 +4274,7 @@ function pauseTimer(e) {
     } 
     if (typeof broadcastToWidget === 'function') broadcastToWidget(); // <-- Guaranteed execution!
     nukeFocus();
+	updateTheaterMode();
 }
 
 function toggleZenSettings() { 
@@ -4147,6 +4585,7 @@ function initOS() {
     if (!data.mediaConfig['All Media']) { data.mediaConfig['All Media'] = { inputs: ['hours', 'chars', 'units'], stats: ['hours', 'units', 'chars', 'days'], unitName: 'Units' }; }
     if (data.prefs.cardWidth) document.documentElement.style.setProperty('--card-width', data.prefs.cardWidth + 'px');
     if (data.prefs.cardHeight) document.documentElement.style.setProperty('--card-height', data.prefs.cardHeight + 'px');
+	if (data.prefs.crystalUi) document.body.classList.add('crystal-ui');
     if (window.electronAPI) window.electronAPI.setAfkThreshold(data.prefs.afkTimer);
     if (window.electronAPI && window.electronAPI.updateTraySetting) {
         window.electronAPI.updateTraySetting(data.prefs.closeToTray === true);
@@ -4174,7 +4613,18 @@ function initOS() {
             }
         });
     }
-
+	
+	
+	if (window.electronAPI && window.electronAPI.onToggleAot) {
+        window.electronAPI.onToggleAot((isAot) => {
+            let pin = document.getElementById('aotIndicator');
+            if (isAot === true) {
+                pin.classList.add('hidden');
+            } else {
+                pin.classList.remove('hidden'); 
+            }
+        });
+    }
     populateDropdowns(); 
     populateMedia(); 
     updateTrendOptions(); 
@@ -4195,6 +4645,14 @@ function initOS() {
     if (typeof renderLinkManager === 'function') renderLinkManager(); 
     if (typeof updateShortcutText === 'function') updateShortcutText();
 	
+	
+	applyFont();
+	if (window.electronAPI && window.electronAPI.onShowToast) {
+		window.electronAPI.onShowToast((msg) => showToast(msg, "Overall"));
+	}
+	if (window.electronAPI && window.electronAPI.updatePauseMonitor) {
+		window.electronAPI.updatePauseMonitor(data.prefs.pauseMonitor || 'disabled');
+	}
 	updateAll();
 }
 

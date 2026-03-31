@@ -7,6 +7,8 @@ let tray = null;
 let referenceWindow = null;
 let closeToTrayEnabled = false;
 let isQuitting = false;
+let pauseOverlayWindow = null;
+let pauseTargetBounds = null;
 
 // Listen for the setting toggle from index.html
 ipcMain.on('update-tray-setting', (event, enabled) => {
@@ -18,8 +20,9 @@ let isAfkTriggered = false;
 
 function createWindow () {
   mainWindow = new BrowserWindow({
-    width: 1300, height: 850,
-    autoHideMenuBar: true,
+    width: 1300, 
+    height: 850,
+    autoHideMenuBar: true, // Keeps the default title bar but hides the View/Edit menu
     show: false,
     icon: path.join(__dirname, 'logo.ico'),
     webPreferences: {
@@ -148,6 +151,19 @@ ipcMain.on('launch-apps', (event, paths, opts) => {
     });
 });
 
+ipcMain.on('update-pause-monitor', (event, boundsStr) => {
+    if (boundsStr === 'disabled' || !boundsStr) {
+        pauseTargetBounds = null;
+        if (pauseOverlayWindow) { pauseOverlayWindow.close(); pauseOverlayWindow = null; }
+    } else if (boundsStr === 'auto') {
+        pauseTargetBounds = 'auto';
+    } else {
+        try { pauseTargetBounds = JSON.parse(boundsStr); } catch(e) { pauseTargetBounds = null; }
+    }
+});
+
+ipcMain.on('quit-app', () => { app.quit(); });
+
 ipcMain.handle('launch-widget', (event, config) => {
     if (widgetWindow) {
         widgetWindow.close();
@@ -171,7 +187,17 @@ ipcMain.handle('launch-widget', (event, config) => {
     } else if (config.type === 'pill') {
         w = config.alwaysExpanded ? Math.round(320 * scale) : Math.round(150 * scale); 
         h = config.alwaysExpanded ? Math.round(150 * scale) : Math.round(55 * scale);  
+    } else if (config.type === 'hud') {
+        // Check for horizontal or vertical layout
+        if (config.layout === 'horizontal') {
+            w = Math.round(600 * scale);
+            h = Math.round(50 * scale);
+        } else {
+            w = Math.round(200 * scale);
+            h = Math.round(180 * scale);
+        }
     }
+
     widgetWindow = new BrowserWindow({
         width: w,
         height: h,
@@ -180,7 +206,7 @@ ipcMain.handle('launch-widget', (event, config) => {
         hasShadow: false, 
         alwaysOnTop: true,
         skipTaskbar: true,
-        resizable: true,
+        resizable: config.resizable === true,
         webPreferences: {
             preload: path.join(__dirname, 'preload.js'),
             nodeIntegration: false,
@@ -191,13 +217,18 @@ ipcMain.handle('launch-widget', (event, config) => {
     // Snap to the exact coordinates of the chosen monitor
     if (config.type === 'linux') {
         widgetWindow.setPosition(targetBounds.x, targetBounds.y);
-    } else if (config.bounds) {
-        // If it's a floating bar/pill, spawn it generally in the center of the chosen monitor
+    } else if (config.type === 'hud') {
+        // HUD snaps to the Top Right corner (with 20px padding)
+        let hudX = Math.round(targetBounds.x + targetBounds.width - w - 20);
+        let hudY = Math.round(targetBounds.y + 20);
+        widgetWindow.setPosition(hudX, hudY);
+    } else {
+        // If it's a floating bar/pill, spawn it generally in the center top of the chosen monitor
         widgetWindow.setPosition(targetBounds.x + Math.floor(targetBounds.width/2 - w/2), targetBounds.y + 50);
     }
 
     widgetWindow.loadFile('widget.html');
-	widgetWindow.setAlwaysOnTop(true, 'screen-saver');
+    widgetWindow.setAlwaysOnTop(true, 'screen-saver');
 
     widgetWindow.on('closed', () => { widgetWindow = null; });
     widgetWindow.webContents.once('did-finish-load', () => {
@@ -235,6 +266,32 @@ ipcMain.on('send-widget-data', (event, data) => {
     if (widgetWindow) {
         widgetWindow.webContents.send('update-widget-ui', data);
     }
+
+    // --- PAUSE OVERLAY LOGIC ---
+    if (pauseTargetBounds) {
+        if (data.isPaused) {
+            if (!pauseOverlayWindow) {
+                let bounds = pauseTargetBounds === 'auto' ? screen.getDisplayNearestPoint(screen.getCursorScreenPoint()).bounds : pauseTargetBounds;
+                pauseOverlayWindow = new BrowserWindow({
+                    x: bounds.x, y: bounds.y, width: bounds.width, height: bounds.height,
+                    transparent: true, frame: false, alwaysOnTop: true, skipTaskbar: true, focusable: false,
+                    webPreferences: { nodeIntegration: false, contextIsolation: true }
+                });
+                pauseOverlayWindow.setIgnoreMouseEvents(true);
+                pauseOverlayWindow.setAlwaysOnTop(true, 'screen-saver');
+                let html = `
+				<body style="margin:0; overflow:hidden; padding: 40px 60px; display:flex; justify-content:flex-end; align-items:flex-start; height:100vh; background:transparent;">
+					<div style="color:#ff4444; font-family:sans-serif; font-size:55px; font-weight:bold; letter-spacing:8px; text-shadow: 3px 3px 0 #000, -2px -2px 0 #000, 3px -2px 0 #000, -2px 3px 0 #000, 0 10px 30px rgba(0,0,0,0.9); user-select:none; opacity: 0.95;">PAUSED</div>
+				</body>`;
+                pauseOverlayWindow.loadURL("data:text/html;charset=utf-8," + encodeURIComponent(html));
+            }
+        } else {
+            if (pauseOverlayWindow) {
+                pauseOverlayWindow.close();
+                pauseOverlayWindow = null;
+            }
+        }
+    }
 });
 
 // Route actions (Pause, Stop) from Widget -> Main App
@@ -251,6 +308,13 @@ ipcMain.on('register-hotkeys', (event, keys) => {
   if (keys.timer) globalShortcut.register(keys.timer, () => { mainWindow.webContents.send('trigger-timer'); });
   if (keys.dbAlt) globalShortcut.register(keys.dbAlt, () => { mainWindow.webContents.send('trigger-db-alt'); });
   if (keys.dbMain) globalShortcut.register(keys.dbMain, () => { mainWindow.webContents.send('trigger-db-main'); });
+  
+  if (keys.alwaysOnTop) globalShortcut.register(keys.alwaysOnTop, () => { 
+      let isAot = mainWindow.isAlwaysOnTop();
+      mainWindow.setAlwaysOnTop(!isAot);
+      mainWindow.webContents.send('show-toast', `📌 Always on Top: ${!isAot ? 'ON' : 'OFF'}`); 
+	  mainWindow.webContents.send('toggle-aot-ui', isAot);
+  });
 });
 
 // --- QUICK REFERENCE OVERLAY ---

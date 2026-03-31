@@ -11,6 +11,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
   onAfkPause: (callback) => ipcRenderer.on('afk-pause', callback),
   onAutoLogMokuro: (callback) => ipcRenderer.on('auto-log-mokuro', (event, data) => callback(data)),
   onAppClosed: (callback) => ipcRenderer.on('app-closed', (event, mediaName) => callback(mediaName)),
+  onToggleAot: (callback) => ipcRenderer.on('toggle-aot-ui', (_event, isAot) => callback(isAot)),
+  quitApp: () => ipcRenderer.send('quit-app'),
   searchAPI: (opts) => ipcRenderer.invoke('search-api', opts),
   getAppVersion: () => ipcRenderer.invoke('get-app-version'),
   createBackup: (dataStr) => ipcRenderer.send('create-backup', dataStr),
@@ -34,4 +36,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
 	toggleReferenceWindow: (data) => ipcRenderer.invoke('toggle-reference-window', data),
 	onTriggerDbAlt: (callback) => ipcRenderer.on('trigger-db-alt', () => callback()),
 	onTriggerDbMain: (callback) => ipcRenderer.on('trigger-db-main', () => callback()),
+	
+	onShowToast: (callback) => ipcRenderer.on('show-toast', (_event, value) => callback(value)),
+	updatePauseMonitor: (bounds) => ipcRenderer.send('update-pause-monitor', bounds),
 });
