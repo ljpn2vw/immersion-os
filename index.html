@@ -6,16 +6,31 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
-:root{ --bg:#0f1115; --card:#1a1d24; --header:#161a20; --text:#e6e6e6; --accent:#4cc9f0; --input:#222; --border:#333; --card-width: 220px; --card-height: 100px; }
+:root{ 
+    --bg:#0f1115; --card:#1a1d24; --header:#161a20; --text:#e6e6e6; --accent:#4cc9f0; --input:#222; --border:#333; 
+    --card-width: 220px; --card-height: 100px;
+    /* Density preset variables */
+    --d-chart-height: 350px;
+    --d-font-base: 13px;
+    --d-font-sm: 11px;
+    --d-font-xs: 10px;
+    --d-font-md: 13px;
+    --d-font-lg: 14px;
+    --d-font-big: 22px;
+    --d-pad-ui: 6px;
+    --d-pad-card: 12px;
+    --d-pad-item: 10px 15px;
+    --d-gap: 10px;
+}
 ::-webkit-scrollbar { width: 12px; height: 12px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background-color: var(--border); border-radius: 10px; border: 4px solid transparent; background-clip: padding-box; }
 ::-webkit-scrollbar-thumb:hover { background-color: var(--accent); }
 ::-webkit-scrollbar-corner { background: transparent; }
 :root { --font-main: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-body{ margin:0; font-family: var(--font-main); background:var(--bg); color:var(--text); transition: background 0.3s; overflow-x: hidden; }
+body{ margin:0; font-family: var(--font-main); font-size: var(--d-font-base); background:var(--bg); color:var(--text); transition: background 0.3s; overflow-x: hidden; }
 header{ padding:12px; background:var(--header); display:flex; gap:10px; align-items:center; box-shadow:0 2px 10px rgba(0,0,0,.4); z-index:10; }
-select,input,button,textarea{ font-family: var(--font-main); background:var(--input); color:var(--text); border:1px solid var(--border); padding:6px; border-radius: 4px; }
+select,input,button,textarea{ font-family: var(--font-main); font-size: var(--d-font-base); background:var(--input); color:var(--text); border:1px solid var(--border); padding:var(--d-pad-ui); border-radius: 4px; }
 button{cursor:pointer; transition: 0.2s;} 
 button:hover{ opacity: 0.75; }
 .layout{ display:flex; height:calc(100vh - 55px); width: 100vw; overflow: hidden; }
@@ -69,7 +84,7 @@ body.zen-mode #libraryView, body.zen-mode #analyticsView, body.zen-mode #compare
 /* LIBRARY GRIDS & LIST VIEW */
 #libraryView, #analyticsView, #compareView { padding: 0 20px; display: flex; flex-direction: column; flex: 1; position: relative; z-index: 10; }
 .lib-toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 1px solid var(--border); padding-bottom: 8px; }
-.minimal-select { background: transparent; border: none; color: #888; font-weight: bold; cursor: pointer; font-size: 14px; outline: none; }
+.minimal-select { background: transparent; border: none; color: #888; font-weight: bold; cursor: pointer; font-size: var(--d-font-lg); outline: none; }
 .minimal-select:hover { color: var(--accent); }
 .minimal-select option { background: var(--header); color: var(--text); }
 .grid-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(var(--card-width), 1fr)); gap: 15px; margin-top: 10px; padding-bottom: 20px; }
@@ -151,7 +166,7 @@ body.zen-mode #libraryView, body.zen-mode #analyticsView, body.zen-mode #compare
 .blur-cover { filter: blur(12px); transform: scale(1.15); }
 .lib-card:hover .blur-cover { filter: blur(0); transform: scale(1); }
 
-.list-item { display: flex; align-items: center; justify-content: space-between; background: var(--header); border: 1px solid var(--border); padding: 10px 15px; border-radius: 6px; transition: 0.2s; position: relative; cursor: pointer; }
+.list-item { display: flex; align-items: center; justify-content: space-between; background: var(--header); border: 1px solid var(--border); padding: var(--d-pad-item); border-radius: 6px; transition: 0.2s; position: relative; cursor: pointer; }
 .list-item:hover { border-color: var(--accent); background: var(--card); }
 .list-item .lib-actions { top: 50%; transform: translateY(-50%); opacity: 0; }
 .list-item:hover .lib-actions { opacity: 1; }
@@ -165,9 +180,9 @@ body.zen-mode #libraryView, body.zen-mode #analyticsView, body.zen-mode #compare
 #timerBtn { background: #222; border-color: var(--accent); color: var(--accent); font-weight: bold; transition: 0.2s; }
 #timerBtn.active { background: #ff4444; color: white; border-color: #ff4444; animation: pulse 1.5s infinite; }
 @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
-.stats-grid{ display:grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap:10px; margin-bottom:5px; }
-.stat{ background:var(--card); padding:12px; border-radius:6px; border: 1px solid var(--border); position: relative; }
-.big{ font-size:22px; font-weight:bold; color: var(--accent); display: inline-block; cursor: pointer; transition: 0.2s; }
+.stats-grid{ display:grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap:var(--d-gap); margin-bottom:5px; }
+.stat{ background:var(--card); padding:var(--d-pad-card); border-radius:6px; border: 1px solid var(--border); position: relative; }
+.big{ font-size:var(--d-font-big); font-weight:bold; color: var(--accent); display: inline-block; cursor: pointer; transition: 0.2s; }
 .big:hover { 
     color: var(--text); 
     text-shadow: 0 0 10px var(--accent); 
@@ -176,7 +191,7 @@ body.zen-mode #libraryView, body.zen-mode #analyticsView, body.zen-mode #compare
 #monthlyForecast { font-size: 12px; color: var(--accent); opacity: 0.8; margin-bottom: 15px; text-align: right; padding-right: 5px; font-style: italic; }
 
 /* ACTIVE SHELF */
-.shelf-item { display: flex; justify-content: space-between; align-items: center; font-size: 12px; padding: 8px 10px; background: var(--header); margin-bottom: 4px; border-radius: 4px; border-left: 2px solid var(--accent); transition: 0.2s; cursor: pointer; }
+.shelf-item { display: flex; justify-content: space-between; align-items: center; font-size: var(--d-font-sm); padding: 8px 10px; background: var(--header); margin-bottom: 4px; border-radius: 4px; border-left: 2px solid var(--accent); transition: 0.2s; cursor: pointer; }
 .shelf-item:hover { 
     background: var(--card); 
     border-left-color: var(--text); 
@@ -198,8 +213,9 @@ body.zen-mode #libraryView, body.zen-mode #analyticsView, body.zen-mode #compare
 #goalsHeader, #shelfHeader { display: flex; justify-content: space-between; align-items: center; margin-top:10px; }
 .goal-icons { opacity: 0; transition: 0.2s; display: flex; gap: 8px; }
 #goalsHeader:hover .goal-icons { opacity: 1; }
-.goal-card { background: var(--header); padding: 12px; margin-bottom: 10px; border-radius: 8px; border-left: 4px solid var(--accent); transition: 0.2s; }
+.goal-card { background: var(--header); padding: var(--d-pad-card); margin-bottom: 10px; border-radius: 8px; border-left: 4px solid var(--accent); transition: 0.2s; }
 .goal-card.completed { border-left-color: #555; opacity: 0.6; filter: grayscale(0.5); }
+.goal-card.repeating { border-left-color: #a78bfa; box-shadow: inset 2px 0 10px rgba(167,139,250,0.1); }
 .goal-meta { font-size: 11px; opacity: 0.7; margin-top: 4px; }
 .goal-actions { opacity: 0; transition: opacity 0.2s ease; }
 .goal-card:hover .goal-actions { opacity: 1; }
@@ -227,7 +243,7 @@ hr { border: 0; border-top: 1px solid var(--border); margin: 15px 0; }
 .toast-Other { background: #b5179e; color: #fff; border-radius: 8px; border-right: 6px solid #4cc9f0; }
 .toast-success { background: #1b4332; color: #0f0; border-radius: 8px; border-left: 6px solid #0f0; }
 .toast-Alert { background: #0f0f0f; color: #fff; border-radius: 8px; border-left: 8px solid #cc0000; box-shadow: 0 5px 15px rgba(255, 68, 68, 0.4); }
-.chart-container { position: relative; flex: 1; min-height: 350px; width: 100%; }
+.chart-container { position: relative; flex: 1; min-height: var(--d-chart-height); width: 100%; }
 .chart-row { margin-top:20px; display: flex; gap: 15px; }
 
 /* TABBED SETTINGS */
@@ -243,7 +259,7 @@ hr { border: 0; border-top: 1px solid var(--border); margin: 15px 0; }
 @keyframes fadeInJustOpacity { from { opacity: 0; } to { opacity: 1; } }
 
 /* TAB BUTTONS & SWITCHER */
-.tab-btn { background: transparent; border: 1px solid transparent; padding: 8px 15px; font-weight: bold; font-size: 14px; color: #888; border-radius: 6px; }
+.tab-btn { background: transparent; border: 1px solid transparent; padding: 8px 15px; font-weight: bold; font-size: var(--d-font-lg); color: #888; border-radius: 6px; }
 .tab-btn:hover { background: var(--card); color: var(--text); }
 .tab-btn.active { background: var(--card); border: 1px solid var(--border); color: var(--accent); box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
 #headerFilters { display: flex; gap: 10px; transition: 0.2s; align-items: center; }
@@ -338,17 +354,7 @@ body.crystal-ui .wid-drop-content {
             <option value="all">All Media</option>
         </select>
     </div>
-	<div class="wid-dropdown">
-		<button class="wid-dropbtn" title="Widget Menu">🗔</button>
-		<div class="wid-drop-content">
-			<button onclick="quickLaunchWidget('linux')">📏 Linux Panel</button>
-			<button onclick="quickLaunchWidget('float')">🎀 Glass Ribbon</button>
-			<button onclick="quickLaunchWidget('pill')">💊 Touch Pill</button>
-			<button onclick="quickLaunchWidget('hud')">📟 Text HUD</button>
-			<div style="height:1px; background:var(--border); width:100%; margin: 4px 0;"></div>
-			<button onclick="if(window.electronAPI) window.electronAPI.closeWidget()" style="color:#ff4444;">✕ Close Active</button>
-		</div>
-	</div>
+
     <div id="utilBtns" style="display:flex; gap:10px;">
         <button onclick="takeScreenshot()" onmouseenter="playAudio('hover.wav')">📸 Snap</button>
         <button onclick="openHistory()" onmouseenter="playAudio('hover.wav')">📜 History</button>
@@ -370,14 +376,17 @@ body.crystal-ui .wid-drop-content {
 </div>
 <div class="layout" id="mainLayout">
     <div class="left" id="sidebar">
-        <h3>Log Immersion</h3>
+		<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 10px;">
+			<h3 style="margin:0;">Log Immersion</h3>
+			<div id="sidebarTimerDisplay" class="hidden" style="font-size:13px; font-weight:bold; color:var(--accent); font-family:monospace; background: var(--header); padding: 3px 8px; border-radius: 4px; border: 1px solid var(--border); box-shadow: 0 2px 5px rgba(0,0,0,0.2);">00:00:00</div>
+		</div>
         <div class="flex-row">
             <div>Date<br><input type="date" id="logDate" style="width:90%"></div>
             <div>Type<br><select id="logType" onchange="populateMedia()" style="width:100%"></select></div>
         </div>
         Media<br>
         <div class="flex-row">
-            <select id="mediaSelect" style="flex:4" onchange="handleMediaSelectChange()"></select>
+            <select id="mediaSelect" style="flex:4" onchange="interceptMediaSelectChange(event)"></select>
             <button onclick="openAddMediaModal()" style="flex:1" title="Add Media">+</button>
         </div>
         
@@ -402,7 +411,6 @@ body.crystal-ui .wid-drop-content {
                 Min per Unit: <input type="number" id="epLength" style="width:40px; padding:2px; font-size:11px;">
             </div>
         </div>
-        
         <div class="flex-row" style="margin-top:15px; align-items:center;">
             <button onclick="addEntry()" id="saveBtn" style="flex:4; padding:10px; background:var(--accent); color:#000; font-weight:bold; border:none">SAVE ENTRY</button>
             <button id="timerBtn" onclick="toggleTimer()" oncontextmenu="pauseTimer(event)" style="flex:1; padding:10px;" title="Left-Click: Start/Stop | Right-Click: Pause">▶</button>
@@ -413,7 +421,7 @@ body.crystal-ui .wid-drop-content {
         <div id="goalsHeader">
             <h3>Goals</h3>
             <div class="goal-icons">
-                <span style="cursor:pointer; padding: 0 4px;" onclick="openArchiveModal()" title="Archived Goals">🗄️</span>
+                <span style="cursor:pointer; padding: 0 4px;" onclick="openGoalsPage()" title="Archived Goals">🗄️</span>
                 <span style="cursor:pointer; padding: 0 4px;" onclick="openGoalModal()" title="Add Goal">➕</span>
             </div>
         </div>
@@ -484,7 +492,11 @@ body.crystal-ui .wid-drop-content {
             
             <div class="flex-row chart-row">
                 <div style="flex:1; display:flex; flex-direction:column; min-width:0;">
-                    <h3>Distribution</h3>
+                    <div style="display:flex; align-items:center; gap:10px; margin-bottom:0;">
+                        <h3 style="margin:0;">Distribution</h3>
+                        <button id="pieDrillBackBtn" onclick="pieDrillBack();" class="hidden" style="font-size:11px; padding:2px 8px; background:var(--header); border:1px solid var(--border); border-radius:4px; color:var(--accent);">↩ Back</button>
+                        <span id="pieDrillLabel" style="font-size:11px; opacity:0.6; display:none;"></span>
+                    </div>
                     <div class="chart-container"><canvas id="pieChart"></canvas></div>
                 </div>
                 <div style="flex:2; display:flex; flex-direction:column; min-width:0;">
@@ -492,6 +504,7 @@ body.crystal-ui .wid-drop-content {
                         <h3 style="margin:0;">Trend</h3>
                         <div style="display:flex; gap:15px; align-items:center;">
                             <select id="trendMetric" onchange="updateCharts()" style="font-size:12px; height:28px;"></select>
+                            <button onclick="openProgressPage()" style="font-size:13px; font-weight:bold; height:28px; padding:0 10px; background:var(--card); border:1px solid var(--border); border-radius:4px; color:var(--text); cursor:pointer;" title="Progress Over Time">📈 Progress</button>
                             <button onclick="openComparePage()" style="font-size:13px; font-weight:bold; height:28px; padding:0 10px; background:var(--card); border:1px solid var(--border); border-radius:4px; color:var(--text); cursor:pointer;" title="Deep Dive Compare">⚖️ Compare</button>
                         </div>
                     </div>
@@ -508,6 +521,19 @@ body.crystal-ui .wid-drop-content {
                     </div>
                 </div>
                 <div id="heatmap" class="heatmap-container"></div>
+            </div>
+
+            <div id="topMediaSection" style="margin-top:20px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                    <h3 style="margin:0;">Top Media</h3>
+                    <select id="topMediaMetric" onchange="renderTopMedia()" style="font-size:11px; padding:3px 6px; background:var(--input); color:var(--text); border:1px solid var(--border); border-radius:4px;">
+                        <option value="hours">Hours</option>
+                        <option value="chars">Characters</option>
+                        <option value="units">Units</option>
+                        <option value="cards">Cards</option>
+                    </select>
+                </div>
+                <div id="topMediaList"></div>
             </div>
         </div> <div id="compareView" class="hidden" style="display: flex; flex-direction: column; height: 100%; animation: fadeIn 0.2s;">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px;">
@@ -535,9 +561,95 @@ body.crystal-ui .wid-drop-content {
             <div style="flex:1; min-height:0; position:relative; background:var(--card); padding:20px; border-radius:8px; border:1px solid var(--border);">
                 <canvas id="compareChart"></canvas>
             </div>
-        </div> </div>
-</div>
+        </div>
+        <div id="progressView" class="hidden" style="display:flex; flex-direction:column; height:100%; animation:fadeIn 0.2s;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; padding:0 0 0 0; flex-shrink:0;">
+                <div style="display:flex; gap:15px; align-items:center;">
+                    <button onclick="closeProgressPage()" style="padding:8px 15px; font-weight:bold; background:var(--header); border:1px solid var(--border); color:var(--text); border-radius:4px; cursor:pointer;">🔙 Back</button>
+                    <h2 style="margin:0;">📈 Progress Over Time</h2>
+                </div>
+                <select id="progressMetric" onchange="updateProgressChart()" style="font-size:14px; padding:6px; background:var(--input); color:var(--text); border:1px solid var(--border); border-radius:4px;">
+                    <option value="hours">Hours</option>
+                    <option value="chars">Characters</option>
+                    <option value="cph">Reading Speed (CPH)</option>
+                    <option value="units">Units</option>
+                    <option value="cards">Cards Mined</option>
+                    <option value="cardspeed">Mining Speed (Cards/Hr)</option>
+                </select>
+            </div>
+            <div style="flex:1; min-height:0; position:relative; background:var(--card); padding:20px; border-radius:8px; border:1px solid var(--border);">
+                <canvas id="progressChart"></canvas>
+            </div>
+            <div id="progressInsight" style="margin-top:14px; font-size:12px; opacity:0.7; text-align:center; flex-shrink:0;"></div>
+        </div>
 
+		<div id="goalsView" class="hidden" style="display: flex; flex-direction: column; height: 100%; padding: 0 20px; animation: fadeIn 0.2s; overflow-y: auto;">
+            
+            <div id="gdListViewContainer" style="display: flex; flex-direction: column; flex: 1;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px;">
+                    <div style="display:flex; gap:15px; align-items:center;">
+                        <button onclick="exitGoalsPage()" style="padding: 8px 15px; font-weight:bold; background:var(--header); border:1px solid var(--border); color:var(--text); border-radius:4px; cursor:pointer;" title="Go back">🔙 Back</button>
+                        <h2 style="margin:0;">🏆 Goal Milestones</h2>
+                    </div>
+                </div>
+                <div id="gdList" class="list-container" style="padding-bottom: 20px;"></div>
+            </div>
+
+            <div id="gdDetails" class="hidden" style="flex-direction: column; flex: 1; padding-bottom: 20px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px;">
+                    <div style="display:flex; gap:15px; align-items:center;">
+                        <button onclick="closeGoalDetails()" style="padding: 8px 15px; font-weight:bold; background:var(--header); border:1px solid var(--border); color:var(--text); border-radius:4px; cursor:pointer;" title="Go back to list">🔙 Back to Milestones</button>
+                        <h2 id="gdTitle" style="margin:0;">Goal Title</h2>
+                    </div>
+                </div>
+                <div id="gdMeta" style="font-size: 13px; opacity: 0.8; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid var(--border);">Meta</div>
+                
+                <div style="display: flex; gap: 20px; flex: 1; min-height: 350px;">
+                    <div style="flex: 2; display: flex; flex-direction: column; background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 15px;">
+                        <strong style="margin-bottom: 10px; font-size: 14px;">Pace Progression</strong>
+                        <div style="position: relative; flex: 1; min-height: 0;"><canvas id="gdPaceChart"></canvas></div>
+                    </div>
+                    <div style="flex: 1; display: flex; flex-direction: column; background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 15px;">
+                        <strong style="margin-bottom: 10px; font-size: 14px;">Media Breakdown</strong>
+                        <div style="position: relative; flex: 1; min-height: 0;"><canvas id="gdMediaChart"></canvas></div>
+                    </div>
+                </div>
+            </div>
+            
+        </div>
+
+        <!-- ===== JOURNAL / SHELF VIEW ===== -->
+        <div id="journalView" class="hidden" style="display:flex; flex-direction:column; height:100%; animation:fadeIn 0.2s; overflow:hidden;">
+
+            <!-- List state -->
+            <div id="jvList" style="display:flex; flex-direction:column; flex:1; overflow:hidden;">
+                <div style="display:flex; justify-content:space-between; align-items:center; padding:0 20px 15px 20px; flex-shrink:0;">
+                    <div style="display:flex; gap:15px; align-items:center;">
+                        <button onclick="exitJournal()" style="padding:8px 15px; font-weight:bold; background:var(--header); border:1px solid var(--border); color:var(--text); border-radius:4px; cursor:pointer;">🔙 Back</button>
+                        <h2 style="margin:0;">📚 Shelf</h2>
+                    </div>
+                    <div style="display:flex; gap:10px; align-items:center;">
+                        <input id="jvSearch" type="text" placeholder="Search..." style="padding:5px 10px; font-size:12px; background:var(--input); border:1px solid var(--border); border-radius:4px; color:var(--text); width:160px;" oninput="renderJournalList()">
+                        <select id="jvFilter" onchange="renderJournalList()" style="font-size:12px; padding:5px 8px; background:var(--input); border:1px solid var(--border); border-radius:4px; color:var(--text);">
+                            <option value="all">All</option>
+                        </select>
+                    </div>
+                </div>
+                <div id="jvGrid" style="flex:1; overflow-y:auto; padding:0 20px 20px 20px; display:grid; grid-template-columns:repeat(auto-fill, minmax(180px,1fr)); gap:14px; align-content:start;"></div>
+            </div>
+
+            <!-- Detail state -->
+            <div id="jvDetail" class="hidden" style="flex:1; overflow-y:auto; padding:0 20px 20px 20px;">
+                <div style="display:flex; align-items:center; gap:15px; margin-bottom:20px; flex-shrink:0;">
+                    <button onclick="closeJournalDetail()" style="padding:8px 15px; font-weight:bold; background:var(--header); border:1px solid var(--border); color:var(--text); border-radius:4px; cursor:pointer; flex-shrink:0;">🔙 Back</button>
+                    <h2 id="jvDetailTitle" style="margin:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"></h2>
+                </div>
+                <div id="jvDetailBody"></div>
+            </div>
+        </div>
+
+</div>
+</div>
 <div id="lightboxOverlay" class="overlay hidden" style="z-index: 9999;" onclick="closeModal('lightboxOverlay')">
     <img id="lightboxImg" src="" style="max-width: 90vw; max-height: 90vh; border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.8);">
 </div>
@@ -646,11 +758,27 @@ body.crystal-ui .wid-drop-content {
 						<option value="chars">Chars</option>
 						<option value="hours">Hours</option>
 					</select>
-				</div>        
+				</div>
+
+				<div style="margin-bottom:15px;">
+					Quick Launch Path <span style="font-size:10px;opacity:0.6">(Appended to presets)</span><br>
+					<input type="text" id="newMediaQuickPath" style="width:95%;" placeholder="C:\Games\Game.exe or https://...">
+				</div> 
         <label style="display:flex; align-items:center; gap:8px; margin-bottom:15px; font-size: 12px; opacity: 0.9;">
             <input type="checkbox" id="newMediaAuto" checked> Auto-Complete when target reached
         </label>
         
+        <div style="margin-bottom:15px; border-top: 1px solid var(--border); padding-top:10px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; cursor:pointer;" onclick="document.getElementById('newMediaPathsWrapper').classList.toggle('hidden')">
+                <strong style="font-size: 13px;">🚀 Advanced: Launch Paths</strong>
+                <span style="font-size:10px; opacity:0.6;">▼ Edit</span>
+            </div>
+            <div id="newMediaPathsWrapper" class="hidden" style="margin-top:10px;">
+                <div style="font-size:10px; opacity:0.6; margin-bottom:5px;">(Pre-filled from Type preset)</div>
+                <div id="newMediaPathsContainer" style="display:flex; flex-direction:column; gap:5px;"></div>
+                <button onclick="addNewMediaPath()" id="btnAddNewMediaPath" style="font-size:10px; padding:4px 8px; background:var(--header); border:1px solid var(--border); margin-top:5px; cursor:pointer;">+ Add Path</button>
+            </div>
+        </div>
         <div class="flex-row">
             <button onclick="confirmAddMedia()" style="background:var(--accent); color:#000; width:100%; font-weight:bold;">ADD</button>
             <button onclick="closeModal('addMediaOverlay')" style="width:100%;">CANCEL</button>
@@ -707,6 +835,10 @@ body.crystal-ui .wid-drop-content {
                 Emoji<br>
                 <input type="text" id="mtEmoji" style="width:100%; text-align:center;" placeholder="📦">
             </div>
+            <div style="flex:1;">
+                Chart Color<br>
+                <input type="color" id="mtColor" style="width:100%; height:34px; padding:2px; cursor:pointer; border:1px solid var(--border); border-radius:4px; background:var(--input);">
+            </div>
         </div>
         <div style="display:flex; gap:10px; margin-bottom:15px;">
             <div style="flex:1;">
@@ -730,6 +862,9 @@ body.crystal-ui .wid-drop-content {
         <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px; margin-bottom:15px; background:var(--header); padding:10px; border-radius:6px; border:1px solid var(--border);">
             <label><input type="checkbox" id="mtInpChars"> Characters</label>
             <label><input type="checkbox" id="mtInpUnits"> Units (Count)</label>
+            <label style="grid-column: 1 / -1; border-top: 1px solid var(--border); padding-top: 8px; margin-top: 4px; color: #ffaa00;">
+                <input type="checkbox" id="mtAutoCountUnits"> 🔢 Auto-Count Units (hides input, counts log entries)
+            </label>
             <label style="grid-column: 1 / -1; border-top: 1px solid var(--border); padding-top: 8px; margin-top: 4px; color: var(--accent);">
                 <input type="checkbox" id="mtAutoHook"> 🔌 Auto-Connect Text Hooker on Launch
             </label>
@@ -859,14 +994,26 @@ body.crystal-ui .wid-drop-content {
                 <button class="set-tab-btn" onclick="switchSetTab('set-int')">🔌 Connections</button>
                 <button class="set-tab-btn" onclick="switchSetTab('set-widgets')">🗔 Widgets</button>
                 <button class="set-tab-btn" onclick="switchSetTab('set-data')">💾 Data</button>
+                <button class="set-tab-btn" onclick="switchSetTab('set-ui')">🖱️ Menus & Toolbar</button>
             </div>
             <div class="settings-body">
                 <div id="set-app" class="set-section active">
                     <h3>Appearance</h3>
+                    <div style="background:var(--header); padding:12px; border-radius:6px; border:1px solid var(--border); margin-bottom:15px;">
+                        <strong style="display:block; margin-bottom:10px; font-size:13px;">UI Density</strong>
+                        <div style="display:flex; gap:8px;">
+                            <button id="densityCompact" onclick="setDensity('compact')" style="flex:1; padding:8px; border-radius:4px; font-size:12px; border:1px solid var(--border);">Compact</button>
+                            <button id="densityNormal"  onclick="setDensity('normal')"  style="flex:1; padding:8px; border-radius:4px; font-size:12px; border:1px solid var(--accent); background:var(--accent); color:#000; font-weight:bold;">Normal</button>
+                            <button id="densityComfortable" onclick="setDensity('comfortable')" style="flex:1; padding:8px; border-radius:4px; font-size:12px; border:1px solid var(--border);">Comfortable</button>
+                        </div>
+                    </div>
                     <label style="display:flex; align-items:center; gap:8px; margin-bottom:20px; background:var(--header); padding:10px; border-radius:6px; border:1px solid var(--border);">
                         <input type="checkbox" id="setBlurCph" onchange="saveSettingsFast()"> <strong>Blur Reading Speed</strong>
 						<input type="checkbox" id="setImmersiveBanner" onchange="saveSettingsFast()"> <strong>Show Immersive Banner in Analytics</strong>
                     </label>
+					<label style="display:flex; align-items:center; gap:8px; margin-bottom:20px; background:var(--header); padding:10px; border-radius:6px; border:1px solid var(--border);">
+						<input type="checkbox" id="setShowSidebarTimer" onchange="data.prefs.showSidebarTimer = this.checked; save(); toggleSidebarTimerVisibility();"> <strong>Show Minimal Sidebar Timer</strong>
+					</label>
                     <div style="background:var(--header); padding:15px; border-radius:6px; border:1px solid var(--border); margin-bottom:15px;">
                         <strong style="display:block; margin-bottom:8px;">Theme Selection</strong>
                         <div class="flex-row">
@@ -970,6 +1117,10 @@ body.crystal-ui .wid-drop-content {
 					<label style="display:flex; align-items:center; gap:8px; margin-bottom:15px; font-size:12px; opacity:0.9; cursor:pointer;">
 						<input type="checkbox" id="prefHideSidebar" onchange="data.prefs.hideSidebarInLibrary = this.checked; save();"> 
 						Auto-hide sidebar when opening Library
+					</label>
+					<label style="display:flex; align-items:center; gap:8px; margin-bottom:15px; font-size:12px; opacity:0.9; cursor:pointer;">
+						<input type="checkbox" id="prefHideEpLength" onchange="data.prefs.hideEpLength = this.checked; save(); populateMedia();"> 
+						Hide "Min per Unit" field
 					</label>
 					<label style="display:flex; align-items:center; gap:8px; margin-bottom:15px; font-size:12px; opacity:0.9; cursor:pointer;">
 						<input type="checkbox" id="setLaunchSidebar" onchange="data.prefs.launchSidebar = this.checked; save();"> 
@@ -1143,6 +1294,26 @@ body.crystal-ui .wid-drop-content {
 
                     <button onclick="wipeData()" style="background:#ff4444; color:white; width:100%; padding: 10px; font-weight:bold;">☢️ WIPE ALL DATA</button>
                 </div>
+
+                <div id="set-ui" class="set-section">
+                    <h3>🖱️ Context Menus</h3>
+                    <p style="font-size:11px; opacity:0.6; margin-top:-5px;">Drag to reorder. Toggle to show/hide. Emoji + Label + Action (JS or preset).</p>
+
+                    <h4 style="margin-bottom:6px;">Global Menu <span style="font-size:10px; opacity:0.5; font-weight:normal;">(right-click on background)</span></h4>
+                    <div id="ctxGlobalList" style="display:flex; flex-direction:column; gap:5px; margin-bottom:10px;"></div>
+                    <button onclick="addCtxItem('global')" style="font-size:11px; padding:4px 10px; background:var(--header); border:1px solid var(--border); border-radius:4px; width:100%;">+ Add Item</button>
+
+                    <hr>
+                    <h4 style="margin-bottom:6px;">Media Card Menu <span style="font-size:10px; opacity:0.5; font-weight:normal;">(right-click on a media card)</span></h4>
+                    <div id="ctxMediaList" style="display:flex; flex-direction:column; gap:5px; margin-bottom:10px;"></div>
+                    <button onclick="addCtxItem('media')" style="font-size:11px; padding:4px 10px; background:var(--header); border:1px solid var(--border); border-radius:4px; width:100%;">+ Add Item</button>
+
+                    <hr>
+                    <h3 style="margin-top:5px;">🔧 Toolbar Buttons</h3>
+                    <p style="font-size:11px; opacity:0.6; margin-top:-5px;">Toggle which buttons appear in the top-right header.</p>
+                    <div id="toolbarBtnList" style="display:flex; flex-direction:column; gap:8px; margin-bottom:10px;"></div>
+                </div>
+
             </div>
         </div>
         <div style="padding: 15px; border-top: 1px solid var(--border); background: var(--header); text-align: right;">
@@ -1168,9 +1339,7 @@ body.crystal-ui .wid-drop-content {
 <div id="customContextMenu" class="hidden" style="position:fixed; z-index:9999; background:rgba(20, 24, 32, 0.85); backdrop-filter:blur(15px); -webkit-backdrop-filter:blur(15px); border:1px solid rgba(255,255,255,0.15); border-radius:8px; box-shadow:0 10px 30px rgba(0,0,0,0.8); padding:5px; min-width:180px; font-size:13px; display:flex; flex-direction:column;">
     </div>
 <script>
-/* ===============================
-CORE DATA INITIALIZATION
-=============================== */
+// ── DATA ──
 const defaultMediaConfig = {
     "Anime": { inputs: ['hours', 'eps'], stats: ['hours', 'eps', 'pace', 'days'], unitName: 'Eps' },
     "Book": { inputs: ['hours', 'chars', 'pages'], stats: ['hours', 'chars', 'pages', 'speed'], unitName: 'Pages' },
@@ -1182,27 +1351,44 @@ const defaultMediaConfig = {
 };
 
 let data = JSON.parse(localStorage.getItem("ImmersionOS_data"));
-if (!data) data = { entries: [], media: {}, goals: [], archivedGoals: [], prefs: {theme:"Dark", defaultEpLength:20, lastType:"VN", customThemes: {}, resetHour: 0, hotkeys: {save: "", timer: ""}, mute: false, wsUrl: "ws://localhost:55001", cardSize: 220, volume: 0.5, chartStyle: 'line', trendCurve: 'smooth', trendFill: true, animePlayer: 'mpv', afkTimer: 30}, links: [] };
+if (!data) data = {
+    entries: [], media: {}, goals: [], archivedGoals: [], links: [],
+    prefs: {
+        theme: "Dark", defaultEpLength: 20, lastType: "VN", customThemes: {},
+        resetHour: 0, hotkeys: { save: "", timer: "", dbAlt: "", dbMain: "" },
+        mute: false, wsUrl: "ws://localhost:55001", volume: 0.5,
+        chartStyle: 'line', trendCurve: 'smooth', trendFill: true,
+        animePlayer: 'mpv', afkTimer: 30,
+        blurCph: false, showTrajectory: true,
+        etaEnabled: true, etaFormat: 'time', etaWindow: '14',
+        etaLibrary: true, etaShelf: true, etaGoals: true,
+    }
+};
 
-// Purge leftovers from old saves
+// Remove legacy fields
 if (data.xp) delete data.xp;
 if (data.achievements) delete data.achievements;
+
+// Ensure required top-level keys exist
 if (!data.mediaConfig) data.mediaConfig = defaultMediaConfig;
-if (!data.general) data.general = {};
 if (!data.mediaData) data.mediaData = {};
-if (data.prefs.blurCph === undefined) data.prefs.blurCph = false;
-if (data.prefs.trendCurve === undefined) data.prefs.trendCurve = 'smooth';
-if (data.prefs.trendFill === undefined) data.prefs.trendFill = true;
-if (data.prefs.showTrajectory === undefined) data.prefs.showTrajectory = true;
-if (data.prefs.theme === "dark") data.prefs.theme = "Dark"; // Auto-fix casing for old saves
-if (!data.prefs.hotkeys.dbAlt) data.prefs.hotkeys.dbAlt = "";
-if (!data.prefs.hotkeys.dbMain) data.prefs.hotkeys.dbMain = "";
-if (data.prefs.etaEnabled === undefined) data.prefs.etaEnabled = true;
-if (data.prefs.etaFormat === undefined) data.prefs.etaFormat = 'time';
-if (data.prefs.etaWindow === undefined) data.prefs.etaWindow = '14';
-if (data.prefs.etaLibrary === undefined) data.prefs.etaLibrary = true;
-if (data.prefs.etaShelf === undefined) data.prefs.etaShelf = true;
-if (data.prefs.etaGoals === undefined) data.prefs.etaGoals = true;
+if (!data.general) data.general = {};
+
+// Migrate prefs added after initial release
+const pd = data.prefs;
+if (pd.blurCph === undefined) pd.blurCph = false;
+if (pd.trendCurve === undefined) pd.trendCurve = 'smooth';
+if (pd.trendFill === undefined) pd.trendFill = true;
+if (pd.showTrajectory === undefined) pd.showTrajectory = true;
+if (pd.theme === "dark") pd.theme = "Dark";
+if (!pd.hotkeys.dbAlt) pd.hotkeys.dbAlt = "";
+if (!pd.hotkeys.dbMain) pd.hotkeys.dbMain = "";
+if (pd.etaEnabled === undefined) pd.etaEnabled = true;
+if (pd.etaFormat === undefined) pd.etaFormat = 'time';
+if (pd.etaWindow === undefined) pd.etaWindow = '14';
+if (pd.etaLibrary === undefined) pd.etaLibrary = true;
+if (pd.etaShelf === undefined) pd.etaShelf = true;
+if (pd.etaGoals === undefined) pd.etaGoals = true;
 
 Object.keys(data.mediaConfig).forEach(t => { 
     if(!data.media[t]) data.media[t] = [];  
@@ -1232,6 +1418,166 @@ async function checkJitenWaterfall(jpTitle, enTitle) {
     return null;
 }
 
+// --- CONTEXT MENU & TOOLBAR CUSTOMISATION ---
+
+const CTX_DEFAULTS = {
+    global: [
+        { id: 'g_settings',  enabled: true,  emoji: '⚙️',  label: 'Settings',           action: 'openSettings()' },
+        { id: 'g_library',   enabled: true,  emoji: '📚', label: 'Media Library',       action: "switchView('library')" },
+        { id: 'g_analytics', enabled: true,  emoji: '📊', label: 'Analytics Dashboard', action: "switchView('analytics')" },
+        { id: 'g_quit',      enabled: true,  emoji: '❌', label: 'Quit Immersion OS',   action: "if(window.electronAPI) window.electronAPI.quitApp(); else window.close();", danger: true },
+    ],
+    media: [
+        { id: 'm_edit',      enabled: true,  emoji: '✏️',  label: 'Edit Settings',      action: "openLibEdit('{media}')" },
+        { id: 'm_analytics', enabled: true,  emoji: '📊', label: 'View Analytics',      action: "viewSpecificAnalytics('{media}')" },
+        { id: 'm_plus1',     enabled: true,  emoji: '➕', label: 'Quick +1 Unit',       action: "quickAddEpisode('{media}')" },
+        { id: 'm_journal',   enabled: true,  emoji: '📚', label: 'Open Shelf',        action: "openJournalFor('{media}')" },
+        { id: 'm_launch',    enabled: false, emoji: '🚀', label: 'Launch',              action: "launchMedia('{media}')" },
+    ]
+};
+
+const TOOLBAR_DEFAULTS = [
+    { id: 'tb_journal',    enabled: true,  label: '🗂️ Shelf',        action: "switchView('journal')" },
+    { id: 'tb_snap',       enabled: true,  label: '📸 Snap',         action: "takeScreenshot()" },
+    { id: 'tb_history',    enabled: true,  label: '📜 History',      action: "openHistory()" },
+    { id: 'tb_widgets',    enabled: true,  label: '🗔',      action: "__widgetDropdown__" },
+    { id: 'tb_wid_float',  enabled: false, label: '🎀 Glass Ribbon', action: "quickLaunchWidget('float')" },
+    { id: 'tb_wid_pill',   enabled: false, label: '💊 Touch Pill',   action: "quickLaunchWidget('pill')" },
+    { id: 'tb_wid_linux',  enabled: false, label: '📏 Linux Panel',  action: "quickLaunchWidget('linux')" },
+    { id: 'tb_wid_hud',    enabled: false, label: '📟 Text HUD',     action: "quickLaunchWidget('hud')" },
+];
+
+function getCtxConfig() {
+    if (!data.prefs.ctxConfig) {
+        data.prefs.ctxConfig = JSON.parse(JSON.stringify(CTX_DEFAULTS));
+    }
+    // Ensure any new defaults are present
+    ['global','media'].forEach(k => {
+        CTX_DEFAULTS[k].forEach(def => {
+            if (!data.prefs.ctxConfig[k].find(i => i.id === def.id)) {
+                data.prefs.ctxConfig[k].push({...def});
+            }
+        });
+    });
+    return data.prefs.ctxConfig;
+}
+
+function getToolbarConfig() {
+    if (!data.prefs.toolbarConfig) {
+        data.prefs.toolbarConfig = JSON.parse(JSON.stringify(TOOLBAR_DEFAULTS));
+    }
+    TOOLBAR_DEFAULTS.forEach(def => {
+        let existing = data.prefs.toolbarConfig.find(i => i.id === def.id);
+        if (!existing) {
+            data.prefs.toolbarConfig.push({...def});
+        } else {
+            // Sync label/action from defaults so renames propagate to existing saves
+            existing.label = def.label;
+            existing.action = def.action;
+        }
+    });
+    return data.prefs.toolbarConfig;
+}
+
+function renderToolbar() {
+    let tc = getToolbarConfig();
+    let utilBtns = document.getElementById('utilBtns');
+    if (!utilBtns) return;
+    utilBtns.innerHTML = '';
+    tc.forEach(btn => {
+        if (!btn.enabled) return;
+        if (btn.action === '__widgetDropdown__') {
+            // Render the widget dropdown inline
+            let wrap = document.createElement('div');
+            wrap.className = 'wid-dropdown';
+            wrap.style.cssText = 'padding-bottom:0; margin-bottom:0; margin-left:0;';
+            wrap.innerHTML = `
+                <button class="wid-dropbtn" onmouseenter="playAudio('hover.wav')" title="Widget Menu">${btn.label}</button>
+                <div class="wid-drop-content">
+                    <button onclick="quickLaunchWidget('linux')">📏 Linux Panel</button>
+                    <button onclick="quickLaunchWidget('float')">🎀 Glass Ribbon</button>
+                    <button onclick="quickLaunchWidget('pill')">💊 Touch Pill</button>
+                    <button onclick="quickLaunchWidget('hud')">📟 Text HUD</button>
+                    <div style="height:1px; background:var(--border); width:100%; margin: 4px 0;"></div>
+                    <button onclick="if(window.electronAPI) window.electronAPI.closeWidget()" style="color:#ff4444;">✕ Close Active</button>
+                </div>`;
+            utilBtns.appendChild(wrap);
+        } else {
+            let b = document.createElement('button');
+            b.textContent = btn.label;
+            b.setAttribute('onmouseenter', "playAudio('hover.wav')");
+            b.onclick = () => { try { eval(btn.action); } catch(e) { console.error(e); } };
+            utilBtns.appendChild(b);
+        }
+    });
+}
+
+function renderCtxEditorList(type) {
+    let cfg = getCtxConfig();
+    let items = cfg[type];
+    let container = document.getElementById(type === 'global' ? 'ctxGlobalList' : 'ctxMediaList');
+    if (!container) return;
+    container.innerHTML = '';
+    items.forEach((item, i) => {
+        let row = document.createElement('div');
+        row.style.cssText = 'display:flex; gap:5px; align-items:center; background:var(--header); padding:6px 8px; border-radius:4px; border:1px solid var(--border);';
+        row.innerHTML = `
+            <input type="checkbox" ${item.enabled ? 'checked' : ''} onchange="getCtxConfig().${type}[${i}].enabled=this.checked; save();" title="Show/Hide">
+            <input value="${item.emoji||''}" style="width:32px; text-align:center; padding:2px; font-size:13px;" placeholder="🔧" oninput="getCtxConfig().${type}[${i}].emoji=this.value; save();">
+            <input value="${item.label||''}" style="flex:2; padding:2px 4px; font-size:11px;" placeholder="Label" oninput="getCtxConfig().${type}[${i}].label=this.value; save();">
+            <input value="${item.action||''}" style="flex:3; padding:2px 4px; font-size:10px; color:#aaa;" placeholder="JS action..." oninput="getCtxConfig().${type}[${i}].action=this.value; save();">
+            <button onclick="moveCtxItem('${type}',${i},-1)" style="padding:1px 5px; background:var(--card); border:1px solid var(--border); font-size:10px;">▲</button>
+            <button onclick="moveCtxItem('${type}',${i},1)" style="padding:1px 5px; background:var(--card); border:1px solid var(--border); font-size:10px;">▼</button>
+            <button onclick="removeCtxItem('${type}',${i})" style="padding:1px 5px; background:#ff4444; color:#fff; border:none; border-radius:3px; font-size:10px;">✕</button>
+        `;
+        container.appendChild(row);
+    });
+}
+
+function renderToolbarEditorList() {
+    let tc = getToolbarConfig();
+    let container = document.getElementById('toolbarBtnList');
+    if (!container) return;
+    container.innerHTML = '';
+    tc.forEach((btn, i) => {
+        let row = document.createElement('div');
+        row.style.cssText = 'display:flex; gap:5px; align-items:center; background:var(--header); padding:6px 8px; border-radius:4px; border:1px solid var(--border);';
+        row.innerHTML = `
+            <input type="checkbox" ${btn.enabled ? 'checked' : ''} onchange="getToolbarConfig()[${i}].enabled=this.checked; save(); renderToolbar();" title="Show/Hide">
+            <input value="${btn.label||''}" style="flex:2; padding:2px 4px; font-size:11px;" placeholder="Label" oninput="getToolbarConfig()[${i}].label=this.value; save(); renderToolbar();">
+            <input value="${btn.action||''}" style="flex:3; padding:2px 4px; font-size:10px; color:#aaa;" placeholder="JS action..." oninput="getToolbarConfig()[${i}].action=this.value; save();">
+            <button onclick="moveToolbarBtn(${i},-1)" style="padding:1px 5px; background:var(--card); border:1px solid var(--border); font-size:10px;">▲</button>
+            <button onclick="moveToolbarBtn(${i},1)" style="padding:1px 5px; background:var(--card); border:1px solid var(--border); font-size:10px;">▼</button>
+            <button onclick="removeToolbarBtn(${i})" style="padding:1px 5px; background:#ff4444; color:#fff; border:none; border-radius:3px; font-size:10px;">✕</button>
+        `;
+        container.appendChild(row);
+    });
+}
+
+function addCtxItem(type) {
+    getCtxConfig()[type].push({ id: 'custom_'+Date.now(), enabled: true, emoji: '🔧', label: 'New Item', action: '' });
+    save(); renderCtxEditorList(type);
+}
+function removeCtxItem(type, i) { getCtxConfig()[type].splice(i,1); save(); renderCtxEditorList(type); }
+function moveCtxItem(type, i, dir) {
+    let arr = getCtxConfig()[type];
+    let ni = i+dir; if(ni<0||ni>=arr.length) return;
+    [arr[i],arr[ni]]=[arr[ni],arr[i]]; save(); renderCtxEditorList(type);
+}
+function addToolbarBtn() { getToolbarConfig().push({ id:'custom_'+Date.now(), enabled:true, label:'🔧 Button', action:'' }); save(); renderToolbarEditorList(); renderToolbar(); }
+function removeToolbarBtn(i) { getToolbarConfig().splice(i,1); save(); renderToolbarEditorList(); renderToolbar(); }
+function moveToolbarBtn(i, dir) {
+    let arr = getToolbarConfig();
+    let ni=i+dir; if(ni<0||ni>=arr.length) return;
+    [arr[i],arr[ni]]=[arr[ni],arr[i]]; save(); renderToolbarEditorList(); renderToolbar();
+}
+
+function openUiSettings() {
+    renderCtxEditorList('global');
+    renderCtxEditorList('media');
+    renderToolbarEditorList();
+}
+
 // --- CUSTOM CONTEXT MENU LOGIC ---
 document.addEventListener('contextmenu', (e) => {
 	if (e.target.closest('#timerBtn') || e.target.closest('.timer-display')) {
@@ -1247,22 +1593,23 @@ document.addEventListener('contextmenu', (e) => {
 
     if (card && card.getAttribute('data-media')) {
         let mediaName = card.getAttribute('data-media');
-        
-        // --- MEDIA SPECIFIC MENU ---
+        let safeName = mediaName.replace(/'/g, "\\'");
         menu.innerHTML += `<div style="font-size:10px; opacity:0.6; padding:4px 12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:180px;">${mediaName}</div>`;
         menu.innerHTML += `<div class="ctx-divider"></div>`;
-        menu.innerHTML += `<div class="ctx-item" onclick="openLibEdit('${mediaName.replace(/'/g, "\\'")}')">✏️ Edit Settings</div>`;
-        menu.innerHTML += `<div class="ctx-item" onclick="viewSpecificAnalytics('${mediaName.replace(/'/g, "\\'")}')">📊 View Analytics</div>`;
-        menu.innerHTML += `<div class="ctx-divider"></div>`;
-        menu.innerHTML += `<div class="ctx-item" onclick="quickAddEpisode('${mediaName.replace(/'/g, "\\'")}')">➕ Quick +1 Target</div>`;
-        
+        getCtxConfig().media.forEach(item => {
+            if (!item.enabled) return;
+            let action = (item.action||'').replace(/\{media\}/g, safeName);
+            let style = item.danger ? ' style="color:#ff4444;"' : '';
+            menu.innerHTML += `<div class="ctx-item"${style} onclick="${action}">${item.emoji||''} ${item.label}</div>`;
+        });
     } else {
-        // --- GENERAL APP MENU ---
-        menu.innerHTML += `<div class="ctx-item" onclick="openSettings()">⚙️ Settings</div>`;
-        menu.innerHTML += `<div class="ctx-item" onclick="switchView('library')">📚 Media Library</div>`;
-        menu.innerHTML += `<div class="ctx-item" onclick="switchView('analytics')">📊 Analytics Dashboard</div>`;
-        menu.innerHTML += `<div class="ctx-divider"></div>`;
-        menu.innerHTML += `<div class="ctx-item" style="color:#ff4444;" onclick="if(window.electronAPI) window.electronAPI.quitApp(); else window.close();">❌ Quit Immersion OS</div>`;
+        getCtxConfig().global.forEach((item, i) => {
+            if (!item.enabled) return;
+            let style = item.danger ? ' style="color:#ff4444;"' : '';
+            // Insert divider before danger items
+            if (item.danger && i > 0) menu.innerHTML += `<div class="ctx-divider"></div>`;
+            menu.innerHTML += `<div class="ctx-item"${style} onclick="${item.action||''}">${item.emoji||''} ${item.label}</div>`;
+        });
     }
 
     // Unhide the menu and calculate where the mouse is
@@ -1278,7 +1625,6 @@ document.addEventListener('contextmenu', (e) => {
     menu.style.top = y + 'px';
 });
 
-// Hide the menu if you left-click anywhere else
 document.addEventListener('click', (e) => {
     if (e.button !== 2) { 
         let menu = document.getElementById('customContextMenu');
@@ -1313,9 +1659,7 @@ function addLibEditPath() { if(currentLibEditPaths.length < 5) currentLibEditPat
 function removeLibEditPath(i) { currentLibEditPaths.splice(i, 1); renderLibEditPaths(); }
 
 
-/* ===============================
-NATIVE AUDIO ENGINE & UTILS
-=============================== */
+// ── UTILS ──
 function playAudio(filename) {
     if (data.prefs.mute) return;
     try { let snd = new Audio(`assets/${filename}`); snd.volume = data.prefs.volume !== undefined ? data.prefs.volume : 0.5; snd.play().catch(e=>{}); } catch(e) {}
@@ -1347,9 +1691,7 @@ let ankiBaseline = -1;
 
 window.addEventListener('keydown', (e) => { if (e.key === "Escape") { document.querySelectorAll('.overlay').forEach(el => el.classList.add('hidden')); playAudio('close.wav'); nukeFocus(); } });
 
-/* ===============================
-MAIN STAGE CONTROLS & MODES
-=============================== */
+// ── VIEWS & NAVIGATION ──
 
 function toggleSidebar(forceOpen, silent = false) {
     let sidebar = document.getElementById('sidebar');
@@ -1371,52 +1713,126 @@ function toggleSidebar(forceOpen, silent = false) {
     }, 0);
 }
 
+let previousTabBeforeGoals = 'analytics';
 function switchView(viewName, silent = false) {
-    let libBtn = document.getElementById('tabLibrary'); let anaBtn = document.getElementById('tabAnalytics');
-    let libView = document.getElementById('libraryView'); let anaView = document.getElementById('analyticsView'); 
+    let libBtn = document.getElementById('tabLibrary');
+    let anaBtn = document.getElementById('tabAnalytics');
+    let libView = document.getElementById('libraryView');
+    let anaView = document.getElementById('analyticsView');
     let filters = document.getElementById('headerFilters');
     let compView = document.getElementById('compareView');
+    let gView = document.getElementById('goalsView');
 
+    // 1. LIBRARY TAB
     if (viewName === 'library') {
-        if (libBtn.classList.contains('active')) return; 
+        if (libBtn && libBtn.classList.contains('active')) return;
         if (!silent) playAudio('tab_lib.wav');
-        libBtn.classList.add('active'); anaBtn.classList.remove('active');
-        
-        // --- HIDE BANNER IN LIBRARY ---
+        if(libBtn) libBtn.classList.add('active'); 
+        if(anaBtn) anaBtn.classList.remove('active');
+
         let banner = document.getElementById('immersiveBanner');
         if (banner) banner.style.opacity = '0';
-        
-        libView.classList.remove('hidden'); anaView.classList.add('hidden'); filters.classList.add('hidden');
-        if (compView) compView.classList.add('hidden');
-        data.prefs.lastView = 'library'; if (typeof save === 'function') save(); 
-        
+
+        if(libView) libView.classList.remove('hidden'); 
+        if(anaView) anaView.classList.add('hidden'); 
+        if(filters) filters.classList.add('hidden');
+        if(compView) compView.classList.add('hidden');
+        if(gView) gView.classList.add('hidden');
+        let jvEl = document.getElementById('journalView'); if(jvEl) jvEl.classList.add('hidden');
+        let pvEl = document.getElementById('progressView'); if(pvEl) pvEl.classList.add('hidden');
+
+        data.prefs.lastView = 'library'; if (typeof save === 'function') save();
         if (data.prefs.hideSidebarInLibrary) toggleSidebar(false, silent);
-        
         renderLibrary();
-    } else {
-        // If clicking Analytics while already on Analytics, reset to All Media
-        if (anaBtn.classList.contains('active') && (!compView || compView.classList.contains('hidden'))) {
+    } 
+    // 2. ANALYTICS TAB
+    else if (viewName === 'analytics') {
+        // If already on Analytics, reset media filter
+        if (anaBtn && anaBtn.classList.contains('active') && (!compView || compView.classList.contains('hidden')) && (!gView || gView.classList.contains('hidden'))) {
             document.getElementById('mediaFilter').value = 'all';
             if (typeof handleMediaFilterChange === 'function') handleMediaFilterChange();
             return;
         }
-        
-        if (!silent) playAudio('tab_ana.wav');
-        anaBtn.classList.add('active'); libBtn.classList.remove('active');
-        anaView.classList.remove('hidden'); libView.classList.add('hidden');
-        filters.classList.remove('hidden');
-        if (compView) compView.classList.add('hidden');
-        data.prefs.lastView = 'analytics'; if (typeof save === 'function') save();
-        
-        toggleSidebar(data.prefs.sidebarOpen !== false, silent);
 
-        // --- RESTORE BANNER IN ANALYTICS (if specific media is selected) ---
+        if (!silent) playAudio('tab_ana.wav');
+        if(anaBtn) anaBtn.classList.add('active'); 
+        if(libBtn) libBtn.classList.remove('active');
+
+        if(anaView) anaView.classList.remove('hidden'); 
+        if(libView) libView.classList.add('hidden');
+        if(filters) filters.classList.remove('hidden');
+        if(compView) compView.classList.add('hidden');
+        if(gView) gView.classList.add('hidden');
+        let jvEl2 = document.getElementById('journalView'); if(jvEl2) jvEl2.classList.add('hidden');
+        let pvEl2 = document.getElementById('progressView'); if(pvEl2) pvEl2.classList.add('hidden');
+
+        data.prefs.lastView = 'analytics'; if (typeof save === 'function') save();
+        toggleSidebar(data.prefs.sidebarOpen !== false, silent);
+        
         if (typeof handleMediaFilterChange === 'function') handleMediaFilterChange();
-        else updateAll(); 
+        else updateAll();
 
         setTimeout(() => { if(typeof pie !== 'undefined' && pie) pie.resize(); if(typeof line !== 'undefined' && line) line.resize(); }, 100);
     }
-	if (typeof applyWallpaper === 'function') applyWallpaper();
+    // 3. GOALS MILESTONES PAGE
+    else if (viewName === 'goals') {
+        if (!silent) playAudio('tab_ana.wav');
+        
+        // Remember where we came from!
+        previousTabBeforeGoals = (libBtn && libBtn.classList.contains('active')) ? 'library' : 'analytics';
+        
+        if(libBtn) libBtn.classList.remove('active');
+        if(anaBtn) anaBtn.classList.remove('active');
+
+        if(gView) gView.classList.remove('hidden');
+        if(libView) libView.classList.add('hidden');
+        if(anaView) anaView.classList.add('hidden');
+        if(filters) filters.classList.add('hidden');
+        if(compView) compView.classList.add('hidden');
+        let jvEl3 = document.getElementById('journalView'); if(jvEl3) jvEl3.classList.add('hidden');
+		let banner = document.getElementById('immersiveBanner');
+        if (banner) banner.style.opacity = '0';
+        data.prefs.lastView = 'goals'; 
+        if (typeof save === 'function') save();
+        toggleSidebar(false, silent);
+
+        let listCont = document.getElementById('gdListViewContainer');
+        let detCont = document.getElementById('gdDetails');
+        if(listCont) { listCont.classList.remove('hidden'); listCont.style.display = 'flex'; }
+        if(detCont) { detCont.classList.add('hidden'); detCont.style.display = 'none'; }
+
+        renderGoalDashboard();
+    }
+
+    // 4. JOURNAL VIEW
+    else if (viewName === 'journal') {
+        if (!silent) playAudio('tab_lib.wav');
+        previousTabBeforeGoals = (libBtn && libBtn.classList.contains('active')) ? 'library' : 'analytics';
+
+        if(libBtn) libBtn.classList.remove('active');
+        if(anaBtn) anaBtn.classList.remove('active');
+
+        let jView = document.getElementById('journalView');
+        if(libView) libView.classList.add('hidden');
+        if(anaView) anaView.classList.add('hidden');
+        if(filters) filters.classList.add('hidden');
+        if(compView) compView.classList.add('hidden');
+        if(gView) gView.classList.add('hidden');
+        if(jView) jView.classList.remove('hidden');
+
+        let banner = document.getElementById('immersiveBanner');
+        if(banner) banner.style.opacity = '0';
+        toggleSidebar(false, silent);
+        data.prefs.lastView = 'journal'; if(typeof save === 'function') save();
+
+        // Reset to list view
+        document.getElementById('jvList').style.display = 'flex';
+        document.getElementById('jvDetail').classList.add('hidden');
+        populateJournalFilter();
+        renderJournalList();
+    }
+
+    if (typeof applyWallpaper === 'function') applyWallpaper();
 }
 
 function handleRangeChange() {
@@ -1433,20 +1849,16 @@ function handleMediaFilterChange() {
     let opts = document.querySelectorAll('.ghost-opt'); let mf = document.getElementById('mediaFilter');
     if (mf.value !== opts[0]?.value) opts.forEach(o => o.remove());
 
-		// --- IMMERSIVE BANNER LOGIC ---
-    let banner = document.getElementById('immersiveBanner');
+		let banner = document.getElementById('immersiveBanner');
     if (banner) {
         if (data.prefs.immersiveBanner !== false && mf.value !== 'all') {
             let targetImg = "";
             
             if (data.mediaData[mf.value] && data.mediaData[mf.value].img) {
-                // 1. It's a Specific Media Item (e.g., Wuthering Waves)
                 targetImg = data.mediaData[mf.value].img;
             } else if (data.mediaConfig[mf.value]) {
-                // 2. It's a Media Type (e.g., Anime or VN)
                 let typeLogs = data.entries.filter(e => e.type === mf.value && e.media && data.mediaData[e.media] && data.mediaData[e.media].img);
                 
-                // Helper to find the #1 most played media in a set of logs
                 let getTopArt = (logs) => {
                     let sums = {};
                     logs.forEach(e => sums[e.media] = (sums[e.media] || 0) + e.hours);
@@ -1454,13 +1866,10 @@ function handleMediaFilterChange() {
                     return top ? data.mediaData[top[0]].img : "";
                 };
                 
-                // Try the last 14 days first...
                 let cutoff = getLocalDateStr(new Date(Date.now() - 14 * 86400000));
                 let recentLogs = typeLogs.filter(e => e.date >= cutoff);
                 
                 targetImg = getTopArt(recentLogs);
-                
-                // ... If nothing was played in the last 14 days, fallback to all-time
                 if (!targetImg) targetImg = getTopArt(typeLogs);
             }
             
@@ -1498,9 +1907,7 @@ function updateTrendOptions() {
     if(Array.from(tSelect.options).some(o => o.value === oldVal)) tSelect.value = oldVal; else tSelect.value = "hours";
 }
 
-/* ===============================
-PHASE 3: DYNAMIC SIDEBAR & LOGGING
-=============================== */
+// ── SIDEBAR & LOGGING ──
 function checkAutoComplete(mediaName) {
     if (!mediaName) return;
     let profile = data.mediaData[mediaName];
@@ -1573,16 +1980,46 @@ function populateMedia() {
     document.getElementById("charField")?.classList.toggle("hidden", !config.inputs.includes('chars')); 
     
     let hasUnits = config.inputs.includes('units') || config.inputs.includes('eps') || config.inputs.includes('pages');
+    let isAutoCount = hasUnits && config.autoCountUnits;
     let unitContainer = document.getElementById("unitField");
     if(unitContainer) {
-        unitContainer.classList.toggle("hidden", !hasUnits); 
+        // Hide if no units, OR if auto-count is on (works silently, no UI at all)
+        unitContainer.classList.toggle("hidden", !hasUnits || isAutoCount); 
         let uLabel = document.getElementById("unitLabelText");
         if(uLabel) uLabel.textContent = config.unitName || 'Units';
     }
     
-    document.getElementById("epLengthField")?.classList.toggle("hidden", !hasUnits);
-    data.prefs.lastType = t; save(); 
+    document.getElementById("epLengthField")?.classList.toggle("hidden", !hasUnits || data.prefs.hideEpLength === true);
+    data.prefs.lastType = t; save();
+    let _sel = document.getElementById("mediaSelect"); if(_sel) _prevMediaValue = _sel.value;
     handleMediaSelectChange(); // Force it to update the Min per Unit box
+}
+
+let _prevMediaValue = "";
+
+function interceptMediaSelectChange(event) {
+    let sel = document.getElementById("mediaSelect");
+    let newVal = sel.value;
+    let isTimerRunning = timerInterval !== null || isTimerPaused;
+
+    if (isTimerRunning && _prevMediaValue && newVal !== _prevMediaValue) {
+        // Show confirmation — offer Switch or Cancel
+        let msg = `Timer is running for "${_prevMediaValue}". Switch to "${newVal}" anyway?
+
+The timer will keep running and log to the new selection.`;
+        showConfirm(msg, () => {
+            // Confirmed: proceed with switch
+            _prevMediaValue = newVal;
+            handleMediaSelectChange();
+        }, () => {
+            // Cancelled: revert dropdown to previous value
+            sel.value = _prevMediaValue;
+        });
+        return; // Don't call handleMediaSelectChange yet
+    }
+
+    _prevMediaValue = newVal;
+    handleMediaSelectChange();
 }
 
 function handleMediaSelectChange() {
@@ -1603,13 +2040,10 @@ function handleMediaSelectChange() {
     }
 
     if (profile && profile.lastUnitMin !== undefined) {
-        // Use the remembered memory for this specific media
         epInput.value = profile.lastUnitMin;
     } else if (t === 'Anime') {
-        // Fallback for new Anime
         epInput.value = 20;
     } else {
-        // Fallback for everything else
         epInput.value = 0;
     }
 	updateTheaterMode();
@@ -1627,8 +2061,13 @@ async function addEntry() {
     
     let hasUnits = config.inputs.includes('units') || config.inputs.includes('eps') || config.inputs.includes('pages');
     if (hasUnits) { 
-        u = parseInt(document.getElementById('logUnits').value)||0; 
-        if (u > 0 && h === 0) h += (u * (parseFloat(document.getElementById('epLength').value)||20))/60; 
+        if (config.autoCountUnits) {
+            // Auto-count: every save = +1 unit, no hour inference
+            u = 1;
+        } else {
+            u = parseInt(document.getElementById('logUnits').value)||0; 
+            if (u > 0 && h === 0) h += (u * (parseFloat(document.getElementById('epLength').value)||20))/60;
+        }
     }
     
     if (config.inputs.includes('chars')) c = parseInt(document.getElementById('logChars').value)||0;
@@ -1647,7 +2086,20 @@ async function addEntry() {
         if (hasUnits && mediaSelect.value && data.mediaData[mediaSelect.value]) {
             data.mediaData[mediaSelect.value].lastUnitMin = parseFloat(document.getElementById('epLength').value) || 0;
         }
-        hookedLines = []; save(); updateAll(); playAudio('save.wav'); 
+		if (timerInterval || isTimerPaused) {
+            clearInterval(timerInterval); timerInterval = null; isTimerPaused = false; accumulatedMs = 0;
+            document.getElementById('sidebar').classList.remove('tracking');
+            let btn = document.getElementById("timerBtn");
+            let zenBtn = document.getElementById("zenTimerBtn");
+            if(btn) { btn.textContent = "▶"; btn.classList.remove("active"); btn.style.background = ""; btn.style.borderColor = ""; btn.style.animation = ""; }
+            if(zenBtn) { zenBtn.textContent = "▶ START"; zenBtn.classList.remove("active"); zenBtn.style.background = ""; zenBtn.style.borderColor = ""; zenBtn.style.animation = ""; }
+            let zc = document.getElementById("zenClock"); if(zc) zc.textContent = "00:00:00"; 
+            let sidebarClock = document.getElementById("sidebarTimerDisplay");
+            if(sidebarClock) { sidebarClock.textContent = "00:00:00"; sidebarClock.classList.add("hidden"); }
+            if (typeof broadcastToWidget === 'function') broadcastToWidget();
+        }
+        hookedLines = []; save(); updateAll(); playAudio('save.wav');
+
         document.querySelectorAll('.big').forEach(el => { el.classList.remove('stat-animate'); void el.offsetWidth; el.classList.add('stat-animate'); }); 
         ["logHours","logMinutes","logChars","logUnits","logMined"].forEach(id => { let el = document.getElementById(id); if(el) el.value = ""; }); 
         checkAutoComplete(mediaSelect.value); renderLibrary();
@@ -1671,11 +2123,69 @@ async function addEntry() {
     }
 }
 
-/* ===============================
-PHASE 4: MODULAR ANALYTICS & DASHBOARD
-=============================== */
+// ── ANALYTICS & DASHBOARD ──
+function renderTopMedia() {
+    let container = document.getElementById('topMediaList');
+    if (!container) return;
+
+    let metric = document.getElementById('topMediaMetric')?.value || 'hours';
+    let ent = getFilteredEntries(rangeSelect.value);
+    let currTheme = {...themes, ...data.prefs.customThemes}[data.prefs.theme] || themes.Dark;
+
+    // Aggregate by media title
+    let agg = {};
+    ent.forEach(e => {
+        if (!e.media) return;
+        if (!agg[e.media]) agg[e.media] = { hours: 0, chars: 0, units: 0, cards: 0, type: e.type };
+        agg[e.media].hours += e.hours || 0;
+        agg[e.media].chars += e.chars || 0;
+        agg[e.media].units += (e.units || e.eps || e.pages || 0);
+        agg[e.media].cards += e.cards || 0;
+    });
+
+    let sorted = Object.entries(agg)
+        .map(([name, s]) => ({ name, val: s[metric] || 0, type: s.type, img: data.mediaData[name]?.img || '' }))
+        .filter(x => x.val > 0)
+        .sort((a, b) => b.val - a.val)
+        .slice(0, 8);
+
+    if (sorted.length === 0) {
+        container.innerHTML = '<div style="opacity:0.5; font-size:12px; padding:8px 0;">No media logged in this period.</div>';
+        return;
+    }
+
+    let maxVal = sorted[0].val;
+    let metricLabel = { hours: 'h', chars: '', units: '', cards: '' }[metric];
+    let fmtVal = (v) => {
+        if (metric === 'hours') return v.toFixed(1) + 'h';
+        if (metric === 'chars') return v >= 1000 ? (v/1000).toFixed(1) + 'k' : v;
+        return v.toLocaleString();
+    };
+
+    container.innerHTML = sorted.map((item, i) => {
+        let tColor = getTypeColor(item.type, currTheme);
+        let barPct = (item.val / maxVal * 100).toFixed(1);
+        let rank = ['🥇','🥈','🥉'][i] || `<span style="font-size:11px; opacity:0.5; min-width:18px; text-align:center; display:inline-block;">${i+1}</span>`;
+        let thumb = item.img
+            ? `<img src="${item.img}" style="width:28px; height:38px; object-fit:cover; border-radius:3px; flex-shrink:0;">`
+            : `<div style="width:28px; height:38px; border-radius:3px; background:${tColor}22; border:1px solid ${tColor}44; display:flex; align-items:center; justify-content:center; font-size:13px; flex-shrink:0;">${(data.mediaConfig[item.type]||{}).emoji||'📦'}</div>`;
+
+        return `<div onclick="viewSpecificAnalytics('${item.name.replace(/'/g,"\\'")}')" style="display:flex; align-items:center; gap:10px; padding:7px 10px; border-radius:6px; margin-bottom:5px; background:var(--header); cursor:pointer; transition:background 0.15s;" onmouseover="this.style.background='var(--card)'" onmouseout="this.style.background='var(--header)'">
+            <span style="font-size:16px; min-width:22px; text-align:center;">${rank}</span>
+            ${thumb}
+            <div style="flex:1; min-width:0;">
+                <div style="font-size:12px; font-weight:bold; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${item.name}</div>
+                <div style="margin-top:4px; height:4px; background:rgba(255,255,255,0.08); border-radius:2px; overflow:hidden;">
+                    <div style="height:100%; width:${barPct}%; background:${tColor}; border-radius:2px; transition:width 0.4s ease;"></div>
+                </div>
+            </div>
+            <div style="font-size:12px; font-weight:bold; color:var(--accent); white-space:nowrap; min-width:48px; text-align:right;">${fmtVal(item.val)}</div>
+        </div>`;
+    }).join('');
+}
+
 function updateAll() { 
-    try { updateStats(); } catch(e) {} try { updateCharts(); } catch(e) {} try { renderGoals(); } catch(e) {} try { renderShelf(); } catch(e) {} try { renderHeatmap(); } catch(e) {} try { renderLibrary(); } catch(e) {} try { if (!document.getElementById('compareView').classList.contains('hidden')) updateCompareChart(); } catch(e) {}
+    try { updateStats(); } catch(e) {} try { updateCharts(); } catch(e) {} try { renderGoals(); } catch(e) {} try { renderShelf(); } catch(e) {} try { renderHeatmap(); } catch(e) {} try { renderTopMedia(); } catch(e) {} try { renderLibrary(); } catch(e) {} try { if (!document.getElementById('compareView').classList.contains('hidden')) updateCompareChart(); } catch(e) {}
     if(breakdownsExpanded) forceBreakdownRerender(); 
     else { 
         document.querySelectorAll('.breakdown-text').forEach(el => el.style.display = 'none'); 
@@ -1771,7 +2281,7 @@ function updateStats() {
     
     let h=0, c=0, u=0, cards=0; let ph=0, pc=0, pu=0, pCards=0; let daysActive = new Set();
     let cphH = 0; let pcphH = 0; 
-    let cardsH = 0; let pCardsH = 0; // Tracks hours specifically spent mining
+    let cardsH = 0; let pCardsH = 0;
     
     currentPeriodEnt.forEach(x => { 
         h += x.hours; c += (x.chars || 0); 
@@ -1779,8 +2289,7 @@ function updateStats() {
         cards += (x.cards || 0);
         
         if (x.chars > 0 && x.hours > 0) cphH += x.hours; 
-        if (x.cards > 0 && x.hours > 0) cardsH += x.hours; // Only count hours if cards were mined
-        
+        if (x.cards > 0 && x.hours > 0) cardsH += x.hours; 
         daysActive.add(x.date); 
     }); 
     previousPeriodEnt.forEach(x => { 
@@ -1871,8 +2380,7 @@ function forceBreakdownRerender() {
             if(cardType === 'hours') val = e.hours || 0; 
             else if (cardType === 'metric2') val = e.chars || 0; 
             else if (cardType === 'metric3') val = (e.units || e.eps || e.pages || 0); 
-            else if (cardType === 'cards') val = e.cards || 0; // Extracts the card data
-            
+            else if (cardType === 'cards') val = e.cards || 0; 
             if(val > 0) sums[key] = (sums[key] || 0) + val; 
         }); 
         
@@ -1887,8 +2395,7 @@ function forceBreakdownRerender() {
             let val = x[1]; 
             if (cardType === 'hours') val = val.toFixed(1) + 'h'; 
             else if (cardType === 'metric2') val = val > 1000 ? (val/1000).toFixed(1) + 'k' : val; 
-            else if (cardType === 'cards') val = val.toLocaleString() + ' cards'; // Formats the card output
-            return `<strong>${x[0]}</strong>: ${val}`; 
+            else if (cardType === 'cards') val = val.toLocaleString() + ' cards'; return `<strong>${x[0]}</strong>: ${val}`; 
         }); 
         el.innerHTML = avgHtml + (parts.length > 0 ? parts.join(" | ") : "No data"); el.style.display = "block"; 
     }); 
@@ -1900,9 +2407,7 @@ function calculateDiffString(cur, prev) { if (prev === 0 || isNaN(prev)) return 
 function calculateStreak() { let now = new Date(); let adjustedNow = new Date(now.getTime() - (data.prefs.resetHour || 0) * 60 * 60 * 1000); let dates = [...new Set(data.entries.map(e => e.date))].sort().reverse(); if(dates.length === 0) return 0; let s = 0; let latestLogDate = new Date(dates[0]); let daysSinceLastLog = Math.floor((adjustedNow - latestLogDate) / (1000 * 60 * 60 * 24)); if (daysSinceLastLog <= 1) { for(let i=0; i<dates.length; i++) { if(i===0 || (new Date(dates[i-1])-new Date(dates[i]))/86400000 <= 1) s++; else break; } } return s; }
 function updateMonthlyForecast(ent, range) { let forecastDiv = document.getElementById("monthlyForecast"); if (range === "all" || range === "365" || range === "today" || range === "custom" || ent.length === 0) { forecastDiv.textContent = ""; return; } let days = parseInt(range); let totalH = ent.reduce((s, e) => s + e.hours, 0); let totalC = ent.reduce((s, e) => s + (e.chars||0), 0); let avgH = totalH / days; let avgC = totalC / days; let d = new Date(); let daysInMonth = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate(); let projH = (avgH * daysInMonth).toFixed(1); let projC = Math.floor(avgC * daysInMonth); let text = `Monthly Forecast: On track for ${projH}h`; if (avgC > 0) text += ` and ${projC.toLocaleString()} chars`; forecastDiv.textContent = text + " this month."; }
 
-/* ===============================
-LIBRARY SYSTEM & PHASE 5 LIST VIEW
-=============================== */
+// ── LIBRARY ──
 let editLibMediaName = ""; let editLibMediaType = "";
 
 function toggleLibView() { data.prefs.libView = data.prefs.libView === 'grid' ? 'list' : 'grid'; document.getElementById('libViewToggle').textContent = data.prefs.libView === 'grid' ? '🖼️' : '☰'; save(); renderLibrary(); }
@@ -1937,9 +2442,7 @@ function handleRightClickAlt(rawUrl) {
     }
 }
 
-/* ===============================
-SMART ETA ESTIMATOR
-=============================== */
+// ── ETA ──
 function getSmartETA(mediaName) {
     if (!data.prefs.etaEnabled) return null;
     let profile = data.mediaData[mediaName];
@@ -2136,7 +2639,7 @@ function renderLibrary() {
             <div style="width:90px; text-align:right;">Total</div><div style="width:60px; text-align:right;">Time</div></div></div>`;
     }
 
-    displayItems.forEach(item => {
+    displayItems.forEach((item, index) => {
         // --- RENDER FOLDERS ---
         if (item.isFolder) {
             if (mode === 'grid') {
@@ -2193,7 +2696,7 @@ function renderLibrary() {
 		}
 
         let currTheme = {...themes, ...data.prefs.customThemes}[data.prefs.theme] || themes.Dark;
-        let tColor = currTheme[item.type.toLowerCase()] || stringToColor(item.type);
+        let tColor = getTypeColor(item.type, currTheme);
         let statusIcon = item.status === 'completed' ? '⭐' : (item.status === 'paused' ? '⏸️' : (item.status === 'dropped' ? '❌' : (item.status === 'wishlist' ? '📝' : `<span style="display:inline-block; width:10px; height:10px; border-radius:50%; background:${tColor}; box-shadow: 0 0 8px ${tColor}; margin-right:4px;"></span>`)));
 
         if (mode === 'grid') {
@@ -2207,14 +2710,37 @@ function renderLibrary() {
             card.innerHTML = `${bgHtml}<div class="card-gradient"></div>${badgeHtml}<div class="card-content"><div class="lib-actions">${launchBtn}${dbBtn}${statsBtn}${quickAdd}<button class="lib-btn" onclick="event.stopPropagation(); openLibEdit('${item.name}')">✎</button></div><div style="font-size:16px; font-weight:bold; padding-right:110px; word-wrap:break-word; text-shadow:0 2px 4px rgba(0,0,0,0.8);">${item.name}</div><div style="font-size:11px; opacity:0.8; margin-bottom:5px; text-shadow:0 1px 2px rgba(0,0,0,0.8);">${statusIcon} ${item.type}</div><div style="flex:1"></div>${middleHtml}<div style="font-size:11px; opacity:0.9; margin-top:8px; display:flex; gap:10px; text-shadow:0 1px 2px rgba(0,0,0,0.8);"><span>⏱️ ${item.stats.hours.toFixed(1)}h</span><span>${emoji} ${dispAmt} ${amtStr}</span></div></div>`;
             container.appendChild(card);
         } else {
-            let middleHtml = item.target > 0 ? `<div style="width:120px; display:flex; align-items:center; justify-content:flex-end;"><span style="font-size:11px; color:var(--accent); margin:0;">${pct}% (${dispAmt}/${dispTarget})</span></div>` : `<div style="width:120px; display:flex; align-items:center; justify-content:flex-end;"><span style="font-size:11px; opacity:0.6; margin:0;">Ongoing</span></div>`;            
+            let middleHtml = item.target > 0 ? 
+                `<div style="width:120px; display:flex; align-items:center; justify-content:flex-end;"><span style="font-size:11px; color:var(--accent); margin:0;">${pct}% (${dispAmt}/${dispTarget})</span></div>` : 
+                `<div style="width:120px; display:flex; align-items:center; justify-content:flex-end;"><span style="font-size:11px; opacity:0.6; margin:0;">Ongoing</span></div>`;            
+            
             let dispAmtHtml = `<div style="width:90px; display:flex; align-items:center; justify-content:flex-end; font-size:12px; margin:0;">${emoji} ${dispAmt} ${amtStr}</div>`;
             let timeHtml = `<div style="width:60px; display:flex; align-items:center; justify-content:flex-end; font-size:12px; margin:0;">${item.stats.hours.toFixed(1)}h</div>`;
             
-            container.innerHTML += `<div class="list-item active" onclick="window.currentLibraryFolder='${item.name}'; renderLibrary(); playAudio('open.wav');" style="display: flex; align-items: center; justify-content: space-between; height: 100%; animation-delay: ${Math.min(index * 0.03, 0.5)}s;">
-				<div style="flex:1;"><strong style="margin:0;">📁 ${item.name}</strong> <span style="font-size:10px; opacity:0.6; margin-left:8px;">(${item.stats.count} items)</span></div>
-				<div style="display:flex; align-items:center; gap:15px; height: 100%;"><div style="width:60px; text-align:right; font-size:12px;">${item.stats.hours.toFixed(1)}h</div></div>
-			</div>`;
+            let actionsHtml = `<div class="list-hover-actions" style="width:130px; display:flex; justify-content:center; gap:5px; position:relative; z-index:5; opacity:0; transition:0.2s;">${launchBtn}${dbBtn}${statsBtn}${quickAdd}<button class="lib-btn" onclick="event.stopPropagation(); openLibEdit('${item.name.replace(/'/g, "\\'")}')">✎</button></div>`;
+            
+            // Thumbnail: real cover art or color-block fallback with emoji
+            let thumbHtml = item.img 
+                ? `<div style="width:36px; height:50px; border-radius:4px; overflow:hidden; flex-shrink:0; margin-right:10px; box-shadow:0 2px 6px rgba(0,0,0,0.4);"><img src="${item.img}" style="width:100%; height:100%; object-fit:cover; ${item.blur ? 'filter:blur(6px);' : ''}" loading="lazy"></div>`
+                : `<div style="width:36px; height:50px; border-radius:4px; flex-shrink:0; margin-right:10px; background:${tColor}22; border:1px solid ${tColor}55; display:flex; align-items:center; justify-content:center; font-size:18px;" title="${item.type}">${emoji}</div>`;
+
+            container.innerHTML += `<div class="list-item ${item.status}" onclick="selectFromLibrary('${item.type}', '${item.name.replace(/'/g, "\\'")}'); fireMediaLaunch('${item.name.replace(/'/g, "\\'")}');" style="animation-delay: ${Math.min(index * 0.03, 0.5)}s; padding: 6px 12px;" data-media="${item.name.replace(/"/g, '&quot;')}" onmouseenter="let a = this.querySelector('.list-hover-actions'); if(a) a.style.opacity='1';" onmouseleave="let a = this.querySelector('.list-hover-actions'); if(a) a.style.opacity='0';">
+                <div style="flex:1; display:flex; align-items:center; min-width:0;">
+                    ${thumbHtml}
+                    <div style="min-width:0; overflow:hidden;">
+                        <div style="display:flex; align-items:center; gap:6px;">
+                            ${statusIcon} <strong style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${item.name}</strong>
+                        </div>
+                        <div style="font-size:10px; opacity:0.5; margin-top:2px;">${item.type}</div>
+                    </div>
+                </div>
+                <div style="display:flex; align-items:center; gap:15px; height: 100%;">
+                    ${actionsHtml}
+                    ${middleHtml}
+                    ${dispAmtHtml}
+                    ${timeHtml}
+                </div>
+            </div>`;
         }
     });
     if (items.length === 0 && displayItems.length === 0) container.innerHTML = "<div style='opacity:0.6; grid-column:1/-1;'>No media found matching these filters.</div>";
@@ -2363,7 +2889,6 @@ function openLibEdit(name) {
     document.getElementById("libEditBlur").checked = profile.blur || false;
     document.getElementById("libEditAuto").checked = profile.autoComplete !== false;
 
-    // --- SMART FOLDER DROPDOWN ---
     let folderSel = document.getElementById("libEditFolderSelect");
     folderSel.innerHTML = '<option value="none">None</option>';
     let existingFolders = new Set();
@@ -2380,8 +2905,6 @@ function openLibEdit(name) {
         document.getElementById("libEditFolderNew").classList.add("hidden");
     }
     document.getElementById("libEditFolderNew").value = "";
-    // -----------------------------
-
     currentLibEditPaths = (profile.paths || [""]).filter(p => p.trim() !== "");
     if (currentLibEditPaths.length === 0) currentLibEditPaths = [""];
     renderLibEditPaths();
@@ -2432,9 +2955,9 @@ function saveLibraryEdit() {
     p.notes = document.getElementById("libEditNotes").value;
     p.dbUrl = document.getElementById("libEditDbUrl").value.trim(); 
     p.dbAlt = document.getElementById("libEditDbAlt").value.trim();
-    p.folder = finalFolder; // Apply folder
+    p.folder = finalFolder;
 
-    save(); updateAll(); renderLibrary(); closeModal('libEditOverlay'); // Forces immediate redraw
+    save(); updateAll(); renderLibrary(); closeModal('libEditOverlay');
 }
 
 function deleteLibraryMedia() { 
@@ -2442,7 +2965,6 @@ function deleteLibraryMedia() {
     let type = editLibMediaType; 
     let msg = `Completely remove "${oldName}" from your library?\n(Note: Your past hours for this media will remain in history)`;
 
-    // The Action to perform if 'Yes' is clicked
     let executeDelete = () => {
         if (data.media[type]) {
             data.media[type] = data.media[type].filter(x => x !== oldName); 
@@ -2452,7 +2974,6 @@ function deleteLibraryMedia() {
         showToast(`🗑️ Deleted ${oldName}`, "Alert");
     };
 
-    // Safety Check: Try custom UI, fallback to standard UI
     if (typeof showConfirm === "function") {
         showConfirm(msg, executeDelete); 
     } else {
@@ -2460,24 +2981,49 @@ function deleteLibraryMedia() {
     }
 }
 
+let currentNewMediaPaths = [];
+
 function openAddMediaModal() { 
     document.getElementById("newMediaInput").value = ""; 
     document.getElementById("newMediaImg").value = ""; 
     document.getElementById("newMediaTarget").value = ""; 
-    
+    document.getElementById("newMediaQuickPath").value = "";
     let overrideSel = document.getElementById("newMediaOverride");
     if (overrideSel) overrideSel.value = "default";
     
-    // Reset the search container UI
     let container = document.getElementById("apiSearchContainer");
     if (container) {
         container.innerHTML = "";
         container.classList.add("hidden");
     }
 
+    // Force the path editor to close when opening the window
+    let pathsWrapper = document.getElementById("newMediaPathsWrapper");
+    if (pathsWrapper) pathsWrapper.classList.add("hidden");
+
+    // Load preset paths for the current type
+    let t = document.getElementById("logType").value;
+    let conf = data.mediaConfig[t];
+    currentNewMediaPaths = (conf && conf.usePresetPaths && conf.presetPaths) ? [...conf.presetPaths] : [""];
+    if (currentNewMediaPaths.length === 0) currentNewMediaPaths = [""];
+    renderNewMediaPaths();
+
     openModal("addMediaOverlay"); 
     setTimeout(() => document.getElementById("newMediaInput").focus(), 100); 
 }
+
+function renderNewMediaPaths() {
+    let c = document.getElementById("newMediaPathsContainer"); 
+    if(!c) return;
+    c.innerHTML = "";
+    currentNewMediaPaths.forEach((p, i) => {
+        c.innerHTML += `<div style="display:flex; gap:5px;"><input type="text" id="newMediaPath${i}" value="${p.replace(/"/g, '&quot;')}" placeholder="Path ${i+1}..." style="flex:1; font-size:11px; background:var(--input); color:var(--text); border:1px solid var(--border); padding:4px; border-radius:4px;"><button onclick="removeNewMediaPath(${i})" style="background:#ff4444; color:#fff; border:none; border-radius:4px; padding:0 8px; font-weight:bold; cursor:pointer;">X</button></div>`;
+    });
+    let btn = document.getElementById("btnAddNewMediaPath");
+    if(btn) btn.style.display = currentNewMediaPaths.length >= 5 ? 'none' : 'inline-block';
+}
+function addNewMediaPath() { if(currentNewMediaPaths.length < 5) currentNewMediaPaths.push(""); renderNewMediaPaths(); }
+function removeNewMediaPath(i) { currentNewMediaPaths.splice(i, 1); renderNewMediaPaths(); }
 
 document.getElementById("newMediaInput").addEventListener("keypress", function(e) { if (e.key === "Enter") confirmAddMedia(); });
 function confirmAddMedia() { 
@@ -2488,25 +3034,28 @@ function confirmAddMedia() {
     let overrideSel = document.getElementById("newMediaOverride");
     let metricOverride = overrideSel ? overrideSel.value : 'default';
     
-    // Grab the database URL if it was auto-filled
     let dbUrlEl = document.getElementById("newMediaDbUrl");
     let dbUrl = dbUrlEl ? dbUrlEl.value.trim() : "";
     
     let t = logType.value; 
-    
+
+    // Extract paths from the UI boxes
+    let finalPaths = [];
+    for (let i = 0; i < currentNewMediaPaths.length; i++) {
+        let el = document.getElementById('newMediaPath' + i);
+        if (el && el.value.trim() !== "") finalPaths.push(el.value.trim());
+    }
+    let quickPath = document.getElementById("newMediaQuickPath");
+    if (quickPath && quickPath.value.trim() !== "") {
+        finalPaths.push(quickPath.value.trim());
+    }
     if(n) { 
         if (!data.media[t].includes(n)) { 
             data.media[t].push(n); 
             let auto = document.getElementById("newMediaAuto").checked; 
             
-            let defaultPaths = ["", "", ""];
-            let conf = data.mediaConfig[t];
-            if (conf && conf.usePresetPaths && conf.presetPaths) {
-                defaultPaths = [...conf.presetPaths];
-            }
-
-            // Notice dbUrl is added to the end of this object!
-            data.mediaData[n] = { type: t, status: 'active', target: target, metricOverride: metricOverride, img: img, paths: defaultPaths, blur: false, hidden: false, autoComplete: auto, dbUrl: dbUrl }; 
+            // Feed it the user's custom finalPaths
+            data.mediaData[n] = { type: t, status: 'active', target: target, metricOverride: metricOverride, img: img, paths: finalPaths, blur: false, hidden: false, autoComplete: auto, dbUrl: dbUrl }; 
         } 
         save(); populateMedia(); renderLibrary(); 
     } 
@@ -2514,9 +3063,7 @@ function confirmAddMedia() {
 }
 function updateCardSize(type, val) { let isLocked = document.getElementById("cardFixedRatio").checked; let wSlider = document.getElementById("cardWidthSlider"); let hSlider = document.getElementById("cardHeightSlider"); if (isLocked) { if (type === 'width') hSlider.value = Math.round(val * 0.45); else wSlider.value = Math.round(val / 0.45); } document.documentElement.style.setProperty('--card-width', wSlider.value + 'px'); document.documentElement.style.setProperty('--card-height', hSlider.value + 'px'); data.prefs.cardWidth = parseInt(wSlider.value); data.prefs.cardHeight = parseInt(hSlider.value); save(); }
 
-/* ===============================
-QUICK LINKS MANAGER
-=============================== */
+// ── QUICK LINKS ──
 let isLinkEditMode = false;
 function toggleLinkEditMode() { isLinkEditMode = !isLinkEditMode; let addSec = document.getElementById("linkAddSection"); if (isLinkEditMode) { addSec.classList.remove("hidden"); } else { addSec.classList.add("hidden"); } renderLinkManager(); }
 function openLinkModal() { isLinkEditMode = false; document.getElementById("linkAddSection").classList.add("hidden"); renderLinkManager(); openModal('linkOverlay'); }
@@ -2530,9 +3077,7 @@ function deleteLink(i) {
     }); 
 }
 
-/* ===============================
-LEVELS, GOALS & ARCHIVING
-=============================== */
+// ── GOALS ──
 
 function calculateDeadline() { 
     let preset = document.getElementById('gDeadlinePreset').value; 
@@ -2545,11 +3090,9 @@ function calculateDeadline() {
     if (preset === "week") {
         let day = start.getDay() || 7; 
         start.setDate(start.getDate() - (day - 1)); 
-        start.setHours(12, 0, 0, 0); // Force noon to prevent timezone shift
-        end = new Date(start);
+        start.setHours(12, 0, 0, 0); end = new Date(start);
         end.setDate(end.getDate() + 6); 
     } else if (preset === "month") {
-        // Adding 12, 0, 0 forces the date to noon
         start = new Date(d.getFullYear(), d.getMonth(), 1, 12, 0, 0);
         end = new Date(d.getFullYear(), d.getMonth() + 1, 0, 12, 0, 0); 
     } else if (preset === "year") {
@@ -2674,7 +3217,10 @@ function renderGoals() {
         let dispProg = g.metric === "hours" ? prog.toFixed(1) : Math.floor(prog); 
         let dispTgt = g.metric === "hours" ? g.target.toFixed(1) : Math.floor(g.target); 
         
-        let card = document.createElement("div"); card.className = `goal-card ${done ? 'completed' : ''}`; 
+        // Visual variant based on state
+        let isRepeating = g.frame && g.frame !== 'none' && !g.deadline;
+        let cardVariant = done ? 'completed' : (isRepeating ? 'repeating' : '');
+        let card = document.createElement("div"); card.className = `goal-card ${cardVariant}`; 
         card.innerHTML = `
             <div style="display:flex; justify-content:space-between"><strong>${g.name} ${done?'✅':''}</strong><div class="goal-actions"><button onclick="archiveGoalEarly(${i})" title="Archive Early">📦</button> <button onclick="openGoalModal(${i})">✎</button> <button onclick="deleteGoal(${i})">✕</button></div></div>
             <div class="progress"><div class="progress-fill" style="width:${pct}%"></div></div>
@@ -2687,6 +3233,51 @@ function renderGoals() {
         container.appendChild(card); 
     }); 
 }
+function getGoalPeriods(g, endOverride = null) {
+    if (g.frame === 'none') return [];
+    let logs = data.entries; if (g.type !== "all") logs = logs.filter(e => e.type === g.type);
+    let start = new Date(g.createdAt || getLocalDateStr()); start.setHours(12,0,0,0);
+    let now = new Date(endOverride || getLocalDateStr()); now.setHours(12,0,0,0);
+    let periods = [];
+
+    if (g.frame === 'daily') {
+        let total = Math.floor((now - start) / 86400000);
+        for (let i = 0; i < total; i++) {
+            let d = new Date(start); d.setDate(d.getDate() + i);
+            let dateStr = getLocalDateStr(d);
+            let prog = logs.filter(e => e.date === dateStr).reduce((acc, e) => acc + (g.metric==='units' ? (e.units||e.eps||e.pages||0) : (e[g.metric]||0)), 0);
+            periods.push({ label: formatDDMMYYYY(dateStr), prog, cleared: prog >= g.target });
+        }
+    } else if (g.frame === 'weekly') {
+        let startMon = new Date(start); startMon.setDate(startMon.getDate() - ((startMon.getDay()||7) - 1));
+        let nowMon = new Date(now); nowMon.setDate(nowMon.getDate() - ((nowMon.getDay()||7) - 1));
+        let total = Math.floor((nowMon - startMon) / (86400000 * 7));
+        for (let i = 0; i < total; i++) {
+            let wStart = new Date(startMon); wStart.setDate(wStart.getDate() + (i * 7));
+            let wEnd = new Date(wStart); wEnd.setDate(wEnd.getDate() + 6);
+            let sStr = getLocalDateStr(wStart); let eStr = getLocalDateStr(wEnd);
+            let prog = logs.filter(e => e.date >= sStr && e.date <= eStr).reduce((acc, e) => acc + (g.metric==='units' ? (e.units||e.eps||e.pages||0) : (e[g.metric]||0)), 0);
+            periods.push({ label: `Week of ${formatDDMMYYYY(sStr)}`, prog, cleared: prog >= g.target });
+        }
+    } else if (g.frame === 'monthly') {
+        let total = (now.getFullYear() - start.getFullYear()) * 12 + (now.getMonth() - start.getMonth());
+        for (let i = 0; i < total; i++) {
+            let mStart = new Date(start.getFullYear(), start.getMonth() + i, 1, 12, 0, 0);
+            let m = mStart.getMonth(); let y = mStart.getFullYear();
+            let prog = logs.filter(e => { let d = new Date(e.date); return d.getMonth()===m && d.getFullYear()===y; }).reduce((acc, e) => acc + (g.metric==='units' ? (e.units||e.eps||e.pages||0) : (e[g.metric]||0)), 0);
+            periods.push({ label: mStart.toLocaleString('default', {month:'long', year:'numeric'}), prog, cleared: prog >= g.target });
+        }
+    } else if (g.frame === 'yearly') {
+        let total = now.getFullYear() - start.getFullYear();
+        for (let i = 0; i < total; i++) {
+            let y = start.getFullYear() + i;
+            let prog = logs.filter(e => new Date(e.date).getFullYear() === y).reduce((acc, e) => acc + (g.metric==='units' ? (e.units||e.eps||e.pages||0) : (e[g.metric]||0)), 0);
+            periods.push({ label: String(y), prog, cleared: prog >= g.target });
+        }
+    }
+    return periods;
+}
+
 function getGoalHistoryStr(g, endOverride = null) {
     if (data.prefs.showGoalHistory === false || g.frame === 'none') return ""; 
     
@@ -2794,6 +3385,9 @@ function stopTimerFull() {
         if(zenBtn) { zenBtn.textContent = "▶ START"; zenBtn.classList.remove("active"); zenBtn.style.background = ""; zenBtn.style.borderColor = ""; zenBtn.style.animation = ""; }
         let zc = document.getElementById("zenClock"); if(zc) zc.textContent = "00:00:00"; 
         
+		let sidebarClock = document.getElementById("sidebarTimerDisplay");
+		if(sidebarClock) { sidebarClock.textContent = "00:00:00"; sidebarClock.classList.add("hidden"); }
+		
         playAudio('timer.wav'); 
         showToast("⏹️ Timer Stopped", "Overall");
         if (typeof broadcastToWidget === 'function') broadcastToWidget();
@@ -2805,9 +3399,7 @@ function stopTimerFull() {
     nukeFocus();
 }
 
-/* ===============================
-HEATMAP & CHARTS
-=============================== */
+// ── CHARTS ──
 // Tiny helper to convert Hex Theme colors to RGBA for the charts
 function hexToRgb(hex) {
     if (!hex || !hex.startsWith('#')) return "76, 201, 240"; // Fallback
@@ -2866,7 +3458,7 @@ function renderHeatmap() {
                 // Sort breakdown highest to lowest
                 let sortedTypes = Object.entries(dData.types).sort((a,b) => b[1] - a[1]);
                 sortedTypes.forEach(([t, h]) => {
-                    let tColor = currTheme[t.toLowerCase()] || stringToColor(t);
+                    let tColor = getTypeColor(t, currTheme);
                     html += `<div class="ht-row">
                         <span><span class="ht-dot" style="background:${tColor}; box-shadow: 0 0 5px ${tColor};"></span>${t}</span>
                         <strong>${h.toFixed(1)}h</strong>
@@ -2891,45 +3483,120 @@ function renderHeatmap() {
 
 let pie, line; 
 
+function pieDrillBack() {
+    let mf = document.getElementById('mediaFilter');
+    let activeFilter = mf.value;
+    // If on a specific media title, go up to its type
+    if (activeFilter !== 'all' && data.mediaData[activeFilter]) {
+        let parentType = data.mediaData[activeFilter].type;
+        if (parentType && Array.from(mf.options).some(o => o.value === parentType)) {
+            mf.value = parentType;
+        } else {
+            mf.value = 'all';
+        }
+    } else {
+        // Already at type level, go all the way up
+        mf.value = 'all';
+    }
+    handleMediaFilterChange();
+}
+
 function updateCharts() { 
-    if (typeof Chart === 'undefined') return; 
+    if (typeof Chart === 'undefined') return;
     let ent = getFilteredEntries(rangeSelect.value); 
     let selectedMetric = document.getElementById("trendMetric").value || "hours"; 
     
-    // --- DYNAMIC PIE CHART COLORS ---
     let currTheme = {...themes, ...data.prefs.customThemes}[data.prefs.theme] || themes.Dark;
-    let dist = {}; ent.forEach(e => { dist[e.type] = (dist[e.type] || 0) + e.hours; }); 
-    let filteredDist = {}; for (const [key, val] of Object.entries(dist)) { if (val > 0) filteredDist[key] = val; }
-    
-    let pieLabels = Object.keys(filteredDist);
-    let pieColors = pieLabels.map(label => currTheme[label.toLowerCase()] || stringToColor(label)); 
+    let activeFilter = document.getElementById('mediaFilter').value;
+    let isSpecificMedia = activeFilter !== 'all' && !!data.mediaData[activeFilter]; // a real media title
+    let isDrilledIn = !isSpecificMedia && activeFilter !== 'all' && !!data.mediaConfig[activeFilter]; // a media TYPE
+
+    // Update back button + label
+    let pieDrillBackBtn = document.getElementById('pieDrillBackBtn');
+    let pieDrillLabel = document.getElementById('pieDrillLabel');
+    let showBack = isDrilledIn || isSpecificMedia;
+    if (pieDrillBackBtn) pieDrillBackBtn.classList.toggle('hidden', !showBack);
+    if (pieDrillLabel) {
+        if (isSpecificMedia) {
+            let mediaType = data.mediaData[activeFilter]?.type || '';
+            pieDrillLabel.textContent = mediaType + ' › ' + activeFilter;
+        } else if (isDrilledIn) {
+            pieDrillLabel.textContent = activeFilter;
+        } else {
+            pieDrillLabel.textContent = '';
+        }
+        pieDrillLabel.style.display = showBack ? 'inline' : 'none';
+    }
+
+    let pieLabels, pieColors, pieData;
+    if (isSpecificMedia) {
+        // Specific media: show just this media's hours vs the rest of its type
+        let mediaType = data.mediaData[activeFilter]?.type;
+        let titleDist = {};
+        ent.forEach(e => {
+            if (!mediaType || e.type !== mediaType) return;
+            let key = e.media || '(Unknown)';
+            titleDist[key] = (titleDist[key] || 0) + e.hours;
+        });
+        let sorted = Object.entries(titleDist).filter(([,v]) => v > 0).sort((a,b) => b[1]-a[1]);
+        pieLabels = sorted.map(([k]) => k);
+        pieData = sorted.map(([,v]) => v);
+        // Highlight selected media, grey out others
+        pieColors = pieLabels.map(l => l === activeFilter ? stringToColor(l) : 'rgba(100,100,100,0.3)');
+    } else if (isDrilledIn) {
+        // Type drill-down: show all individual titles within the type
+        let titleDist = {};
+        ent.forEach(e => { 
+            if (e.type !== activeFilter) return;
+            let key = e.media || '(Unknown)';
+            titleDist[key] = (titleDist[key] || 0) + e.hours;
+        });
+        let sorted = Object.entries(titleDist).filter(([,v]) => v > 0).sort((a,b) => b[1]-a[1]);
+        pieLabels = sorted.map(([k]) => k);
+        pieData = sorted.map(([,v]) => v);
+        pieColors = pieLabels.map(l => stringToColor(l));
+    } else {
+        // Top-level: distribution by media type
+        let dist = {}; ent.forEach(e => { dist[e.type] = (dist[e.type] || 0) + e.hours; });
+        let filteredDist = {}; for (const [key, val] of Object.entries(dist)) { if (val > 0) filteredDist[key] = val; }
+        pieLabels = Object.keys(filteredDist);
+        pieData = Object.values(filteredDist);
+        pieColors = pieLabels.map(label => getTypeColor(label, currTheme));
+    }
 
     if(pie) pie.destroy(); 
     pie = new Chart(document.getElementById("pieChart"), { 
         type:'doughnut', 
         data:{ 
             labels: pieLabels, 
-            datasets:[{data:Object.values(filteredDist), backgroundColor: pieColors, borderColor: 'rgba(0,0,0,0.2)', borderWidth: 2}] 
+            datasets:[{data: pieData, backgroundColor: pieColors, borderColor: 'rgba(0,0,0,0.2)', borderWidth: 2}] 
         }, 
         options:{ 
             responsive: true, maintainAspectRatio: false, 
             plugins:{legend:{position:'bottom', labels: {color: '#888', font: {size: 11}}}}, 
             onClick: (e, activeEls) => { 
                 if (activeEls.length > 0) { 
-                    let clickedIndex = activeEls[0].index; let label = pie.data.labels[clickedIndex]; 
-                    let mf = document.getElementById('mediaFilter'); 
-                    if(Array.from(mf.options).some(o => o.value === label)) { mf.value = label; updateAll(); } 
+                    let clickedIndex = activeEls[0].index; 
+                    let label = pie.data.labels[clickedIndex];
+                    if (isDrilledIn || isSpecificMedia) {
+                        // In drill-down: clicking a title goes to that media's analytics page
+                        viewSpecificAnalytics(label);
+                    } else {
+                        // Top-level: clicking a type filters to that type
+                        let mf = document.getElementById('mediaFilter'); 
+                        if (Array.from(mf.options).some(o => o.value === label)) { 
+                            mf.value = label; handleMediaFilterChange(); 
+                        }
+                    }
                 } 
             } 
         } 
     });
     
-    // --- DATE RANGE & TREND CHART LOGIC ---
     let rangeVal = rangeSelect.value; 
     let today = new Date();
     let startDate = new Date(); 
-    let endDate = new Date(); // Lock the chart's end to TODAY
-    
+    let endDate = new Date();
     if (ent.length === 0 && rangeVal === 'all') { if(line) line.destroy(); return; }
     
     if (rangeVal === '7') { startDate.setDate(today.getDate() - 6); } 
@@ -2949,7 +3616,6 @@ function updateCharts() {
     startDate.setHours(0,0,0,0); 
     endDate.setHours(23,59,59,999);
 
-    // --- SMART GROUPING LOGIC ---
     let grouping = 1;
     if (rangeVal === '365') grouping = 7;
     else if (rangeVal === '90') grouping = 3;
@@ -3003,7 +3669,6 @@ function updateCharts() {
         return b.metric; 
     });
     
-    // --- DYNAMIC TREND LINE COLORS ---
     let cType = data.prefs.chartStyle || 'line';
     let lineTension = data.prefs.trendCurve === 'straight' ? 0 : 0.3;
     let lineFill = data.prefs.trendFill !== false;
@@ -3038,18 +3703,33 @@ function updateCharts() {
     }); 
 }
 
-/* ===============================
-FULL-PAGE COMPARE SYSTEM
-=============================== */
+// ── COMPARE ──
 let compareChartInstance = null;
 
 function stringToColor(str) {
-    let hash = 0;
+    // FNV-1a hash for better bit distribution on short strings
+    let hash = 2166136261;
     for (let i = 0; i < str.length; i++) {
-        hash = str.charCodeAt(i) + ((hash << 5) - hash);
-    }
-    let h = Math.abs((hash * 137.508) % 360);
-    return `hsl(${h}, 75%, 60%)`;
+        hash ^= str.charCodeAt(i);
+        hash = (hash * 16777619) >>> 0;}
+   hash ^= hash >>> 16;
+    hash = (hash * 0x45d9f3b) >>> 0;
+    hash ^= hash >>> 16;
+   let hue = (hash * 137.508) % 360;
+   let sat = 55 + (hash % 25);        // 55–80%
+    let lit = 52 + ((hash >> 8) % 18); // 52–70%
+    return `hsl(${hue.toFixed(0)}, ${sat}%, ${lit}%)`;
+}
+
+// Unified type color lookup: theme → custom config color → stringToColor
+function getTypeColor(typeName, currTheme) {
+    if (!currTheme) currTheme = {...themes, ...data.prefs.customThemes}[data.prefs.theme] || themes.Dark;
+    // 1. Check theme by lowercase type name
+    if (currTheme[typeName.toLowerCase()]) return currTheme[typeName.toLowerCase()];
+    // 2. Check custom color stored in mediaConfig
+    if (data.mediaConfig[typeName] && data.mediaConfig[typeName].color) return data.mediaConfig[typeName].color;
+    // 3. Deterministic fallback
+    return stringToColor(typeName);
 }
 
 function openComparePage() {
@@ -3076,20 +3756,17 @@ function updateCompareChart() {
     let mediaAgg = {};
     ent.forEach(e => {
         if (!e.media) return;
-        // ADDED cards and validCardHours to the baseline tracking
         if (!mediaAgg[e.media]) mediaAgg[e.media] = { hours: 0, chars: 0, units: 0, validCphHours: 0, cards: 0, validCardHours: 0, days: new Set() };
         
         mediaAgg[e.media].hours += e.hours || 0;
         mediaAgg[e.media].chars += e.chars || 0;
         mediaAgg[e.media].units += (e.units || e.eps || e.pages || 0);
-        mediaAgg[e.media].cards += e.cards || 0; // Tracks the cards
-        mediaAgg[e.media].days.add(e.date);
+        mediaAgg[e.media].cards += e.cards || 0; mediaAgg[e.media].days.add(e.date);
         
         if (e.chars > 0 && e.hours > 0) mediaAgg[e.media].validCphHours += e.hours;
         if (e.cards > 0 && e.hours > 0) mediaAgg[e.media].validCardHours += e.hours; // Tracks hours for accurate speed
     });
 
-    // --- LEADERBOARD LOGIC ---
     let maxHours = {val: 0, name: "-"};
     let maxCph = {val: 0, name: "-"};
     let maxDays = {val: 0, name: "-"};
@@ -3120,7 +3797,6 @@ function updateCompareChart() {
     document.getElementById('lbMarathon').textContent = maxSession.val > 0 ? maxSession.name : "-";
     document.getElementById('lbMarathonSub').textContent = maxSession.val > 0 ? maxSession.val.toFixed(1) + "h in one day" : "-";
 
-    // --- CHART LOGIC ---
     let chartLabels = [];
     let chartData = [];
     let chartColors = [];
@@ -3134,7 +3810,6 @@ function updateCompareChart() {
         if (metric === 'units') val = mediaAgg[m].units;
         if (metric === 'cph') val = mediaAgg[m].validCphHours > 0 ? Math.floor(mediaAgg[m].chars / mediaAgg[m].validCphHours) : 0;
         
-        // ADDED math to extract cards and cardSpeed for the graph
         if (metric === 'cards') val = mediaAgg[m].cards;
         if (metric === 'cardSpeed') val = mediaAgg[m].validCardHours > 0 ? Math.floor(mediaAgg[m].cards / mediaAgg[m].validCardHours) : 0;
         
@@ -3142,9 +3817,7 @@ function updateCompareChart() {
             chartLabels.push(m);
             chartData.push(metric === 'hours' ? parseFloat(val.toFixed(1)) : val);
             
-            let mType = data.mediaData[m] ? data.mediaData[m].type : '';
-            let tColor = currTheme[mType.toLowerCase()];
-            chartColors.push(tColor || stringToColor(m));
+            chartColors.push(stringToColor(m)); 
         }
     });
 
@@ -3186,17 +3859,201 @@ function updateCompareChart() {
     });
 }
 
-/* ===============================
-HISTORY, GHOST HOOKER & SETTINGS
-=============================== */
+// ── PROGRESS OVER TIME ──
+let progressChartInst = null;
+
+function openProgressPage() {
+    document.getElementById('analyticsView').classList.add('hidden');
+    document.getElementById('compareView').classList.add('hidden');
+    document.getElementById('progressView').classList.remove('hidden');
+    updateProgressChart();
+}
+
+function closeProgressPage() {
+    document.getElementById('progressView').classList.add('hidden');
+    document.getElementById('analyticsView').classList.remove('hidden');
+    document.getElementById('headerFilters').classList.remove('hidden');
+    setTimeout(() => { if(pie) pie.resize(); if(line) line.resize(); }, 100);
+}
+
+function updateProgressChart() {
+    if (typeof Chart === 'undefined') return;
+    let metric = document.getElementById('progressMetric').value;
+    let isSpeed = metric === 'cph' || metric === 'cardspeed';
+
+    // Use all entries respecting the active media filter
+    let ent = getFilteredEntries(document.getElementById('rangeSelect').value);
+
+    // Determine date span
+    if (ent.length === 0) {
+        if (progressChartInst) progressChartInst.destroy();
+        document.getElementById('progressInsight').textContent = 'No data for the current filter.';
+        return;
+    }
+
+    let allDates = ent.map(e => e.date).sort();
+    let firstDate = new Date(allDates[0] + 'T00:00:00');
+    let lastDate = new Date(allDates[allDates.length - 1] + 'T00:00:00');
+    let spanDays = Math.round((lastDate - firstDate) / 86400000) + 1;
+
+    // Smart bucket size:
+    // < 30 days  → 2-day buckets (up to ~15 bars)
+    // 30–89 days → 7-day buckets
+    // 90–364 days→ 14-day buckets  
+    // 365+ days  → monthly buckets
+    // Always aim for 6–12 bars regardless
+    let bucketDays;
+    if (spanDays < 30) bucketDays = 2;
+    else if (spanDays < 90) bucketDays = 7;
+    else if (spanDays < 365) bucketDays = 14;
+    else bucketDays = 30; // monthly
+
+    // Further reduce if it would produce > 12 bars
+    while (Math.ceil(spanDays / bucketDays) > 12 && bucketDays < 90) bucketDays = Math.ceil(bucketDays * 1.5);
+
+    // Build buckets
+    let buckets = [];
+    let cur = new Date(firstDate);
+    while (cur <= lastDate) {
+        let bEnd = new Date(cur);
+        bEnd.setDate(bEnd.getDate() + bucketDays - 1);
+        if (bEnd > lastDate) bEnd = new Date(lastDate);
+
+        let startStr = getLocalDateStr(cur);
+        let endStr = getLocalDateStr(bEnd);
+
+        let label;
+        if (bucketDays >= 28) {
+            label = cur.toLocaleString('default', { month: 'short', year: '2-digit' });
+        } else if (bucketDays >= 7) {
+            label = `${cur.getDate()}/${cur.getMonth()+1}`;
+        } else {
+            label = `${cur.getDate()}/${cur.getMonth()+1}`;
+        }
+
+        buckets.push({ label, startStr, endStr, h:0, c:0, u:0, cards:0, validCphH:0, validCardH:0 });
+        cur.setDate(cur.getDate() + bucketDays);
+    }
+
+    // Fill buckets
+    ent.forEach(e => {
+        let b = buckets.find(bk => e.date >= bk.startStr && e.date <= bk.endStr);
+        if (!b) return;
+        b.h += e.hours || 0;
+        b.c += e.chars || 0;
+        b.u += (e.units || e.eps || e.pages || 0);
+        b.cards += e.cards || 0;
+        if (e.chars > 0 && e.hours > 0) b.validCphH += e.hours;
+        if (e.cards > 0 && e.hours > 0) b.validCardH += e.hours;
+    });
+
+    // For speed metrics, drop empty buckets (no valid hours = no meaningful CPH)
+    let renderBuckets = isSpeed
+        ? buckets.filter(b => metric === 'cph' ? b.validCphH > 0 : b.validCardH > 0)
+        : buckets;
+
+    let labels = renderBuckets.map(b => b.label);
+    let values = renderBuckets.map(b => {
+        if (metric === 'hours')     return parseFloat(b.h.toFixed(1));
+        if (metric === 'chars')     return b.c;
+        if (metric === 'units')     return b.u;
+        if (metric === 'cards')     return b.cards;
+        if (metric === 'cph')       return b.validCphH > 0 ? Math.round(b.c / b.validCphH) : 0;
+        if (metric === 'cardspeed') return b.validCardH > 0 ? Math.round(b.cards / b.validCardH) : 0;
+        return 0;
+    });
+
+    let accentHex = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#4cc9f0';
+    let rgbVal = hexToRgb(accentHex);
+
+    // Colour bars by value: low = dim, high = vivid — shows improvement visually
+    let maxVal = Math.max(...values, 1);
+    let barColors = values.map(v => {
+        let intensity = 0.3 + 0.7 * (v / maxVal);
+        return `rgba(${rgbVal}, ${intensity.toFixed(2)})`;
+    });
+
+    if (progressChartInst) progressChartInst.destroy();
+    progressChartInst = new Chart(document.getElementById('progressChart'), {
+        type: isSpeed ? 'line' : 'bar',
+        data: {
+            labels,
+            datasets: [{
+                label: metric.toUpperCase(),
+                data: values,
+                backgroundColor: isSpeed ? `rgba(${rgbVal}, 0.1)` : barColors,
+                borderColor: accentHex,
+                borderWidth: isSpeed ? 2 : 1,
+                borderRadius: isSpeed ? 0 : 4,
+                tension: 0.3,
+                fill: isSpeed,
+                pointRadius: isSpeed ? 5 : 0,
+                pointHoverRadius: 7,
+            }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: item => {
+                            let v = item.raw;
+                            if (metric === 'hours') return v.toFixed(1) + 'h';
+                            if (metric === 'cph' || metric === 'cardspeed') return v.toLocaleString() + (metric === 'cph' ? ' CPH' : ' cards/hr');
+                            return v.toLocaleString();
+                        },
+                        afterBody: (items) => {
+                            // Show trend arrow vs previous bucket
+                            let i = items[0].dataIndex;
+                            if (i === 0) return '';
+                            let prev = values[i - 1], curr = values[i];
+                            if (prev === 0) return '';
+                            let pct = ((curr - prev) / prev * 100).toFixed(0);
+                            return pct > 0 ? `▲ ${pct}% vs prev` : `▼ ${Math.abs(pct)}% vs prev`;
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: { ticks: { color: '#888', maxRotation: 0 }, grid: { display: false } },
+                y: {
+                    ticks: { color: '#888', maxTicksLimit: 6 },
+                    grid: { color: 'rgba(255,255,255,0.05)' },
+                    title: { display: true, color: '#666', font: { size: 10 },
+                        text: metric === 'hours' ? 'Hours' : metric === 'cph' ? 'Chars/Hr' : metric === 'cardspeed' ? 'Cards/Hr' : metric === 'chars' ? 'Characters' : metric === 'cards' ? 'Cards' : 'Units'
+                    }
+                }
+            }
+        }
+    });
+
+    // Compute a simple improvement insight
+    if (values.length >= 2) {
+        let first = values[0], last = values[values.length - 1];
+        let pct = first > 0 ? ((last - first) / first * 100).toFixed(0) : null;
+        let metricLabel = { hours:'Hours', chars:'Characters', cph:'Reading Speed', units:'Units', cards:'Cards', cardspeed:'Mining Speed' }[metric] || metric;
+        let insight = pct !== null
+            ? `${metricLabel}: ${pct > 0 ? '▲ +' : '▼ '}${pct}% from first to last period`
+            : `Not enough data to compute trend`;
+        document.getElementById('progressInsight').textContent = insight;
+    } else {
+        document.getElementById('progressInsight').textContent = 'Log more entries to see a trend.';
+    }
+}
+
+// ── HISTORY & SETTINGS ──
 function openHistory() { openModal("historyOverlay"); let now = new Date(); let localNow = new Date(now.getTime() - now.getTimezoneOffset() * 60000); let today = localNow.toISOString().split("T")[0]; let firstDayStr = `${localNow.getFullYear()}-${String(localNow.getMonth() + 1).padStart(2, '0')}-01`; histStart.value = firstDayStr; histEnd.value = today; renderHistory(); }
 function renderHistory() { 
     const tbody = document.querySelector("#historyTable tbody"); tbody.innerHTML = ""; 
     data.entries.filter(e => (e.date >= histStart.value && e.date <= histEnd.value) && (histType.value === "all" || e.type === histType.value)).reverse().forEach(e => { 
         let idx = data.entries.indexOf(e); 
         let conf = data.mediaConfig[e.type] || {inputs:[]}; 
-        let amt = conf.inputs.includes('eps') ? e.eps + 'e' : e.hours.toFixed(1) + 'h'; 
-        if (conf.inputs.includes('chars') && e.chars > 0) amt += ` (${e.chars} chars)`; 
+        let hasUnitsConf = conf.inputs && (conf.inputs.includes('units') || conf.inputs.includes('eps') || conf.inputs.includes('pages'));
+        let unitVal = e.units || e.eps || e.pages || 0;
+        let amt = e.hours.toFixed(1) + 'h';
+        if (hasUnitsConf && unitVal > 0) amt += ` · ${unitVal} ${conf.unitName || 'units'}`;
+        if (conf.inputs && conf.inputs.includes('chars') && e.chars > 0) amt += ` (${e.chars} chars)`; 
         if (e.cards > 0) amt += ` <span style="color:var(--accent);">[${e.cards} cards]</span>`;
         
         let tr = document.createElement("tr"); 
@@ -3294,7 +4151,6 @@ function connectWebSocket() {
     } catch(e) {} 
 }
 
-function updateCharInputFromHook() { document.getElementById("logChars").value = hookedLines.reduce((acc, l) => acc + l.length, 0); }
 function openAuditModal() { let container = document.getElementById("auditList"); if (hookedLines.length === 0) container.innerHTML = "<div style='opacity:0.6; text-align:center;'>No lines hooked yet.</div>"; else renderAuditList(); playAudio('audit.wav'); document.getElementById("auditOverlay").classList.remove("hidden"); }
 function renderAuditList() { let container = document.getElementById("auditList"); container.innerHTML = ""; [...hookedLines].reverse().forEach(line => { let div = document.createElement("div"); div.style.display = "flex"; div.style.justifyContent = "space-between"; div.style.borderBottom = "1px solid var(--border)"; div.style.padding = "4px 0"; div.innerHTML = `<div style="flex:1; word-break: break-all; margin-right:10px;">${line.text}</div><div style="color:var(--accent); width:30px; text-align:right;">${line.length}</div><button onclick="deleteHookLine(${line.id})" style="background:transparent; border:none; color:#ff4444; margin-left:10px;">✕</button>`; container.appendChild(div); }); }
 function deleteHookLine(id) { hookedLines = hookedLines.filter(l => l.id !== id); updateCharInputFromHook(); renderAuditList(); if(hookedLines.length === 0) document.getElementById("auditList").innerHTML = "<div style='opacity:0.6; text-align:center;'>No lines hooked yet.</div>"; }
@@ -3458,7 +4314,8 @@ function applyFont() {
 }
 
 function switchSetTab(tabId) {
-    const tabs = ['set-app', 'set-media', 'set-pref', 'set-int', 'set-widgets', 'set-data'];
+    if (tabId === 'set-ui') openUiSettings();
+    const tabs = ['set-app', 'set-media', 'set-pref', 'set-int', 'set-widgets', 'set-data', 'set-ui'];
     
     // 1. Toggle the actual content sections
     tabs.forEach(t => {
@@ -3496,6 +4353,7 @@ function openSettings() {
     populateThemeSelect(); 
     renderMediaTypesSettings();
     document.getElementById("setBlurCph").checked = data.prefs.blurCph || false;
+	document.getElementById("setShowSidebarTimer").checked = data.prefs.showSidebarTimer !== false;
     document.getElementById("setBgUrl").value = data.prefs.bgUrl || "";
     document.getElementById("setBgDim").value = data.prefs.bgDim !== undefined ? data.prefs.bgDim : 0.7;
     document.getElementById("setBgDimVal").textContent = document.getElementById("setBgDim").value;
@@ -3523,8 +4381,8 @@ function openSettings() {
 	document.getElementById("setBgBlur").value = data.prefs.bgBlur || 0;
 	document.getElementById("setBgBlurVal").textContent = (data.prefs.bgBlur || 0) + "px";
 	
+	
     
-    // Load Trend Settings
     document.getElementById("chartStyleSelect").value = data.prefs.chartStyle || "line";
     document.getElementById("setTrendCurve").value = data.prefs.trendCurve || "smooth";
     document.getElementById("setTrendFill").value = data.prefs.trendFill !== false ? "true" : "false";
@@ -3537,6 +4395,8 @@ function openSettings() {
     document.getElementById("wsUrl").value = data.prefs.wsUrl || "ws://localhost:55001"; 
     document.getElementById("muteSounds").checked = data.prefs.mute;
     document.getElementById("prefHideSidebar").checked = data.prefs.hideSidebarInLibrary === true;
+	document.getElementById("prefHideEpLength").checked = data.prefs.hideEpLength === true;
+	setDensity(data.prefs.density || 'normal');
     document.getElementById("setLaunchSidebar").checked = data.prefs.launchSidebar === true;
 	document.getElementById("hkDbAlt").value = data.prefs.hotkeys.dbAlt || ""; 
 	document.getElementById("hkDbMain").value = data.prefs.hotkeys.dbMain || "";
@@ -3544,12 +4404,10 @@ function openSettings() {
 	document.getElementById("setCustomFont").value = data.prefs.customFont || ""; handleFontPresetChange();
 	document.getElementById("hkAlwaysOnTop").value = data.prefs.hotkeys.alwaysOnTop || "";
     
-    // Load Anki Settings
     document.getElementById("setAnkiEnabled").checked = data.prefs.ankiEnabled === true;
     document.getElementById("setAnkiAlways").checked = data.prefs.ankiAlways === true;
     
 	document.getElementById("setCloseToTray").checked = data.prefs.closeToTray === true;
-    // Fetch real monitors for Widgets and load active tab
     if (window.electronAPI && window.electronAPI.getDisplays) {
         window.electronAPI.getDisplays().then(displays => {
             
@@ -3560,9 +4418,7 @@ function openSettings() {
                 let isPrim = d.isPrimary ? " (Primary)" : "";
                 sel.innerHTML += `<option value='${JSON.stringify(d.bounds)}'>Monitor ${d.index}${isPrim} - ${d.bounds.width}x${d.bounds.height}</option>`;
             });
-
-            // --- 2. PAUSE OVERLAY DROPDOWN (The new code) ---
-            let pSel = document.getElementById("setPauseMonitor");
+let pSel = document.getElementById("setPauseMonitor");
             if (pSel) {
                 pSel.innerHTML = '<option value="disabled">Disabled</option><option value="auto">Auto (Current Mouse Monitor)</option>';
                 displays.forEach(d => {
@@ -3572,7 +4428,6 @@ function openSettings() {
                 pSel.value = data.prefs.pauseMonitor || 'disabled';
             }
 
-            // Forces the UI to load whichever widget tab you select
             loadSpecificWidgetSettings(document.getElementById("widCurrentEdit").value || 'linux'); 
         });
     }
@@ -3622,7 +4477,6 @@ function saveSettingsFast() {
     
 	data.prefs.closeToTray = document.getElementById("setCloseToTray").checked;
     
-    // Instantly update the backend when the box is checked
     if (window.electronAPI && window.electronAPI.updateTraySetting) {
         window.electronAPI.updateTraySetting(data.prefs.closeToTray);
     }
@@ -3649,7 +4503,6 @@ const themes = {
 	SolarizedDark:{bg:"#002b36",card:"#073642",header:"#002b36",text:"#93a1a1",accent:"#b58900",border:"#586e75",input:"#083c4a",anime:"#ef4444",vn:"#3b82f6",manga:"#a855f7",book:"#22c55e",audiobook:"#f59e0b",youtube:"#dc2626",other:"#14b8a6"},
 	SolarizedLight:{bg:"#fdf6e3",card:"#eee8d5",header:"#fdf6e3",text:"#073642",accent:"#268bd2",border:"#93a1a1",input:"#e4dcc7",anime:"#ef4444",vn:"#3b82f6",manga:"#a855f7",book:"#22c55e",audiobook:"#f59e0b",youtube:"#dc2626",other:"#14b8a6"},
 };
-
 
 
 function applyTheme(n) { let t = {...themes, ...data.prefs.customThemes}[n] || themes.Dark; Object.entries(t).forEach(([k,v]) => document.documentElement.style.setProperty(`--${k}`, v));}
@@ -3700,9 +4553,7 @@ function deleteCurrentTheme() {
     }); 
 }
 
-/* ===============================
-PHASE 2: MEDIA BUILDER
-=============================== */
+// ── MEDIA BUILDER ──
 let editMTName = null;
 function renderMediaTypesSettings() {
     let c = document.getElementById('mediaTypeContainer');
@@ -3760,27 +4611,24 @@ function openMediaTypeEditor(name) {
     document.getElementById('mtName').disabled = !!name;
     document.getElementById('mtDeleteBtn').classList.toggle('hidden', !name || name === 'All Media');
     
-    // MERGED: Keeps your afk/autoSubmit AND adds the preset paths
-    let config = name ? data.mediaConfig[name] : {inputs:[], stats:[], unitName: 'Units', progressMetric: 'units', emoji: '📦', autoHook: false, autoSubmit: false, afk: 0, usePresetPaths: false, presetPaths: ["","",""]};
+    let config = name ? data.mediaConfig[name] : {inputs:[], stats:[], unitName: 'Units', progressMetric: 'units', emoji: '📦', autoHook: false, autoSubmit: false, afk: 0, usePresetPaths: false, presetPaths: ["","",""], autoCountUnits: false};
     
     document.getElementById('mtUnitName').value = config.unitName || 'Units';
     document.getElementById('mtEmoji').value = config.emoji || '📦';
+    document.getElementById('mtColor').value = config.color || '#4cc9f0';
     document.getElementById('mtProgressMetric').value = config.progressMetric || 'units';
     document.getElementById('mtWeight').value = config.weight !== undefined ? config.weight : 1.0;
     
-    // Your variables
     document.getElementById('mtAfk').value = config.afk !== undefined ? config.afk : "";
     document.getElementById('mtAutoHook').checked = config.autoHook === true;
     document.getElementById('mtAutoSubmit').checked = config.autoSubmit === true;
 	let pathSelect = document.getElementById('mtAutoSubmitPath');
     if (pathSelect) pathSelect.value = config.autoSubmitPath || 1;
     
-    // The Launch Preset variables
     document.getElementById('mtUsePresetPaths').checked = config.usePresetPaths === true;
     let presetContainer = document.getElementById('mtPresetPathsContainer');
     if (presetContainer) presetContainer.classList.toggle('hidden', !config.usePresetPaths);
     
-    // --- NEW DYNAMIC PATHS LOGIC ---
     currentMtPaths = (config.presetPaths || [""]).filter(p => p.trim() !== "");
     if (currentMtPaths.length === 0) currentMtPaths = [""];
     renderMtPaths();
@@ -3788,6 +4636,7 @@ function openMediaTypeEditor(name) {
     let hasUnits = config.inputs.includes('units') || config.inputs.includes('pages') || config.inputs.includes('eps');
     document.getElementById('mtInpUnits').checked = hasUnits;
     document.getElementById('mtInpChars').checked = config.inputs.includes('chars');
+    document.getElementById('mtAutoCountUnits').checked = config.autoCountUnits === true;
     
     ['Hours','Units','Chars','Pace','Speed','Days','Cards','CardSpeed'].forEach(i => {
         let id = i.toLowerCase();
@@ -3806,6 +4655,7 @@ function saveMediaType() {
     let name = document.getElementById('mtName').value.trim(); if(!name) return;
     let unitName = document.getElementById('mtUnitName').value.trim() || 'Units';
     let emoji = document.getElementById('mtEmoji').value.trim() || '📦';
+    let color = document.getElementById('mtColor').value || '';
     let progressMetric = document.getElementById('mtProgressMetric').value || 'units';
     let autoHook = document.getElementById('mtAutoHook').checked;
     
@@ -3827,6 +4677,7 @@ function saveMediaType() {
 
     let inputs = ['hours']; 
     let weight = parseFloat(document.getElementById('mtWeight').value) || 1.0;
+    let autoCountUnits = document.getElementById('mtAutoCountUnits').checked;
     
     if(document.getElementById('mtInpChars').checked) inputs.push('chars');
     if(document.getElementById('mtInpUnits').checked) inputs.push('units');
@@ -3839,8 +4690,7 @@ function saveMediaType() {
     statObjects.sort((a,b) => a.ord - b.ord);
     let stats = statObjects.map(s => s.id);
     
-    // MERGED: Saves everything together
-    data.mediaConfig[name] = { inputs, stats, unitName, progressMetric, emoji, weight, autoHook, autoSubmit, autoSubmitPath, afk, usePresetPaths, presetPaths };
+    data.mediaConfig[name] = { inputs, stats, unitName, progressMetric, emoji, color, weight, autoHook, autoSubmit, autoSubmitPath, afk, usePresetPaths, presetPaths, autoCountUnits };
     if(!data.media[name]) data.media[name] = []; 
     
     save(); populateDropdowns(); renderMediaTypesSettings(); updateAll(); closeModal('mediaTypeEditorOverlay');
@@ -3854,9 +4704,7 @@ function deleteMediaType() {
     });
 }
 
-/* ===============================
-DATA & ELECTRON HOTKEYS
-=============================== */
+// ── DATA & HOTKEYS ──
 function exportData() { 
     let dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data)); 
     let a = document.createElement("a"); 
@@ -3885,7 +4733,6 @@ function recordBind(e, type) {
     
     let finalBind = keys.join('+'); 
     
-    // FIX: Dynamically target the correct input ID based on the type
     let inputId = 'hk' + type.charAt(0).toUpperCase() + type.slice(1);
     let inputEl = document.getElementById(inputId);
     if (inputEl) inputEl.value = finalBind; 
@@ -3899,7 +4746,6 @@ function recordBind(e, type) {
 function clearBind(type) { 
     data.prefs.hotkeys[type] = ""; 
     
-    // FIX: Dynamically target the correct input ID to clear it
     let inputId = 'hk' + type.charAt(0).toUpperCase() + type.slice(1);
     let inputEl = document.getElementById(inputId);
     if (inputEl) inputEl.value = ""; 
@@ -3959,7 +4805,7 @@ if (window.electronAPI) {
             let elapsedMinutes = accumulatedMs / 60000;
             
             clearInterval(timerInterval); timerInterval = null; isTimerPaused = false; accumulatedMs = 0;
-            
+            if (typeof broadcastToWidget === 'function') broadcastToWidget();
             let btn = document.getElementById("timerBtn"); let zenBtn = document.getElementById("zenTimerBtn");
             if(btn) { btn.textContent = "▶"; btn.classList.remove("active"); btn.style.background = ""; btn.style.borderColor = ""; }
             if(zenBtn) { zenBtn.textContent = "▶ START"; zenBtn.classList.remove("active"); zenBtn.style.background = ""; zenBtn.style.borderColor = ""; }
@@ -4029,7 +4875,6 @@ if (window.electronAPI) {
             let logMined = document.getElementById('logMined');
             let minedToAdd = parseInt(logMined?.value) || 0;
 
-            // --- SMART BATCHING ---
             let todayStr = getLocalDateStr();
             let existingEntry = data.entries.find(e => e.date === todayStr && e.media === matchedName);
             
@@ -4082,36 +4927,19 @@ if (window.electronAPI) {
     }
 }
 
-const oldOpenLibEdit = openLibEdit;
-openLibEdit = function(name) {
-    oldOpenLibEdit(name);
-    let profile = data.mediaData[name];
-    document.getElementById("libEditNotes").value = profile.notes || "";
-    document.getElementById("libEditDbUrl").value = profile.dbUrl || "";
-    document.getElementById("libEditDbAlt").value = profile.dbAlt || "";
-    document.getElementById("libEditFolder").value = profile.folder || ""; // LOAD
-};
-
-const oldSaveLibraryEdit = saveLibraryEdit;
-saveLibraryEdit = function() {
-    let oldName = editLibMediaName;
-    let newName = document.getElementById("libEditNewName").value.trim();
-    if (!newName) return oldSaveLibraryEdit(); 
-    
-    oldSaveLibraryEdit(); 
-    
-    if (data.mediaData[newName]) {
-        data.mediaData[newName].notes = document.getElementById("libEditNotes").value;
-        data.mediaData[newName].dbUrl = document.getElementById("libEditDbUrl").value.trim();
-        data.mediaData[newName].dbAlt = document.getElementById("libEditDbAlt").value.trim();
-        data.mediaData[newName].folder = document.getElementById("libEditFolder").value.trim(); // SAVE
-        save();
+// 
+function toggleSidebarTimerVisibility() {
+    let sidebarClock = document.getElementById("sidebarTimerDisplay");
+    if (!sidebarClock) return;
+    if (data.prefs.showSidebarTimer === false) {
+        sidebarClock.classList.add("hidden");
+    } 
+    else if (typeof timerInterval !== 'undefined' && timerInterval !== null && !isTimerPaused) {
+        sidebarClock.classList.remove("hidden");
     }
-};
+}
 
-/* ===============================
-SCREENSHOT TOOL
-=============================== */
+// ── SCREENSHOT ──
 function takeScreenshot() {
     let btn = document.querySelector("button[onclick='takeScreenshot()']");
     if (btn) btn.textContent = "⏳...";
@@ -4147,7 +4975,7 @@ function saveLogEdit() {
     let e = data.entries[currentEditLogIndex];
     e.date = document.getElementById("elDate").value;
     e.hours = parseFloat(document.getElementById("elHours").value) || 0;
-    delete e.eps; delete e.pages; // Standardize old data
+    delete e.eps; delete e.pages;
     e.units = parseInt(document.getElementById("elUnits").value) || 0;
     e.chars = parseInt(document.getElementById("elChars").value) || 0;
     e.cards = parseInt(document.getElementById("elCards").value) || 0;
@@ -4173,9 +5001,7 @@ function restoreHiddenMedia(name) {
     save(); renderHiddenMedia(); renderLibrary();
 }
 
-/* ===============================
-TIMER & ZEN MODE LOGIC
-=============================== */
+// ── TIMER & ZEN ──
 let timerInterval = null; 
 let startTime = 0; 
 let accumulatedMs = 0; 
@@ -4195,20 +5021,30 @@ function toggleTimer() {
     
     if(!timerInterval && !isTimerPaused) {
 		document.getElementById('sidebar').classList.add('tracking');
-        startTime = Date.now(); accumulatedMs = 0; isTimerPaused = false; 
-        if(btn) { btn.textContent = "■"; btn.classList.add("active"); btn.style.background = ""; btn.style.borderColor = ""; }
+        startTime = Date.now(); accumulatedMs = 0; isTimerPaused = false;
+        _prevMediaValue = document.getElementById("mediaSelect")?.value || ""; if(btn) { btn.textContent = "■"; btn.classList.add("active"); btn.style.background = ""; btn.style.borderColor = ""; }
         if(zenBtn) { zenBtn.textContent = "■ STOP"; zenBtn.classList.add("active"); zenBtn.style.background = ""; zenBtn.style.borderColor = ""; }
         playAudio('timer.wav'); 
         
         timerInterval = setInterval(() => { 
-            let elapsedMs = accumulatedMs + (Date.now() - startTime); 
-            let elapsedHours = elapsedMs / 3600000; 
-            if(btn) btn.title = `Running: ${elapsedHours.toFixed(2)}h`; 
-            let zc = document.getElementById("zenClock");
-            if(zc) zc.textContent = formatZenTime(elapsedMs); 
-            if (typeof updateCharInputFromHook === 'function') updateCharInputFromHook();
-            if (typeof broadcastToWidget === 'function') broadcastToWidget();
-        }, 1000);
+			let elapsedMs = accumulatedMs + (Date.now() - startTime); 
+			let elapsedHours = elapsedMs / 3600000; 
+			if(btn) btn.title = `Running: ${elapsedHours.toFixed(2)}h`; 
+			
+			let zc = document.getElementById("zenClock");
+			if(zc) zc.textContent = formatZenTime(elapsedMs); 
+
+			// --- NEW: Update Sidebar Timer ---
+			let sidebarClock = document.getElementById("sidebarTimerDisplay");
+			if(sidebarClock) {
+				sidebarClock.textContent = formatZenTime(elapsedMs);
+				if (data.prefs.showSidebarTimer !== false) sidebarClock.classList.remove("hidden");
+			}
+			// ---------------------------------
+
+			if (typeof updateCharInputFromHook === 'function') updateCharInputFromHook();
+			if (typeof broadcastToWidget === 'function') broadcastToWidget();
+		}, 1000);
     } else {
         let logH = document.getElementById('logHours');
         let logM = document.getElementById('logMinutes');
@@ -4228,7 +5064,10 @@ function toggleTimer() {
             let zc = document.getElementById("zenClock");
             if(zc) zc.textContent = "00:00:00"; 
             
+			let sidebarClock = document.getElementById("sidebarTimerDisplay");
+			if(sidebarClock) { sidebarClock.textContent = "00:00:00"; sidebarClock.classList.add("hidden"); }
             playAudio('timer.wav'); 
+			if (typeof broadcastToWidget === 'function') broadcastToWidget();
         };
 
         if ((logH && parseFloat(logH.value) > 0) || (logM && parseFloat(logM.value) > 0)) {
@@ -4329,8 +5168,6 @@ function updateCharInputFromHook() {
     let zenChars = document.getElementById("zenCharDisplay");
     let zenSpeed = document.getElementById("zenSpeedDisplay");
 
-    // FIX: If we aren't actively using the Textractor WebSocket, DO NOT overwrite the input box.
-    // Instead, just read whatever Mokuro or the user typed in to update the Zen screensaver.
     if (!wsConnected && hookedLines.length === 0) {
         let manualChars = parseInt(logChars?.value) || 0;
         if (zenChars) zenChars.textContent = manualChars.toLocaleString() + " chars";
@@ -4342,7 +5179,6 @@ function updateCharInputFromHook() {
         return;
     }
 
-    // Normal Textractor WebSocket Behavior
     let totalChars = hookedLines.reduce((acc, l) => acc + l.length, 0);
     if (logChars) logChars.value = totalChars; 
     
@@ -4379,10 +5215,16 @@ setInterval(() => {
     }
 }, 60000);
 
-function showConfirm(msg, callback) {
+function showConfirm(msg, callback, cancelCallback) {
     document.getElementById("confirmMessage").innerText = msg;
     let yesBtn = document.getElementById("confirmYesBtn");
     yesBtn.onclick = () => { closeModal('confirmOverlay'); callback(); };
+    // Wire cancel button to optional cancel callback
+    let cancelBtn = document.querySelector("#confirmOverlay button:not(#confirmYesBtn)");
+    let oldCancel = cancelBtn ? cancelBtn.onclick : null;
+    if (cancelBtn) {
+        cancelBtn.onclick = () => { closeModal('confirmOverlay'); if (cancelCallback) cancelCallback(); };
+    }
     openModal("confirmOverlay");
 }
 
@@ -4500,8 +5342,7 @@ async function triggerAutoFillSearch() {
                 let title = item.title_japanese || item.title;
                 let target = searchType === 'anime' ? item.episodes : item.chapters;
                 let img = item.images?.jpg?.image_url || "";
-                let dbLink = item.url || ""; // Gets the MAL link
-                
+                let dbLink = item.url || ""; 
                 let div = document.createElement("div");
                 div.style.cssText = "display:flex; gap:10px; padding:8px; border-bottom:1px solid var(--border); cursor:pointer;";
                 div.onclick = () => {
@@ -4557,7 +5398,6 @@ async function triggerAutoFillSearch() {
                     
                     if (jitenChars) {
                         document.getElementById("newMediaTarget").value = jitenChars;
-                        // This exact line physically changes the dropdown
                         let overrideDropdown = document.getElementById("newMediaOverride");
                         if (overrideDropdown) overrideDropdown.value = "chars";
                         
@@ -4578,6 +5418,802 @@ async function triggerAutoFillSearch() {
         } catch(e) { container.innerHTML = "VNDB Search Error."; }
     } else {
         container.innerHTML = `<div style="padding:10px; text-align:center; opacity:0.6;">Search only supports Anime, Manga, and VN.</div>`;
+    }
+}
+
+// --- GOAL MILESTONES ENGINE ---
+let gdPaceChartInst = null;
+let gdMediaChartInst = null;
+
+function openGoalsPage() {
+    switchView('goals');
+}
+
+// Controls the internal "Back" button
+function closeGoalDetails() {
+    playAudio('close.wav');
+    document.getElementById('gdDetails').classList.add('hidden');
+    document.getElementById('gdDetails').style.display = 'none';
+    document.getElementById('gdListViewContainer').classList.remove('hidden');
+    document.getElementById('gdListViewContainer').style.display = 'flex';
+}
+
+function deleteArchivedGoal(idx) { 
+    showConfirm("Permanently delete this archived goal?", () => { 
+        data.archivedGoals.splice(idx, 1); 
+        save(); 
+        closeGoalDetails(); // Force back to list view
+        renderGoalDashboard(); 
+    }); 
+}
+
+function exitGoalsPage() {
+    playAudio('close.wav');
+    switchView(previousTabBeforeGoals);
+}
+
+function renderGoalDashboard() {
+    let listContainer = document.getElementById('gdList');
+    listContainer.innerHTML = '';
+    
+    if (data.archivedGoals.length === 0) {
+        listContainer.innerHTML = '<div style="opacity:0.6; padding: 10px; text-align:center;">No completed or failed goals yet.</div>';
+        return;
+    }
+
+    [...data.archivedGoals].reverse().forEach((g, reverseIdx) => {
+        let actualIdx = data.archivedGoals.length - 1 - reverseIdx;
+        let isRepeating = g.frame && g.frame !== 'none';
+        let prog = g.finalProgress !== undefined ? g.finalProgress : 0;
+        let isCleared = prog >= g.target;
+
+        // --- Visual style based on goal type & outcome ---
+        let borderColor, cardBg, badge;
+        if (isRepeating) {
+            let periods = getGoalPeriods(g, g.deadline);
+            let clears = periods.filter(p => p.cleared).length;
+            let total = periods.length;
+            let rate = total > 0 ? clears / total : 0;
+            let rateColor = rate >= 0.8 ? '#0f0' : rate >= 0.5 ? '#ffaa00' : '#ff4444';
+            borderColor = '#a78bfa'; // purple for repeating
+            cardBg = 'background: rgba(167,139,250,0.05);';
+            badge = `<span style="font-size:10px; font-weight:bold; background:rgba(167,139,250,0.15); color:#a78bfa; border:1px solid #a78bfa55; padding:2px 7px; border-radius:4px;">🔁 ${g.frame.toUpperCase()}</span>
+                     <span style="font-size:11px; font-weight:bold; color:${rateColor}; margin-left:6px;">🎯 ${clears}/${total}</span>`;
+        } else if (isCleared) {
+            borderColor = '#ffd700';
+            cardBg = 'background: rgba(255,215,0,0.04);';
+            badge = `<span style="font-size:10px; font-weight:bold; background:rgba(255,215,0,0.1); color:#ffd700; border:1px solid #ffd70055; padding:2px 7px; border-radius:4px;">✅ CLEARED</span>`;
+        } else {
+            borderColor = '#555';
+            cardBg = 'opacity:0.65; filter:grayscale(0.4);';
+            badge = `<span style="font-size:10px; font-weight:bold; background:rgba(255,0,0,0.08); color:#ff4444; border:1px solid #ff444455; padding:2px 7px; border-radius:4px;">❌ FAILED</span>`;
+        }
+
+        let dispProg = g.metric === 'hours' ? prog.toFixed(1) : Math.floor(prog);
+
+        let item = document.createElement('div');
+        item.className = 'list-item';
+        item.style.cssText = `border-left: 4px solid ${borderColor}; padding: 12px 15px; cursor: pointer; align-items: flex-start; ${cardBg}`;
+        item.onclick = (e) => { if(e.target.tagName === 'BUTTON' || e.target.closest('.period-navigator')) return; viewArchivedGoalAnalytics(actualIdx); };
+
+        // For repeating goals, render the inline period navigator
+        let periodNavHtml = '';
+        if (isRepeating) {
+            periodNavHtml = `<div class="period-navigator" id="pnav-${actualIdx}" style="margin-top:8px;"></div>`;
+        }
+
+        item.innerHTML = `
+            <div style="flex:1;">
+                <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:5px;">
+                    <strong style="font-size:15px;">${g.name}</strong>
+                    ${badge}
+                </div>
+                <div style="font-size:11px; opacity:0.75;">${g.type} • <strong>${dispProg} / ${g.target}</strong> ${g.metric}
+                    ${g.deadline ? ` • ${formatDDMMYYYY(g.startDate||g.createdAt||'')} → ${formatDDMMYYYY(g.deadline)}` : ''}
+                </div>
+                ${periodNavHtml}
+            </div>
+            <button onclick="deleteArchivedGoal(${actualIdx})" style="background:transparent; border:none; color:#ff4444; font-size:14px; cursor:pointer; align-self:flex-start;" title="Delete">🗑️</button>
+        `;
+        listContainer.appendChild(item);
+
+        // Render period navigator after appending so the element exists
+        if (isRepeating) renderPeriodNavigator(actualIdx, g);
+    });
+}
+
+// Per-period navigator — renders inside the goal card
+let periodNavState = {}; // tracks current period index per goal idx
+function renderPeriodNavigator(goalIdx, g) {
+    let container = document.getElementById(`pnav-${goalIdx}`);
+    if (!container) return;
+    let periods = getGoalPeriods(g, g.deadline);
+    if (periods.length === 0) { container.innerHTML = '<span style="font-size:10px; opacity:0.5;">No past periods</span>'; return; }
+
+    if (periodNavState[goalIdx] === undefined) periodNavState[goalIdx] = periods.length - 1; // start at latest
+    let idx = Math.max(0, Math.min(periodNavState[goalIdx], periods.length - 1));
+    let p = periods[idx];
+    let dispProg = g.metric === 'hours' ? p.prog.toFixed(1) : Math.floor(p.prog);
+    let pct = Math.min(100, (p.prog / g.target) * 100).toFixed(0);
+    let color = p.cleared ? '#0f0' : (p.prog / g.target >= 0.5 ? '#ffaa00' : '#ff4444');
+
+    container.innerHTML = `
+        <div style="display:flex; align-items:center; gap:8px; background:var(--header); border:1px solid var(--border); border-radius:5px; padding:5px 8px; font-size:11px;">
+            <button onclick="event.stopPropagation(); periodNavState[${goalIdx}]=Math.max(0,${idx}-1); renderPeriodNavigator(${goalIdx}, data.archivedGoals[${goalIdx}]);" style="background:transparent; border:none; color:var(--text); cursor:pointer; font-size:13px; padding:0 2px; opacity:${idx>0?1:0.3};">◀</button>
+            <span style="flex:1; text-align:center; font-weight:bold; opacity:0.9;">${p.label}</span>
+            <button onclick="event.stopPropagation(); periodNavState[${goalIdx}]=Math.min(${periods.length-1},${idx}+1); renderPeriodNavigator(${goalIdx}, data.archivedGoals[${goalIdx}]);" style="background:transparent; border:none; color:var(--text); cursor:pointer; font-size:13px; padding:0 2px; opacity:${idx<periods.length-1?1:0.3};">▶</button>
+            <span style="color:${color}; font-weight:bold; min-width:80px; text-align:right;">${p.cleared ? '✅' : '❌'} ${dispProg} / ${g.target}</span>
+            <div style="width:60px; background:rgba(255,255,255,0.1); border-radius:3px; height:6px; overflow:hidden;">
+                <div style="width:${pct}%; height:100%; background:${color}; border-radius:3px;"></div>
+            </div>
+            <span style="opacity:0.5; min-width:24px; text-align:right;">${idx+1}/${periods.length}</span>
+        </div>
+    `;
+}
+
+function viewArchivedGoalAnalytics(idx) {
+    let g = data.archivedGoals[idx];
+    
+    document.getElementById('gdListViewContainer').classList.add('hidden');
+    document.getElementById('gdListViewContainer').style.display = 'none';
+    document.getElementById('gdDetails').classList.remove('hidden');
+    document.getElementById('gdDetails').style.display = 'flex';
+    
+    let isCleared = (g.finalProgress || 0) >= g.target;
+    document.getElementById('gdTitle').innerHTML = `${g.name} <span style="font-size:16px; margin-left: 10px;">${isCleared ? '✅ Cleared' : '❌ Failed'}</span>`;
+    
+    // THE DATE MATH FIX
+    let startStr = g.startDate || g.createdAt || "Unknown";
+    let endStr = g.deadline || getLocalDateStr();
+    let queryStart = startStr === "Unknown" ? "2000-01-01" : startStr; // Prevents the filter from crashing
+
+    document.getElementById('gdMeta').innerHTML = `
+        <strong>Type:</strong> ${g.type} | <strong>Metric:</strong> ${g.metric.toUpperCase()} <br>
+        <strong>Timeframe:</strong> ${startStr} to ${endStr}
+    `;
+
+    // Fetch Logs safely
+    let logs = data.entries.filter(e => e.date >= queryStart && e.date <= endStr && (g.type === 'all' || e.type === g.type));
+
+    let mediaSums = {};
+    logs.forEach(e => {
+        if (!e.media) return;
+        let val = g.metric === 'units' ? (e.units||e.eps||e.pages||0) : (e[g.metric] || 0);
+        if (val > 0) mediaSums[e.media] = (mediaSums[e.media] || 0) + val;
+    });
+
+    let currTheme = {...themes, ...data.prefs.customThemes}[data.prefs.theme] || themes.Dark;
+
+    if (gdMediaChartInst) gdMediaChartInst.destroy();
+    let pieLabels = Object.keys(mediaSums);
+    if (pieLabels.length > 0) {
+        
+        let pieColors = pieLabels.map(m => stringToColor(m));
+
+        gdMediaChartInst = new Chart(document.getElementById('gdMediaChart'), {
+            type: 'doughnut',
+            data: { 
+                labels: pieLabels, 
+                datasets: [{ data: Object.values(mediaSums), backgroundColor: pieColors, borderWidth: 1, borderColor: 'rgba(0,0,0,0.2)' }] 
+            },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: {color: '#888', font: {size: 10}} } } }
+        });
+    }
+
+    let chartStartStr = startStr === "Unknown" ? (logs.length > 0 ? logs[0].date : endStr) : startStr;
+    let dates = [];
+    let curr = new Date(chartStartStr + "T00:00:00");
+    let end = new Date(endStr + "T00:00:00");
+    while (curr <= end) { dates.push(getLocalDateStr(curr)); curr.setDate(curr.getDate() + 1); }
+
+    let cumulativeData = []; let targetPaceData = []; let runningTotal = 0;
+    let dailyTargetRequired = g.target / Math.max(1, dates.length);
+
+    dates.forEach((dateStr, i) => {
+        let dayProg = logs.filter(e => e.date === dateStr).reduce((sum, e) => sum + (g.metric==='units' ? (e.units||e.eps||e.pages||0) : (e[g.metric]||0)), 0);
+        runningTotal += dayProg;
+        cumulativeData.push(parseFloat(runningTotal.toFixed(2)));
+        targetPaceData.push(parseFloat(((i + 1) * dailyTargetRequired).toFixed(2)));
+    });
+
+    let accentHex = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#4cc9f0';
+
+    if (gdPaceChartInst) gdPaceChartInst.destroy();
+    gdPaceChartInst = new Chart(document.getElementById('gdPaceChart'), {
+        type: 'line',
+        data: {
+            labels: dates.map(d => d.split('-').slice(1).join('/')),
+            datasets: [
+                { label: 'Actual Progress', data: cumulativeData, borderColor: accentHex, backgroundColor: `rgba(${hexToRgb(accentHex)}, 0.1)`, fill: true, tension: 0.2 },
+                { label: 'Required Target', data: targetPaceData, borderColor: '#ffaa00', borderDash: [5, 5], pointRadius: 0, fill: false, tension: 0 }
+            ]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            scales: { y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: {color: '#888'} }, x: { grid: { display: false }, ticks: {color: '#888', maxTicksLimit: 8} } },
+            plugins: { legend: { labels: { color: '#888' } } }
+        }
+    });
+}
+
+
+// ── SHELF ──
+
+let jvActivityChart = null;
+
+function populateJournalFilter() {
+    let sel = document.getElementById('jvFilter');
+    if (!sel) return;
+    let current = sel.value;
+    sel.innerHTML = '<option value="all">All</option>';
+    Object.keys(data.mediaConfig).filter(t => t !== 'All Media').forEach(t => {
+        sel.innerHTML += `<option value="${t}">${t}</option>`;
+    });
+    if (current) sel.value = current;
+}
+
+function relativeTimeStr(dateStr) {
+    if (!dateStr) return 'Never';
+    let now = new Date(); now.setHours(0,0,0,0);
+    let d = new Date(dateStr + 'T00:00:00'); d.setHours(0,0,0,0);
+    let days = Math.round((now - d) / 86400000);
+    if (days === 0) return 'Today';
+    if (days === 1) return 'Yesterday';
+    if (days <= 6) return days + ' days ago';
+    if (days <= 13) return '1 week ago';
+    if (days <= 27) return Math.floor(days/7) + ' weeks ago';
+    if (days <= 45) return '1 month ago';
+    return formatDDMMYYYY(dateStr);
+}
+
+function renderJournalList() {
+    let grid = document.getElementById('jvGrid');
+    if (!grid) return;
+    grid.innerHTML = '';
+    grid.style.gridTemplateColumns = 'repeat(auto-fill, 160px)';
+
+    let query = (document.getElementById('jvSearch')?.value || '').toLowerCase();
+    let filter = document.getElementById('jvFilter')?.value || 'all';
+    let currTheme = {...themes, ...data.prefs.customThemes}[data.prefs.theme] || themes.Dark;
+
+    let mediaStats = {};
+    data.entries.forEach(e => {
+        if (!e.media) return;
+        if (!mediaStats[e.media]) mediaStats[e.media] = { hours: 0, chars: 0, units: 0, cards: 0, last: '' };
+        mediaStats[e.media].hours += e.hours || 0;
+        mediaStats[e.media].chars += e.chars || 0;
+        mediaStats[e.media].units += (e.units || e.eps || e.pages || 0);
+        mediaStats[e.media].cards += e.cards || 0;
+        if (e.date > mediaStats[e.media].last) mediaStats[e.media].last = e.date;
+    });
+
+    // Aggregate YouTube channels into one synthetic entry
+    let ytChannels = Object.keys(data.mediaData).filter(n => data.mediaData[n].type === 'YouTube');
+    let ytStats = { hours: 0, chars: 0, units: 0, cards: 0, last: '' };
+    ytChannels.forEach(ch => {
+        let s = mediaStats[ch] || {};
+        ytStats.hours += s.hours || 0;
+        ytStats.chars += s.chars || 0;
+        ytStats.units += s.units || 0;
+        ytStats.cards += s.cards || 0;
+        if ((s.last || '') > ytStats.last) ytStats.last = s.last || '';
+    });
+    let showYt = ytChannels.length > 0 && (filter === 'all' || filter === 'YouTube');
+    if (query && !'youtube'.includes(query.toLowerCase())) showYt = false;
+
+    let items = Object.keys(data.mediaData)
+        .filter(name => {
+            let p = data.mediaData[name];
+            if (p.type === 'YouTube') return false; // always exclude individual channels
+            if (filter !== 'all' && p.type !== filter) return false;
+            if (query && !name.toLowerCase().includes(query)) return false;
+            return true;
+        })
+        .sort((a, b) => {
+            let la = mediaStats[a]?.last || '';
+            let lb = mediaStats[b]?.last || '';
+            if (lb !== la) return lb.localeCompare(la);
+            return a.localeCompare(b);
+        });
+
+    if (items.length === 0 && !showYt) {
+        grid.innerHTML = '<div style="opacity:0.5; grid-column:1/-1; text-align:center; padding:40px;">No media found.</div>';
+        return;
+    }
+
+    // Build a render list that includes YouTube as a synthetic entry, sorted by date
+    let renderList = items.map(name => ({ type: 'media', name, last: mediaStats[name]?.last || '' }));
+    if (showYt) renderList.push({ type: 'youtube', name: 'YouTube', last: ytStats.last });
+    renderList.sort((a, b) => {
+        if (b.last !== a.last) return b.last.localeCompare(a.last);
+        return a.name.localeCompare(b.name);
+    });
+
+    renderList.forEach((entry, idx) => {
+        if (entry.type === 'youtube') {
+            let ytColor = getTypeColor('YouTube', currTheme);
+            let ytRelTime = relativeTimeStr(ytStats.last);
+            let ytHoursStr = ytStats.hours > 0 ? ytStats.hours.toFixed(1)+'h' : '—';
+            let ytCard = document.createElement('div');
+            ytCard.style.cssText = `width:160px; background:var(--card); border:1px solid var(--border); border-radius:8px; overflow:hidden; cursor:pointer; transition:border-color 0.2s, transform 0.2s, box-shadow 0.2s; animation:cardCascade 0.3s both; animation-delay:${Math.min(idx*0.02,0.4)}s; display:flex; flex-direction:column;`;
+            ytCard.onmouseenter = () => { ytCard.style.borderColor = ytColor; ytCard.style.transform = 'translateY(-2px)'; ytCard.style.boxShadow = '0 4px 15px rgba(0,0,0,0.4)'; };
+            ytCard.onmouseleave = () => { ytCard.style.borderColor = 'var(--border)'; ytCard.style.transform = ''; ytCard.style.boxShadow = ''; };
+            ytCard.onclick = () => openYouTubeShelfDetail();
+            ytCard.innerHTML = `
+                <div style="height:200px; background:${ytColor}18; border-bottom:1px solid ${ytColor}33; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; flex-shrink:0;">
+                    <span style="font-size:36px;">📺</span>
+                    <span style="font-size:11px; opacity:0.6; font-weight:bold;">${ytChannels.length} channels</span>
+                </div>
+                <div style="padding:8px 10px 10px 10px; display:flex; flex-direction:column; gap:3px;">
+                    <div style="font-weight:bold; font-size:12px;">YouTube</div>
+                    <div style="font-size:10px; display:flex; align-items:center; gap:4px;">
+                        <span style="display:inline-block; width:6px; height:6px; border-radius:50%; background:${ytColor}; flex-shrink:0;"></span>
+                        <span style="opacity:0.55;">All Channels</span>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; font-size:10px; opacity:0.55; margin-top:1px;">
+                        <span>⏱ ${ytHoursStr}</span>
+                        <span>${ytRelTime}</span>
+                    </div>
+                </div>`;
+            grid.appendChild(ytCard);
+            return;
+        }
+
+        let name = entry.name;
+        let p = data.mediaData[name];
+        let stats = mediaStats[name] || { hours: 0, chars: 0, units: 0, cards: 0, last: '' };
+        let conf = data.mediaConfig[p.type] || {};
+        let tColor = getTypeColor(p.type, currTheme);
+        let statusDot = p.status === 'completed' ? '#ffd700' : p.status === 'dropped' ? '#ff4444' : p.status === 'paused' ? '#f39c12' : tColor;
+        let isBlurred = p.blur === true;
+
+        let card = document.createElement('div');
+        card.style.cssText = `width:160px; background:var(--card); border:1px solid var(--border); border-radius:8px; overflow:hidden; cursor:pointer; transition:border-color 0.2s, transform 0.2s, box-shadow 0.2s; animation:cardCascade 0.3s both; animation-delay:${Math.min(idx*0.02,0.4)}s; display:flex; flex-direction:column;`;
+        card.onmouseenter = () => {
+            card.style.borderColor = tColor;
+            card.style.transform = 'translateY(-2px)';
+            card.style.boxShadow = '0 4px 15px rgba(0,0,0,0.4)';
+            let img = card.querySelector('.shelf-img');
+            if (img && isBlurred) img.style.filter = 'none';
+        };
+        card.onmouseleave = () => {
+            card.style.borderColor = 'var(--border)';
+            card.style.transform = '';
+            card.style.boxShadow = '';
+            let img = card.querySelector('.shelf-img');
+            if (img && isBlurred) img.style.filter = 'blur(8px)';
+        };
+        card.onclick = () => openJournalDetail(name);
+
+        let imgArea = p.img
+            ? `<div style="height:200px; overflow:hidden; position:relative; flex-shrink:0;">
+                   <img class="shelf-img" src="${p.img}" style="width:100%; height:100%; object-fit:cover; transition:filter 0.3s; ${isBlurred?'filter:blur(8px);':''}" loading="lazy">
+                   <div style="position:absolute; inset:0; background:linear-gradient(to bottom, transparent 55%, var(--card) 100%); pointer-events:none;"></div>
+               </div>`
+            : `<div style="height:200px; background:${tColor}18; border-bottom:1px solid ${tColor}33; display:flex; align-items:center; justify-content:center; font-size:48px; flex-shrink:0;">${conf.emoji||'\u{1F4E6}'}</div>`;
+
+        let hoursStr = stats.hours > 0 ? stats.hours.toFixed(1)+'h' : '\u2014';
+        let relTime = relativeTimeStr(stats.last);
+
+        card.innerHTML = imgArea + `
+            <div style="padding:8px 10px 10px 10px; display:flex; flex-direction:column; gap:3px;">
+                <div style="font-weight:bold; font-size:12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; line-height:1.3;" title="${name.replace(/"/g,'&quot;')}">${name}</div>
+                <div style="font-size:10px; display:flex; align-items:center; gap:4px;">
+                    <span style="display:inline-block; width:6px; height:6px; border-radius:50%; background:${statusDot}; flex-shrink:0;"></span>
+                    <span style="opacity:0.55;">${p.type}</span>
+                </div>
+                <div style="display:flex; justify-content:space-between; font-size:10px; opacity:0.55; margin-top:1px;">
+                    <span>\u23F1 ${hoursStr}</span>
+                    <span style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:90px; text-align:right;">${relTime}</span>
+                </div>
+            </div>`;
+        grid.appendChild(card);
+    });
+}
+
+function setJournalRating(name, rating) {
+    if (!data.mediaData[name]) return;
+    // Toggle off if clicking same rating
+    data.mediaData[name].journalRating = data.mediaData[name].journalRating === rating ? 0 : rating;
+    save();
+}
+
+function openJournalFor(name) {
+    switchView('journal');
+    // Small delay to let the view render before opening detail
+    setTimeout(() => openJournalDetail(name), 50);
+}
+
+function openJournalDetail(name) {
+    let p = data.mediaData[name];
+    if (!p) return;
+
+    document.getElementById('jvList').style.display = 'none';
+    let detail = document.getElementById('jvDetail');
+    detail.classList.remove('hidden');
+    document.getElementById('jvDetailTitle').textContent = name;
+
+    let conf = data.mediaConfig[p.type] || {};
+    let currTheme = {...themes, ...data.prefs.customThemes}[data.prefs.theme] || themes.Dark;
+    let tColor = getTypeColor(p.type, currTheme);
+
+    // ── Stats ──
+    let entries = data.entries.filter(e => e.media === name).sort((a,b) => a.date.localeCompare(b.date));
+    let totalHours = entries.reduce((s,e) => s+(e.hours||0), 0);
+    let totalChars = entries.reduce((s,e) => s+(e.chars||0), 0);
+    let totalUnits = entries.reduce((s,e) => s+(e.units||e.eps||e.pages||0), 0);
+    let totalCards = entries.reduce((s,e) => s+(e.cards||0), 0);
+    let firstDate  = entries.length ? entries[0].date : null;
+    let lastDate   = entries.length ? entries[entries.length-1].date : null;
+    let daysActive = new Set(entries.map(e => e.date)).size;
+    let isCompleted = p.status === 'completed' || p.status === 'dropped';
+
+    // Best session
+    let bestEntry = entries.reduce((best,e) => (e.hours||0) > (best.hours||0) ? e : best, {hours:0,date:''});
+
+    // Avg CPH (only entries with both chars + hours)
+    let cphEntries = entries.filter(e => e.chars > 0 && e.hours > 0);
+    let avgCph = cphEntries.length ? Math.round(cphEntries.reduce((s,e)=>s+e.chars,0) / cphEntries.reduce((s,e)=>s+e.hours,0)) : 0;
+
+    // Peak month
+    let monthlyH = {};
+    entries.forEach(e => { let k = e.date.slice(0,7); monthlyH[k] = (monthlyH[k]||0)+(e.hours||0); });
+    let monthKeys = Object.keys(monthlyH).sort();
+    let peakMonth = monthKeys.reduce((best,k) => monthlyH[k] > (monthlyH[best]||0) ? k : best, monthKeys[0] || '');
+
+    // Progress
+    let activeMetric = p.metricOverride && p.metricOverride !== 'default' ? p.metricOverride : (conf.progressMetric || 'units');
+    let progress = activeMetric === 'chars' ? totalChars : activeMetric === 'hours' ? totalHours : totalUnits;
+    let target = p.target || 0;
+    let pct = target > 0 ? Math.min(100, (progress / target) * 100).toFixed(1) : 0;
+
+    // ── Milestones ──
+    let milestones = [];
+    if (firstDate) milestones.push({icon:'📅', label:'Started', val: formatDDMMYYYY(firstDate)});
+    if (isCompleted && lastDate) milestones.push({icon:'🏁', label:'Finished', val: formatDDMMYYYY(lastDate)});
+    if (totalHours > 0) milestones.push({icon:'⏱️', label:'Total Time', val: totalHours.toFixed(1)+'h'});
+    if (totalChars > 0) milestones.push({icon:'📝', label:'Characters', val: totalChars.toLocaleString()});
+    if (totalUnits > 0) milestones.push({icon: conf.emoji||'📦', label: conf.unitName||'Units', val: totalUnits.toLocaleString()});
+    if (totalCards > 0) milestones.push({icon:'🃏', label:'Cards Mined', val: totalCards.toLocaleString()});
+    if (daysActive > 0) milestones.push({icon:'📆', label:'Days Active', val: daysActive});
+    if (bestEntry.hours > 0) milestones.push({icon:'🔥', label:'Best Session', val: bestEntry.hours.toFixed(1)+'h on '+formatDDMMYYYY(bestEntry.date)});
+    if (avgCph > 0) milestones.push({icon:'⚡', label:'Avg Speed', val: avgCph.toLocaleString()+' CPH'});
+    if (peakMonth) { let [py,pm]=peakMonth.split('-'); milestones.push({icon:'📈', label:'Peak Month', val: new Date(py,pm-1).toLocaleString('default',{month:'long',year:'numeric'})+' ('+monthlyH[peakMonth].toFixed(1)+'h)'}); }
+
+    // ── Similar media ──
+    let similar = Object.keys(data.mediaData)
+        .filter(n => n !== name && data.mediaData[n].type === p.type)
+        .slice(0, 6);
+
+    // ── Rating ──
+    let rating = p.journalRating || 0;
+    let starsHtml = [1,2,3,4,5].map(s =>
+        `<span style="cursor:pointer; font-size:24px; color:${s<=rating?'#ffd700':'#444'}; transition:transform 0.1s; display:inline-block;"
+              onmouseover="this.style.transform='scale(1.2)'" onmouseout="this.style.transform=''"
+              onclick="setJournalRating('${name.replace(/'/g,"\\'")}',${s}); openJournalDetail('${name.replace(/'/g,"\\'")}')">★</span>`
+    ).join('');
+
+    let statusLabel = {active:'🟢 Active',paused:'⏸️ Paused',completed:'⭐ Completed',dropped:'❌ Dropped',wishlist:'📝 Wishlist'}[p.status] || p.status;
+
+    let msHtml = milestones.length
+        ? milestones.map(m => `<div style="background:var(--card); border:1px solid var(--border); border-radius:8px; padding:10px 14px; display:flex; flex-direction:column; gap:2px; min-width:120px;">
+              <div style="font-size:18px; margin-bottom:2px;">${m.icon}</div>
+              <div style="font-size:10px; opacity:0.5; text-transform:uppercase; letter-spacing:0.5px;">${m.label}</div>
+              <div style="font-weight:bold; font-size:13px;">${m.val}</div>
+          </div>`).join('')
+        : `<div style="opacity:0.5; font-size:12px;">No logs yet. Start logging to see milestones appear.</div>`;
+
+    let progressHtml = target > 0 ? `
+        <div style="margin-top:8px;">
+            <div style="display:flex; justify-content:space-between; font-size:11px; opacity:0.7; margin-bottom:4px;">
+                <span>Progress</span><span>${pct}%</span>
+            </div>
+            <div style="height:8px; background:rgba(255,255,255,0.08); border-radius:4px; overflow:hidden;">
+                <div style="height:100%; width:${pct}%; background:${tColor}; border-radius:4px; transition:width 0.5s ease;"></div>
+            </div>
+        </div>` : '';
+
+    let similarHtml = similar.length ? `
+        <div style="background:var(--header); border:1px solid var(--border); border-radius:8px; padding:14px;">
+            <div style="font-weight:bold; font-size:13px; margin-bottom:10px; color:var(--accent);">🔗 More ${p.type}</div>
+            <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                ${similar.map(n => {
+                    let sp = data.mediaData[n]; let sc = getTypeColor(sp.type, currTheme);
+                    return `<div onclick="openJournalDetail('${n.replace(/'/g,"\\'")}')" style="cursor:pointer; display:flex; align-items:center; gap:6px; background:var(--card); border:1px solid var(--border); border-radius:6px; padding:5px 10px; font-size:11px; transition:border-color 0.2s;" onmouseover="this.style.borderColor='${sc}'" onmouseout="this.style.borderColor='var(--border)'">
+                        ${sp.img ? `<img src="${sp.img}" style="width:22px; height:28px; object-fit:cover; border-radius:3px; ${sp.blur?'filter:blur(4px);':''}">` : `<span>${(data.mediaConfig[sp.type]||{}).emoji||'📦'}</span>`}
+                        <span style="max-width:100px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${n}</span>
+                    </div>`;
+                }).join('')}
+            </div>
+        </div>` : '';
+
+    let body = document.getElementById('jvDetailBody');
+    body.innerHTML = `
+        <div style="display:flex; gap:20px; flex-wrap:wrap;">
+            <div style="flex-shrink:0; display:flex; flex-direction:column; gap:12px; width:160px;">
+                ${p.img
+                    ? `<div style="border-radius:8px; overflow:hidden; box-shadow:0 4px 15px rgba(0,0,0,0.5);"
+                           onmouseenter="this.querySelector('img').style.filter='none';"
+                           onmouseleave="this.querySelector('img').style.filter=(this.dataset.blur==='1'?'blur(8px)':'none');"
+                           data-blur="${p.blur?'1':'0'}"
+                           onclick="let lb=document.getElementById('lightboxImg'); lb.src='${p.img.replace(/'/g,"\\'")}'; document.getElementById('lightboxOverlay').classList.remove('hidden');">
+                           <img src="${p.img}" style="width:160px; height:220px; object-fit:cover; display:block; transition:filter 0.3s; cursor:pointer; ${p.blur?'filter:blur(8px);':''}">
+                       </div>`
+                    : `<div style="width:160px; height:220px; border-radius:8px; background:${tColor}22; border:1px solid ${tColor}44; display:flex; align-items:center; justify-content:center; font-size:52px;">${conf.emoji||'\u{1F4E6}'}</div>`
+                }
+                <div style="font-size:12px; display:flex; flex-direction:column; gap:6px; margin-top:2px;">
+                    <div style="font-weight:bold;">${name}</div>
+                    <div style="opacity:0.6;">${statusLabel} · ${p.type}</div>
+                    ${progressHtml}
+                    ${p.dbUrl ? `<button onclick="if(window.electronAPI)window.electronAPI.launchApps(['${p.dbUrl}']);else window.open('${p.dbUrl}','_blank');" style="font-size:10px; padding:5px; background:var(--header); border:1px solid var(--border); border-radius:4px; cursor:pointer; text-align:center; width:100%;">🌐 Database</button>` : ''}
+                    <button onclick="viewSpecificAnalytics('${name.replace(/'/g,"\\'")}')" style="font-size:10px; padding:5px; background:var(--header); border:1px solid var(--border); border-radius:4px; cursor:pointer; text-align:center;">📊 Analytics</button>
+                    <button onclick="openLibEdit('${name.replace(/'/g,"\\'")}')" style="font-size:10px; padding:5px; background:var(--header); border:1px solid var(--border); border-radius:4px; cursor:pointer; text-align:center;">✏️ Edit</button>
+                </div>
+                <div style="display:flex; flex-direction:column; gap:3px;">
+                    <div style="font-size:11px; opacity:0.6; margin-bottom:2px;">Rating</div>
+                    <div>${starsHtml}</div>
+                </div>
+            </div>
+
+            <div style="flex:1; min-width:0; display:flex; flex-direction:column; gap:16px;">
+                <div style="background:var(--header); border:1px solid var(--border); border-radius:8px; padding:14px;">
+                    <div style="font-weight:bold; font-size:13px; margin-bottom:12px; color:var(--accent);">🏆 Milestones</div>
+                    <div style="display:flex; flex-wrap:wrap; gap:8px;">${msHtml}</div>
+                </div>
+
+                ${entries.length > 1 ? `
+                <div style="background:var(--header); border:1px solid var(--border); border-radius:8px; padding:14px;">
+                    <div style="font-weight:bold; font-size:13px; margin-bottom:10px; color:var(--accent);">📈 Sessions</div>
+                    <div style="position:relative; height:130px;"><canvas id="jvActivityCanvas"></canvas></div>
+                </div>` : ''}
+
+                <div style="background:var(--header); border:1px solid var(--border); border-radius:8px; padding:14px;">
+                    <div style="font-weight:bold; font-size:13px; margin-bottom:10px; color:var(--accent);">📝 Notes</div>
+                    <textarea id="jvNotes" placeholder="Your thoughts, vocab notes, review..."
+                        style="width:100%; height:120px; background:var(--input); color:var(--text); border:1px solid var(--border); border-radius:6px; padding:10px; font-family:var(--font-main); font-size:12px; resize:vertical; box-sizing:border-box; line-height:1.6;"
+                        oninput="saveJournalNotes('${name.replace(/'/g,"\\'")}'${''}, this.value)">${p.notes || ''}</textarea>
+                </div>
+
+                ${similarHtml}
+            </div>
+        </div>
+    `;
+
+    if (entries.length > 1) {
+        setTimeout(() => {
+            let ctx = document.getElementById('jvActivityCanvas');
+            if (!ctx) return;
+            if (jvActivityChart) jvActivityChart.destroy();
+
+            let sessionMap = {};
+            entries.forEach(e => {
+                sessionMap[e.date] = (sessionMap[e.date] || 0) + (e.hours || 0);
+            });
+            let sessionDates = Object.keys(sessionMap).sort();
+            let sessionHours = sessionDates.map(d => parseFloat(sessionMap[d].toFixed(2)));
+
+            let labelFn = d => {
+                let parts = d.split('-');
+                return parts[2] + '/' + parts[1]; // DD/MM
+            };
+            let maxTicks = 12;
+            let step = Math.max(1, Math.ceil(sessionDates.length / maxTicks));
+
+            jvActivityChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: sessionDates.map(labelFn),
+                    datasets: [{
+                        data: sessionHours,
+                        backgroundColor: sessionHours.map(h => {
+                                let maxH = Math.max(...sessionHours);
+                            let alpha = 0.35 + 0.65 * (h / Math.max(maxH, 0.1));
+                            return tColor + Math.round(alpha * 255).toString(16).padStart(2,'0');
+                        }),
+                        borderColor: tColor,
+                        borderWidth: 1,
+                        borderRadius: 3,
+                    }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                title: (items) => sessionDates[items[0].dataIndex],
+                                label: (item) => item.raw.toFixed(1) + 'h'
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            ticks: {
+                                color: '#888', font: { size: 9 }, maxRotation: 0,
+                                callback: (val, i) => i % step === 0 ? sessionDates.map(labelFn)[i] : ''
+                            },
+                            grid: { display: false }
+                        },
+                        y: {
+                            ticks: { color: '#888', maxTicksLimit: 4 },
+                            grid: { color: 'rgba(255,255,255,0.05)' },
+                            title: { display: true, text: 'Hours', color: '#666', font: { size: 10 } }
+                        }
+                    }
+                }
+            });
+        }, 50);
+    }
+}
+function openYouTubeShelfDetail() {
+    document.getElementById('jvList').style.display = 'none';
+    let detail = document.getElementById('jvDetail');
+    detail.classList.remove('hidden');
+    document.getElementById('jvDetailTitle').textContent = 'YouTube';
+
+    let currTheme = {...themes, ...data.prefs.customThemes}[data.prefs.theme] || themes.Dark;
+    let ytColor = getTypeColor('YouTube', currTheme);
+
+    // Aggregate per channel
+    let channels = {};
+    data.entries.filter(e => e.type === 'YouTube' && e.media).forEach(e => {
+        if (!channels[e.media]) channels[e.media] = { hours: 0, last: '' };
+        channels[e.media].hours += e.hours || 0;
+        if (e.date > channels[e.media].last) channels[e.media].last = e.date;
+    });
+
+    let totalHours = Object.values(channels).reduce((s,c) => s+c.hours, 0);
+    let sorted = Object.entries(channels).sort((a,b) => b[1].hours - a[1].hours);
+    let lastWatched = sorted.length ? sorted.reduce((best,c) => c[1].last > best[1].last ? c : best)[1].last : '';
+
+    // Milestones
+    let msHtml = [
+        {icon:'📺', label:'Channels', val: sorted.length},
+        {icon:'⏱️', label:'Total Time', val: totalHours.toFixed(1)+'h'},
+        {icon:'🔥', label:'Most Watched', val: sorted[0]?.[0] || '—'},
+        {icon:'📅', label:'Last Watched', val: lastWatched ? formatDDMMYYYY(lastWatched) : '—'},
+    ].map(m => `<div style="background:var(--card); border:1px solid var(--border); border-radius:8px; padding:10px 14px; display:flex; flex-direction:column; gap:2px; min-width:110px;">
+        <div style="font-size:18px; margin-bottom:2px;">${m.icon}</div>
+        <div style="font-size:10px; opacity:0.5; text-transform:uppercase; letter-spacing:0.5px;">${m.label}</div>
+        <div style="font-weight:bold; font-size:13px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:130px;">${m.val}</div>
+    </div>`).join('');
+
+    let body = document.getElementById('jvDetailBody');
+    body.innerHTML = `
+        <div style="display:flex; gap:20px; flex-wrap:wrap;">
+            <div style="flex-shrink:0; display:flex; flex-direction:column; gap:12px; width:160px;">
+                <div style="width:160px; height:220px; border-radius:8px; background:${ytColor}18; border:1px solid ${ytColor}44; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; font-size:52px;">▶️</div>
+                <div style="font-size:12px; display:flex; flex-direction:column; gap:6px;">
+                    <div style="opacity:0.6;">${sorted.length} channels</div>
+                    <button onclick="let mf=document.getElementById('mediaFilter'); mf.value='YouTube'; handleMediaFilterChange();" style="font-size:10px; padding:5px; background:var(--header); border:1px solid var(--border); border-radius:4px; cursor:pointer; text-align:center;">📊 Analytics</button>
+                </div>
+            </div>
+            <div style="flex:1; min-width:0; display:flex; flex-direction:column; gap:16px;">
+                <div style="background:var(--header); border:1px solid var(--border); border-radius:8px; padding:14px;">
+                    <div style="font-weight:bold; font-size:13px; margin-bottom:12px; color:var(--accent);">📺 Overview</div>
+                    <div style="display:flex; flex-wrap:wrap; gap:8px;">${msHtml}</div>
+                </div>
+                ${sorted.length > 0 ? `
+                <div style="background:var(--header); border:1px solid var(--border); border-radius:8px; padding:14px;">
+                    <div style="font-weight:bold; font-size:13px; margin-bottom:10px; color:var(--accent);">📊 Hours by Channel</div>
+                    <div style="position:relative; height:${Math.min(sorted.length * 28 + 20, 280)}px;"><canvas id="jvActivityCanvas"></canvas></div>
+                </div>` : ''}
+            </div>
+        </div>
+    `;
+
+    if (sorted.length > 0) {
+        setTimeout(() => {
+            let ctx = document.getElementById('jvActivityCanvas');
+            if (!ctx) return;
+            if (jvActivityChart) jvActivityChart.destroy();
+
+            let labels = sorted.map(([ch]) => ch.length > 22 ? ch.slice(0,20)+'…' : ch);
+            let hours  = sorted.map(([,c]) => parseFloat(c.hours.toFixed(1)));
+            // Each bar gets its own stringToColor for variety
+            let colors = sorted.map(([ch]) => stringToColor(ch));
+
+            jvActivityChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels,
+                    datasets: [{ data: hours, backgroundColor: colors.map(c => c+'cc'), borderColor: colors, borderWidth: 1, borderRadius: 4 }]
+                },
+                options: {
+                    indexAxis: 'y',  // horizontal bars
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: { callbacks: { label: item => item.raw.toFixed(1)+'h' } }
+                    },
+                    scales: {
+                        x: {
+                            ticks: { color: '#888', maxTicksLimit: 5 },
+                            grid: { color: 'rgba(255,255,255,0.05)' },
+                            title: { display: true, text: 'Hours', color: '#666', font: { size: 10 } }
+                        },
+                        y: { ticks: { color: '#ccc', font: { size: 10 } }, grid: { display: false } }
+                    }
+                }
+            });
+        }, 50);
+    }
+}
+
+function saveJournalNotes(name, val) {
+    if (!data.mediaData[name]) return;
+    data.mediaData[name].notes = val;
+    save();
+}
+
+function closeJournalDetail() {
+    document.getElementById('jvList').style.display = 'flex';
+    document.getElementById('jvDetail').classList.add('hidden');
+    if (jvActivityChart) { jvActivityChart.destroy(); jvActivityChart = null; }
+    renderJournalList();
+}
+
+function exitJournal() {
+    if (jvActivityChart) { jvActivityChart.destroy(); jvActivityChart = null; }
+    switchView(previousTabBeforeGoals || 'library');
+}
+
+/* END MEDIA SHELF */
+
+function setDensity(preset) {
+    data.prefs.density = preset;
+    save();
+    _applyDensity(preset);
+    // Update button highlight — ids: densityCompact, densityNormal, densityComfortable
+    let ids = { compact: 'densityCompact', normal: 'densityNormal', comfortable: 'densityComfortable' };
+    Object.entries(ids).forEach(([p, id]) => {
+        let btn = document.getElementById(id);
+        if (!btn) return;
+        let active = p === preset;
+        btn.style.background = active ? 'var(--accent)' : '';
+        btn.style.color = active ? '#000' : '';
+        btn.style.fontWeight = active ? 'bold' : '';
+        btn.style.borderColor = active ? 'var(--accent)' : 'var(--border)';
+    });
+}
+
+function _applyDensity(preset) {
+    const presets = {
+        compact: {
+            '--d-font-base': '11px', '--d-font-sm': '10px', '--d-font-xs': '9px',
+            '--d-font-md': '11px',   '--d-font-lg': '12px', '--d-font-big': '19px',
+            '--d-pad-ui':   '4px',   '--d-pad-card': '9px', '--d-pad-item': '7px 11px',
+            '--d-gap': '7px',
+            chartFont: 9,
+            '--d-chart-height': '270px',
+        },
+        normal: {
+            '--d-font-base': '13px', '--d-font-sm': '11px', '--d-font-xs': '10px',
+            '--d-font-md': '13px',   '--d-font-lg': '14px', '--d-font-big': '22px',
+            '--d-pad-ui':   '6px',   '--d-pad-card': '12px','--d-pad-item': '10px 15px',
+            '--d-gap': '10px',
+            chartFont: 11,
+            '--d-chart-height': '350px',
+        },
+        comfortable: {
+            '--d-font-base': '15px', '--d-font-sm': '13px', '--d-font-xs': '11px',
+            '--d-font-md': '15px',   '--d-font-lg': '16px', '--d-font-big': '26px',
+            '--d-pad-ui':   '8px',   '--d-pad-card': '16px','--d-pad-item': '13px 18px',
+            '--d-gap': '13px',
+            chartFont: 13,
+            '--d-chart-height': '450px',
+        },
+    };
+    let p = presets[preset] || presets.normal;
+    Object.entries(p).forEach(([k, v]) => {
+        if (k.startsWith('--')) document.documentElement.style.setProperty(k, v);
+    });
+    // Scale all Chart.js instances globally — affects ticks, legends, tooltips
+    if (typeof Chart !== 'undefined') {
+        Chart.defaults.font.size = p.chartFont;
+        // Redraw active charts so they pick up the new font size
+        try { if (typeof updateCharts === 'function') updateCharts(); } catch(e) {}
+        try { if (typeof updateCompareChart === 'function' && !document.getElementById('compareView').classList.contains('hidden')) updateCompareChart(); } catch(e) {}
     }
 }
 
@@ -4626,7 +6262,9 @@ function initOS() {
         });
     }
     populateDropdowns(); 
-    populateMedia(); 
+    populateMedia();
+    renderToolbar();
+    _applyDensity(data.prefs.density || 'normal'); 
     updateTrendOptions(); 
     applyTheme(data.prefs.theme); 
 	applyWallpaper();
@@ -4637,7 +6275,8 @@ function initOS() {
 	if (data.prefs.defaultLibFilter) document.getElementById("libFilterMain").value = data.prefs.defaultLibFilter;
 	if (data.prefs.defaultLibStatus) document.getElementById("libStatusFilter").value = data.prefs.defaultLibStatus;
 	if (data.prefs.defaultLibSort) document.getElementById("libSortMain").value = data.prefs.defaultLibSort;
-    let isLibraryActive = data.prefs.lastView === 'analytics' ? false : true;
+    let isLibraryActive = (data.prefs.lastView === 'analytics') ? false : true;
+    if (data.prefs.lastView === 'journal') { data.prefs.lastView = 'library'; }
     if (isLibraryActive) switchView('library', true);
     else switchView('analytics', true);
     
