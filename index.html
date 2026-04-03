@@ -370,7 +370,10 @@ body.crystal-ui .wid-drop-content {
 </div>
 <div class="layout" id="mainLayout">
     <div class="left" id="sidebar">
-        <h3>Log Immersion</h3>
+		<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 10px;">
+			<h3 style="margin:0;">Log Immersion</h3>
+			<div id="sidebarTimerDisplay" class="hidden" style="font-size:13px; font-weight:bold; color:var(--accent); font-family:monospace; background: var(--header); padding: 3px 8px; border-radius: 4px; border: 1px solid var(--border); box-shadow: 0 2px 5px rgba(0,0,0,0.2);">00:00:00</div>
+		</div>
         <div class="flex-row">
             <div>Date<br><input type="date" id="logDate" style="width:90%"></div>
             <div>Type<br><select id="logType" onchange="populateMedia()" style="width:100%"></select></div>
@@ -402,7 +405,6 @@ body.crystal-ui .wid-drop-content {
                 Min per Unit: <input type="number" id="epLength" style="width:40px; padding:2px; font-size:11px;">
             </div>
         </div>
-        
         <div class="flex-row" style="margin-top:15px; align-items:center;">
             <button onclick="addEntry()" id="saveBtn" style="flex:4; padding:10px; background:var(--accent); color:#000; font-weight:bold; border:none">SAVE ENTRY</button>
             <button id="timerBtn" onclick="toggleTimer()" oncontextmenu="pauseTimer(event)" style="flex:1; padding:10px;" title="Left-Click: Start/Stop | Right-Click: Pause">▶</button>
@@ -413,7 +415,7 @@ body.crystal-ui .wid-drop-content {
         <div id="goalsHeader">
             <h3>Goals</h3>
             <div class="goal-icons">
-                <span style="cursor:pointer; padding: 0 4px;" onclick="openArchiveModal()" title="Archived Goals">🗄️</span>
+                <span style="cursor:pointer; padding: 0 4px;" onclick="openGoalsPage()" title="Archived Goals">🗄️</span>
                 <span style="cursor:pointer; padding: 0 4px;" onclick="openGoalModal()" title="Add Goal">➕</span>
             </div>
         </div>
@@ -535,9 +537,43 @@ body.crystal-ui .wid-drop-content {
             <div style="flex:1; min-height:0; position:relative; background:var(--card); padding:20px; border-radius:8px; border:1px solid var(--border);">
                 <canvas id="compareChart"></canvas>
             </div>
-        </div> </div>
-</div>
+        </div>
+		<div id="goalsView" class="hidden" style="display: flex; flex-direction: column; height: 100%; padding: 0 20px; animation: fadeIn 0.2s; overflow-y: auto;">
+            
+            <div id="gdListViewContainer" style="display: flex; flex-direction: column; flex: 1;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px;">
+                    <div style="display:flex; gap:15px; align-items:center;">
+                        <button onclick="exitGoalsPage()" style="padding: 8px 15px; font-weight:bold; background:var(--header); border:1px solid var(--border); color:var(--text); border-radius:4px; cursor:pointer;" title="Go back">🔙 Back</button>
+                        <h2 style="margin:0;">🏆 Goal Milestones</h2>
+                    </div>
+                </div>
+                <div id="gdList" class="list-container" style="padding-bottom: 20px;"></div>
+            </div>
 
+            <div id="gdDetails" class="hidden" style="flex-direction: column; flex: 1; padding-bottom: 20px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px;">
+                    <div style="display:flex; gap:15px; align-items:center;">
+                        <button onclick="closeGoalDetails()" style="padding: 8px 15px; font-weight:bold; background:var(--header); border:1px solid var(--border); color:var(--text); border-radius:4px; cursor:pointer;" title="Go back to list">🔙 Back to Milestones</button>
+                        <h2 id="gdTitle" style="margin:0;">Goal Title</h2>
+                    </div>
+                </div>
+                <div id="gdMeta" style="font-size: 13px; opacity: 0.8; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid var(--border);">Meta</div>
+                
+                <div style="display: flex; gap: 20px; flex: 1; min-height: 350px;">
+                    <div style="flex: 2; display: flex; flex-direction: column; background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 15px;">
+                        <strong style="margin-bottom: 10px; font-size: 14px;">Pace Progression</strong>
+                        <div style="position: relative; flex: 1; min-height: 0;"><canvas id="gdPaceChart"></canvas></div>
+                    </div>
+                    <div style="flex: 1; display: flex; flex-direction: column; background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 15px;">
+                        <strong style="margin-bottom: 10px; font-size: 14px;">Media Breakdown</strong>
+                        <div style="position: relative; flex: 1; min-height: 0;"><canvas id="gdMediaChart"></canvas></div>
+                    </div>
+                </div>
+            </div>
+            
+        </div>
+</div>
+</div>
 <div id="lightboxOverlay" class="overlay hidden" style="z-index: 9999;" onclick="closeModal('lightboxOverlay')">
     <img id="lightboxImg" src="" style="max-width: 90vw; max-height: 90vh; border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.8);">
 </div>
@@ -646,11 +682,27 @@ body.crystal-ui .wid-drop-content {
 						<option value="chars">Chars</option>
 						<option value="hours">Hours</option>
 					</select>
-				</div>        
+				</div>
+
+				<div style="margin-bottom:15px;">
+					Quick Launch Path <span style="font-size:10px;opacity:0.6">(Appended to presets)</span><br>
+					<input type="text" id="newMediaQuickPath" style="width:95%;" placeholder="C:\Games\Game.exe or https://...">
+				</div> 
         <label style="display:flex; align-items:center; gap:8px; margin-bottom:15px; font-size: 12px; opacity: 0.9;">
             <input type="checkbox" id="newMediaAuto" checked> Auto-Complete when target reached
         </label>
         
+        <div style="margin-bottom:15px; border-top: 1px solid var(--border); padding-top:10px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; cursor:pointer;" onclick="document.getElementById('newMediaPathsWrapper').classList.toggle('hidden')">
+                <strong style="font-size: 13px;">🚀 Advanced: Launch Paths</strong>
+                <span style="font-size:10px; opacity:0.6;">▼ Edit</span>
+            </div>
+            <div id="newMediaPathsWrapper" class="hidden" style="margin-top:10px;">
+                <div style="font-size:10px; opacity:0.6; margin-bottom:5px;">(Pre-filled from Type preset)</div>
+                <div id="newMediaPathsContainer" style="display:flex; flex-direction:column; gap:5px;"></div>
+                <button onclick="addNewMediaPath()" id="btnAddNewMediaPath" style="font-size:10px; padding:4px 8px; background:var(--header); border:1px solid var(--border); margin-top:5px; cursor:pointer;">+ Add Path</button>
+            </div>
+        </div>
         <div class="flex-row">
             <button onclick="confirmAddMedia()" style="background:var(--accent); color:#000; width:100%; font-weight:bold;">ADD</button>
             <button onclick="closeModal('addMediaOverlay')" style="width:100%;">CANCEL</button>
@@ -867,6 +919,9 @@ body.crystal-ui .wid-drop-content {
                         <input type="checkbox" id="setBlurCph" onchange="saveSettingsFast()"> <strong>Blur Reading Speed</strong>
 						<input type="checkbox" id="setImmersiveBanner" onchange="saveSettingsFast()"> <strong>Show Immersive Banner in Analytics</strong>
                     </label>
+					<label style="display:flex; align-items:center; gap:8px; margin-bottom:20px; background:var(--header); padding:10px; border-radius:6px; border:1px solid var(--border);">
+						<input type="checkbox" id="setShowSidebarTimer" onchange="data.prefs.showSidebarTimer = this.checked; save(); toggleSidebarTimerVisibility();"> <strong>Show Minimal Sidebar Timer</strong>
+					</label>
                     <div style="background:var(--header); padding:15px; border-radius:6px; border:1px solid var(--border); margin-bottom:15px;">
                         <strong style="display:block; margin-bottom:8px;">Theme Selection</strong>
                         <div class="flex-row">
@@ -1371,52 +1426,93 @@ function toggleSidebar(forceOpen, silent = false) {
     }, 0);
 }
 
+let previousTabBeforeGoals = 'analytics';
 function switchView(viewName, silent = false) {
-    let libBtn = document.getElementById('tabLibrary'); let anaBtn = document.getElementById('tabAnalytics');
-    let libView = document.getElementById('libraryView'); let anaView = document.getElementById('analyticsView'); 
+    let libBtn = document.getElementById('tabLibrary');
+    let anaBtn = document.getElementById('tabAnalytics');
+    let libView = document.getElementById('libraryView');
+    let anaView = document.getElementById('analyticsView');
     let filters = document.getElementById('headerFilters');
     let compView = document.getElementById('compareView');
+    let gView = document.getElementById('goalsView');
 
+    // 1. LIBRARY TAB
     if (viewName === 'library') {
-        if (libBtn.classList.contains('active')) return; 
+        if (libBtn && libBtn.classList.contains('active')) return;
         if (!silent) playAudio('tab_lib.wav');
-        libBtn.classList.add('active'); anaBtn.classList.remove('active');
-        
-        // --- HIDE BANNER IN LIBRARY ---
+        if(libBtn) libBtn.classList.add('active'); 
+        if(anaBtn) anaBtn.classList.remove('active');
+
         let banner = document.getElementById('immersiveBanner');
         if (banner) banner.style.opacity = '0';
-        
-        libView.classList.remove('hidden'); anaView.classList.add('hidden'); filters.classList.add('hidden');
-        if (compView) compView.classList.add('hidden');
-        data.prefs.lastView = 'library'; if (typeof save === 'function') save(); 
-        
+
+        if(libView) libView.classList.remove('hidden'); 
+        if(anaView) anaView.classList.add('hidden'); 
+        if(filters) filters.classList.add('hidden');
+        if(compView) compView.classList.add('hidden');
+        if(gView) gView.classList.add('hidden');
+
+        data.prefs.lastView = 'library'; if (typeof save === 'function') save();
         if (data.prefs.hideSidebarInLibrary) toggleSidebar(false, silent);
-        
         renderLibrary();
-    } else {
-        // If clicking Analytics while already on Analytics, reset to All Media
-        if (anaBtn.classList.contains('active') && (!compView || compView.classList.contains('hidden'))) {
+    } 
+    // 2. ANALYTICS TAB
+    else if (viewName === 'analytics') {
+        // If already on Analytics, reset media filter
+        if (anaBtn && anaBtn.classList.contains('active') && (!compView || compView.classList.contains('hidden')) && (!gView || gView.classList.contains('hidden'))) {
             document.getElementById('mediaFilter').value = 'all';
             if (typeof handleMediaFilterChange === 'function') handleMediaFilterChange();
             return;
         }
-        
-        if (!silent) playAudio('tab_ana.wav');
-        anaBtn.classList.add('active'); libBtn.classList.remove('active');
-        anaView.classList.remove('hidden'); libView.classList.add('hidden');
-        filters.classList.remove('hidden');
-        if (compView) compView.classList.add('hidden');
-        data.prefs.lastView = 'analytics'; if (typeof save === 'function') save();
-        
-        toggleSidebar(data.prefs.sidebarOpen !== false, silent);
 
-        // --- RESTORE BANNER IN ANALYTICS (if specific media is selected) ---
+        if (!silent) playAudio('tab_ana.wav');
+        if(anaBtn) anaBtn.classList.add('active'); 
+        if(libBtn) libBtn.classList.remove('active');
+
+        if(anaView) anaView.classList.remove('hidden'); 
+        if(libView) libView.classList.add('hidden');
+        if(filters) filters.classList.remove('hidden');
+        if(compView) compView.classList.add('hidden');
+        if(gView) gView.classList.add('hidden');
+
+        data.prefs.lastView = 'analytics'; if (typeof save === 'function') save();
+        toggleSidebar(data.prefs.sidebarOpen !== false, silent);
+        
         if (typeof handleMediaFilterChange === 'function') handleMediaFilterChange();
-        else updateAll(); 
+        else updateAll();
 
         setTimeout(() => { if(typeof pie !== 'undefined' && pie) pie.resize(); if(typeof line !== 'undefined' && line) line.resize(); }, 100);
     }
-	if (typeof applyWallpaper === 'function') applyWallpaper();
+    // 3. GOALS MILESTONES PAGE
+    else if (viewName === 'goals') {
+        if (!silent) playAudio('tab_ana.wav');
+        
+        // Remember where we came from!
+        previousTabBeforeGoals = (libBtn && libBtn.classList.contains('active')) ? 'library' : 'analytics';
+        
+        if(libBtn) libBtn.classList.remove('active');
+        if(anaBtn) anaBtn.classList.remove('active');
+
+        if(gView) gView.classList.remove('hidden');
+        if(libView) libView.classList.add('hidden');
+        if(anaView) anaView.classList.add('hidden');
+        if(filters) filters.classList.add('hidden');
+        if(compView) compView.classList.add('hidden');
+		let banner = document.getElementById('immersiveBanner');
+        if (banner) banner.style.opacity = '0';
+        data.prefs.lastView = 'goals'; 
+        if (typeof save === 'function') save();
+        toggleSidebar(false, silent);
+
+        let listCont = document.getElementById('gdListViewContainer');
+        let detCont = document.getElementById('gdDetails');
+        if(listCont) { listCont.classList.remove('hidden'); listCont.style.display = 'flex'; }
+        if(detCont) { detCont.classList.add('hidden'); detCont.style.display = 'none'; }
+
+        renderGoalDashboard();
+    }
+
+    if (typeof applyWallpaper === 'function') applyWallpaper();
 }
 
 function handleRangeChange() {
@@ -1440,13 +1536,10 @@ function handleMediaFilterChange() {
             let targetImg = "";
             
             if (data.mediaData[mf.value] && data.mediaData[mf.value].img) {
-                // 1. It's a Specific Media Item (e.g., Wuthering Waves)
                 targetImg = data.mediaData[mf.value].img;
             } else if (data.mediaConfig[mf.value]) {
-                // 2. It's a Media Type (e.g., Anime or VN)
                 let typeLogs = data.entries.filter(e => e.type === mf.value && e.media && data.mediaData[e.media] && data.mediaData[e.media].img);
                 
-                // Helper to find the #1 most played media in a set of logs
                 let getTopArt = (logs) => {
                     let sums = {};
                     logs.forEach(e => sums[e.media] = (sums[e.media] || 0) + e.hours);
@@ -1454,13 +1547,10 @@ function handleMediaFilterChange() {
                     return top ? data.mediaData[top[0]].img : "";
                 };
                 
-                // Try the last 14 days first...
                 let cutoff = getLocalDateStr(new Date(Date.now() - 14 * 86400000));
                 let recentLogs = typeLogs.filter(e => e.date >= cutoff);
                 
                 targetImg = getTopArt(recentLogs);
-                
-                // ... If nothing was played in the last 14 days, fallback to all-time
                 if (!targetImg) targetImg = getTopArt(typeLogs);
             }
             
@@ -1603,13 +1693,10 @@ function handleMediaSelectChange() {
     }
 
     if (profile && profile.lastUnitMin !== undefined) {
-        // Use the remembered memory for this specific media
         epInput.value = profile.lastUnitMin;
     } else if (t === 'Anime') {
-        // Fallback for new Anime
         epInput.value = 20;
     } else {
-        // Fallback for everything else
         epInput.value = 0;
     }
 	updateTheaterMode();
@@ -1646,6 +1733,18 @@ async function addEntry() {
 
         if (hasUnits && mediaSelect.value && data.mediaData[mediaSelect.value]) {
             data.mediaData[mediaSelect.value].lastUnitMin = parseFloat(document.getElementById('epLength').value) || 0;
+        }
+		if (timerInterval || isTimerPaused) {
+            clearInterval(timerInterval); timerInterval = null; isTimerPaused = false; accumulatedMs = 0;
+            document.getElementById('sidebar').classList.remove('tracking');
+            let btn = document.getElementById("timerBtn");
+            let zenBtn = document.getElementById("zenTimerBtn");
+            if(btn) { btn.textContent = "▶"; btn.classList.remove("active"); btn.style.background = ""; btn.style.borderColor = ""; btn.style.animation = ""; }
+            if(zenBtn) { zenBtn.textContent = "▶ START"; zenBtn.classList.remove("active"); zenBtn.style.background = ""; zenBtn.style.borderColor = ""; zenBtn.style.animation = ""; }
+            let zc = document.getElementById("zenClock"); if(zc) zc.textContent = "00:00:00"; 
+            let sidebarClock = document.getElementById("sidebarTimerDisplay");
+            if(sidebarClock) { sidebarClock.textContent = "00:00:00"; sidebarClock.classList.add("hidden"); }
+            if (typeof broadcastToWidget === 'function') broadcastToWidget();
         }
         hookedLines = []; save(); updateAll(); playAudio('save.wav'); 
         document.querySelectorAll('.big').forEach(el => { el.classList.remove('stat-animate'); void el.offsetWidth; el.classList.add('stat-animate'); }); 
@@ -2136,7 +2235,7 @@ function renderLibrary() {
             <div style="width:90px; text-align:right;">Total</div><div style="width:60px; text-align:right;">Time</div></div></div>`;
     }
 
-    displayItems.forEach(item => {
+    displayItems.forEach((item, index) => {
         // --- RENDER FOLDERS ---
         if (item.isFolder) {
             if (mode === 'grid') {
@@ -2207,14 +2306,26 @@ function renderLibrary() {
             card.innerHTML = `${bgHtml}<div class="card-gradient"></div>${badgeHtml}<div class="card-content"><div class="lib-actions">${launchBtn}${dbBtn}${statsBtn}${quickAdd}<button class="lib-btn" onclick="event.stopPropagation(); openLibEdit('${item.name}')">✎</button></div><div style="font-size:16px; font-weight:bold; padding-right:110px; word-wrap:break-word; text-shadow:0 2px 4px rgba(0,0,0,0.8);">${item.name}</div><div style="font-size:11px; opacity:0.8; margin-bottom:5px; text-shadow:0 1px 2px rgba(0,0,0,0.8);">${statusIcon} ${item.type}</div><div style="flex:1"></div>${middleHtml}<div style="font-size:11px; opacity:0.9; margin-top:8px; display:flex; gap:10px; text-shadow:0 1px 2px rgba(0,0,0,0.8);"><span>⏱️ ${item.stats.hours.toFixed(1)}h</span><span>${emoji} ${dispAmt} ${amtStr}</span></div></div>`;
             container.appendChild(card);
         } else {
-            let middleHtml = item.target > 0 ? `<div style="width:120px; display:flex; align-items:center; justify-content:flex-end;"><span style="font-size:11px; color:var(--accent); margin:0;">${pct}% (${dispAmt}/${dispTarget})</span></div>` : `<div style="width:120px; display:flex; align-items:center; justify-content:flex-end;"><span style="font-size:11px; opacity:0.6; margin:0;">Ongoing</span></div>`;            
+            let middleHtml = item.target > 0 ? 
+                `<div style="width:120px; display:flex; align-items:center; justify-content:flex-end;"><span style="font-size:11px; color:var(--accent); margin:0;">${pct}% (${dispAmt}/${dispTarget})</span></div>` : 
+                `<div style="width:120px; display:flex; align-items:center; justify-content:flex-end;"><span style="font-size:11px; opacity:0.6; margin:0;">Ongoing</span></div>`;            
+            
             let dispAmtHtml = `<div style="width:90px; display:flex; align-items:center; justify-content:flex-end; font-size:12px; margin:0;">${emoji} ${dispAmt} ${amtStr}</div>`;
             let timeHtml = `<div style="width:60px; display:flex; align-items:center; justify-content:flex-end; font-size:12px; margin:0;">${item.stats.hours.toFixed(1)}h</div>`;
             
-            container.innerHTML += `<div class="list-item active" onclick="window.currentLibraryFolder='${item.name}'; renderLibrary(); playAudio('open.wav');" style="display: flex; align-items: center; justify-content: space-between; height: 100%; animation-delay: ${Math.min(index * 0.03, 0.5)}s;">
-				<div style="flex:1;"><strong style="margin:0;">📁 ${item.name}</strong> <span style="font-size:10px; opacity:0.6; margin-left:8px;">(${item.stats.count} items)</span></div>
-				<div style="display:flex; align-items:center; gap:15px; height: 100%;"><div style="width:60px; text-align:right; font-size:12px;">${item.stats.hours.toFixed(1)}h</div></div>
-			</div>`;
+            let actionsHtml = `<div class="list-hover-actions" style="width:130px; display:flex; justify-content:center; gap:5px; position:relative; z-index:5; opacity:0; transition:0.2s;">${launchBtn}${dbBtn}${statsBtn}${quickAdd}<button class="lib-btn" onclick="event.stopPropagation(); openLibEdit('${item.name.replace(/'/g, "\\'")}')">✎</button></div>`;
+            
+            container.innerHTML += `<div class="list-item ${item.status}" onclick="selectFromLibrary('${item.type}', '${item.name.replace(/'/g, "\\'")}'); fireMediaLaunch('${item.name.replace(/'/g, "\\'")}');" style="animation-delay: ${Math.min(index * 0.03, 0.5)}s;" data-media="${item.name.replace(/"/g, '&quot;')}" onmouseenter="let a = this.querySelector('.list-hover-actions'); if(a) a.style.opacity='1';" onmouseleave="let a = this.querySelector('.list-hover-actions'); if(a) a.style.opacity='0';">
+                <div style="flex:1; display:flex; align-items:center;">
+                    ${statusIcon} <strong style="margin-left:8px;">${item.name}</strong> <span style="font-size:10px; opacity:0.6; margin-left:8px;">(${item.type})</span>
+                </div>
+                <div style="display:flex; align-items:center; gap:15px; height: 100%;">
+                    ${actionsHtml}
+                    ${middleHtml}
+                    ${dispAmtHtml}
+                    ${timeHtml}
+                </div>
+            </div>`;
         }
     });
     if (items.length === 0 && displayItems.length === 0) container.innerHTML = "<div style='opacity:0.6; grid-column:1/-1;'>No media found matching these filters.</div>";
@@ -2442,7 +2553,6 @@ function deleteLibraryMedia() {
     let type = editLibMediaType; 
     let msg = `Completely remove "${oldName}" from your library?\n(Note: Your past hours for this media will remain in history)`;
 
-    // The Action to perform if 'Yes' is clicked
     let executeDelete = () => {
         if (data.media[type]) {
             data.media[type] = data.media[type].filter(x => x !== oldName); 
@@ -2452,7 +2562,6 @@ function deleteLibraryMedia() {
         showToast(`🗑️ Deleted ${oldName}`, "Alert");
     };
 
-    // Safety Check: Try custom UI, fallback to standard UI
     if (typeof showConfirm === "function") {
         showConfirm(msg, executeDelete); 
     } else {
@@ -2460,24 +2569,49 @@ function deleteLibraryMedia() {
     }
 }
 
+let currentNewMediaPaths = [];
+
 function openAddMediaModal() { 
     document.getElementById("newMediaInput").value = ""; 
     document.getElementById("newMediaImg").value = ""; 
     document.getElementById("newMediaTarget").value = ""; 
-    
+    document.getElementById("newMediaQuickPath").value = "";
     let overrideSel = document.getElementById("newMediaOverride");
     if (overrideSel) overrideSel.value = "default";
     
-    // Reset the search container UI
     let container = document.getElementById("apiSearchContainer");
     if (container) {
         container.innerHTML = "";
         container.classList.add("hidden");
     }
 
+    // Force the path editor to close when opening the window
+    let pathsWrapper = document.getElementById("newMediaPathsWrapper");
+    if (pathsWrapper) pathsWrapper.classList.add("hidden");
+
+    // Load the preset paths for whatever Type is currently selected
+    let t = document.getElementById("logType").value;
+    let conf = data.mediaConfig[t];
+    currentNewMediaPaths = (conf && conf.usePresetPaths && conf.presetPaths) ? [...conf.presetPaths] : [""];
+    if (currentNewMediaPaths.length === 0) currentNewMediaPaths = [""];
+    renderNewMediaPaths();
+
     openModal("addMediaOverlay"); 
     setTimeout(() => document.getElementById("newMediaInput").focus(), 100); 
 }
+
+function renderNewMediaPaths() {
+    let c = document.getElementById("newMediaPathsContainer"); 
+    if(!c) return;
+    c.innerHTML = "";
+    currentNewMediaPaths.forEach((p, i) => {
+        c.innerHTML += `<div style="display:flex; gap:5px;"><input type="text" id="newMediaPath${i}" value="${p.replace(/"/g, '&quot;')}" placeholder="Path ${i+1}..." style="flex:1; font-size:11px; background:var(--input); color:var(--text); border:1px solid var(--border); padding:4px; border-radius:4px;"><button onclick="removeNewMediaPath(${i})" style="background:#ff4444; color:#fff; border:none; border-radius:4px; padding:0 8px; font-weight:bold; cursor:pointer;">X</button></div>`;
+    });
+    let btn = document.getElementById("btnAddNewMediaPath");
+    if(btn) btn.style.display = currentNewMediaPaths.length >= 5 ? 'none' : 'inline-block';
+}
+function addNewMediaPath() { if(currentNewMediaPaths.length < 5) currentNewMediaPaths.push(""); renderNewMediaPaths(); }
+function removeNewMediaPath(i) { currentNewMediaPaths.splice(i, 1); renderNewMediaPaths(); }
 
 document.getElementById("newMediaInput").addEventListener("keypress", function(e) { if (e.key === "Enter") confirmAddMedia(); });
 function confirmAddMedia() { 
@@ -2488,25 +2622,28 @@ function confirmAddMedia() {
     let overrideSel = document.getElementById("newMediaOverride");
     let metricOverride = overrideSel ? overrideSel.value : 'default';
     
-    // Grab the database URL if it was auto-filled
     let dbUrlEl = document.getElementById("newMediaDbUrl");
     let dbUrl = dbUrlEl ? dbUrlEl.value.trim() : "";
     
     let t = logType.value; 
-    
+
+    // Extract paths from the UI boxes
+    let finalPaths = [];
+    for (let i = 0; i < currentNewMediaPaths.length; i++) {
+        let el = document.getElementById('newMediaPath' + i);
+        if (el && el.value.trim() !== "") finalPaths.push(el.value.trim());
+    }
+    let quickPath = document.getElementById("newMediaQuickPath");
+    if (quickPath && quickPath.value.trim() !== "") {
+        finalPaths.push(quickPath.value.trim());
+    }
     if(n) { 
         if (!data.media[t].includes(n)) { 
             data.media[t].push(n); 
             let auto = document.getElementById("newMediaAuto").checked; 
             
-            let defaultPaths = ["", "", ""];
-            let conf = data.mediaConfig[t];
-            if (conf && conf.usePresetPaths && conf.presetPaths) {
-                defaultPaths = [...conf.presetPaths];
-            }
-
-            // Notice dbUrl is added to the end of this object!
-            data.mediaData[n] = { type: t, status: 'active', target: target, metricOverride: metricOverride, img: img, paths: defaultPaths, blur: false, hidden: false, autoComplete: auto, dbUrl: dbUrl }; 
+            // Feed it the user's custom finalPaths
+            data.mediaData[n] = { type: t, status: 'active', target: target, metricOverride: metricOverride, img: img, paths: finalPaths, blur: false, hidden: false, autoComplete: auto, dbUrl: dbUrl }; 
         } 
         save(); populateMedia(); renderLibrary(); 
     } 
@@ -2794,6 +2931,9 @@ function stopTimerFull() {
         if(zenBtn) { zenBtn.textContent = "▶ START"; zenBtn.classList.remove("active"); zenBtn.style.background = ""; zenBtn.style.borderColor = ""; zenBtn.style.animation = ""; }
         let zc = document.getElementById("zenClock"); if(zc) zc.textContent = "00:00:00"; 
         
+		let sidebarClock = document.getElementById("sidebarTimerDisplay");
+		if(sidebarClock) { sidebarClock.textContent = "00:00:00"; sidebarClock.classList.add("hidden"); }
+		
         playAudio('timer.wav'); 
         showToast("⏹️ Timer Stopped", "Overall");
         if (typeof broadcastToWidget === 'function') broadcastToWidget();
@@ -2918,7 +3058,7 @@ function updateCharts() {
                 if (activeEls.length > 0) { 
                     let clickedIndex = activeEls[0].index; let label = pie.data.labels[clickedIndex]; 
                     let mf = document.getElementById('mediaFilter'); 
-                    if(Array.from(mf.options).some(o => o.value === label)) { mf.value = label; updateAll(); } 
+                    if(Array.from(mf.options).some(o => o.value === label)) { mf.value = label; handleMediaFilterChange(); } 
                 } 
             } 
         } 
@@ -3048,8 +3188,9 @@ function stringToColor(str) {
     for (let i = 0; i < str.length; i++) {
         hash = str.charCodeAt(i) + ((hash << 5) - hash);
     }
-    let h = Math.abs((hash * 137.508) % 360);
-    return `hsl(${h}, 75%, 60%)`;
+    // Golden Angle multiplier for distinct colors
+    let hue = (Math.abs(hash) * 137.508) % 360; 
+    return `hsl(${hue}, 70%, 60%)`;
 }
 
 function openComparePage() {
@@ -3142,9 +3283,8 @@ function updateCompareChart() {
             chartLabels.push(m);
             chartData.push(metric === 'hours' ? parseFloat(val.toFixed(1)) : val);
             
-            let mType = data.mediaData[m] ? data.mediaData[m].type : '';
-            let tColor = currTheme[mType.toLowerCase()];
-            chartColors.push(tColor || stringToColor(m));
+            // Force it to use the unique golden ratio color for every item
+            chartColors.push(stringToColor(m)); 
         }
     });
 
@@ -3496,6 +3636,7 @@ function openSettings() {
     populateThemeSelect(); 
     renderMediaTypesSettings();
     document.getElementById("setBlurCph").checked = data.prefs.blurCph || false;
+	document.getElementById("setShowSidebarTimer").checked = data.prefs.showSidebarTimer !== false;
     document.getElementById("setBgUrl").value = data.prefs.bgUrl || "";
     document.getElementById("setBgDim").value = data.prefs.bgDim !== undefined ? data.prefs.bgDim : 0.7;
     document.getElementById("setBgDimVal").textContent = document.getElementById("setBgDim").value;
@@ -3522,6 +3663,7 @@ function openSettings() {
 	document.getElementById("setBgView").value = data.prefs.bgView || "both";
 	document.getElementById("setBgBlur").value = data.prefs.bgBlur || 0;
 	document.getElementById("setBgBlurVal").textContent = (data.prefs.bgBlur || 0) + "px";
+	
 	
     
     // Load Trend Settings
@@ -3959,7 +4101,7 @@ if (window.electronAPI) {
             let elapsedMinutes = accumulatedMs / 60000;
             
             clearInterval(timerInterval); timerInterval = null; isTimerPaused = false; accumulatedMs = 0;
-            
+            if (typeof broadcastToWidget === 'function') broadcastToWidget();
             let btn = document.getElementById("timerBtn"); let zenBtn = document.getElementById("zenTimerBtn");
             if(btn) { btn.textContent = "▶"; btn.classList.remove("active"); btn.style.background = ""; btn.style.borderColor = ""; }
             if(zenBtn) { zenBtn.textContent = "▶ START"; zenBtn.classList.remove("active"); zenBtn.style.background = ""; zenBtn.style.borderColor = ""; }
@@ -4109,6 +4251,17 @@ saveLibraryEdit = function() {
     }
 };
 
+function toggleSidebarTimerVisibility() {
+    let sidebarClock = document.getElementById("sidebarTimerDisplay");
+    if (!sidebarClock) return;
+    if (data.prefs.showSidebarTimer === false) {
+        sidebarClock.classList.add("hidden");
+    } 
+    else if (typeof timerInterval !== 'undefined' && timerInterval !== null && !isTimerPaused) {
+        sidebarClock.classList.remove("hidden");
+    }
+}
+
 /* ===============================
 SCREENSHOT TOOL
 =============================== */
@@ -4201,14 +4354,24 @@ function toggleTimer() {
         playAudio('timer.wav'); 
         
         timerInterval = setInterval(() => { 
-            let elapsedMs = accumulatedMs + (Date.now() - startTime); 
-            let elapsedHours = elapsedMs / 3600000; 
-            if(btn) btn.title = `Running: ${elapsedHours.toFixed(2)}h`; 
-            let zc = document.getElementById("zenClock");
-            if(zc) zc.textContent = formatZenTime(elapsedMs); 
-            if (typeof updateCharInputFromHook === 'function') updateCharInputFromHook();
-            if (typeof broadcastToWidget === 'function') broadcastToWidget();
-        }, 1000);
+			let elapsedMs = accumulatedMs + (Date.now() - startTime); 
+			let elapsedHours = elapsedMs / 3600000; 
+			if(btn) btn.title = `Running: ${elapsedHours.toFixed(2)}h`; 
+			
+			let zc = document.getElementById("zenClock");
+			if(zc) zc.textContent = formatZenTime(elapsedMs); 
+
+			// --- NEW: Update Sidebar Timer ---
+			let sidebarClock = document.getElementById("sidebarTimerDisplay");
+			if(sidebarClock) {
+				sidebarClock.textContent = formatZenTime(elapsedMs);
+				if (data.prefs.showSidebarTimer !== false) sidebarClock.classList.remove("hidden");
+			}
+			// ---------------------------------
+
+			if (typeof updateCharInputFromHook === 'function') updateCharInputFromHook();
+			if (typeof broadcastToWidget === 'function') broadcastToWidget();
+		}, 1000);
     } else {
         let logH = document.getElementById('logHours');
         let logM = document.getElementById('logMinutes');
@@ -4228,7 +4391,10 @@ function toggleTimer() {
             let zc = document.getElementById("zenClock");
             if(zc) zc.textContent = "00:00:00"; 
             
+			let sidebarClock = document.getElementById("sidebarTimerDisplay");
+			if(sidebarClock) { sidebarClock.textContent = "00:00:00"; sidebarClock.classList.add("hidden"); }
             playAudio('timer.wav'); 
+			if (typeof broadcastToWidget === 'function') broadcastToWidget();
         };
 
         if ((logH && parseFloat(logH.value) > 0) || (logM && parseFloat(logM.value) > 0)) {
@@ -4579,6 +4745,167 @@ async function triggerAutoFillSearch() {
     } else {
         container.innerHTML = `<div style="padding:10px; text-align:center; opacity:0.6;">Search only supports Anime, Manga, and VN.</div>`;
     }
+}
+
+// --- GOAL MILESTONES ENGINE ---
+let gdPaceChartInst = null;
+let gdMediaChartInst = null;
+
+function openGoalsPage() {
+    switchView('goals');
+}
+
+// Controls the internal "Back" button
+function closeGoalDetails() {
+    playAudio('close.wav');
+    document.getElementById('gdDetails').classList.add('hidden');
+    document.getElementById('gdDetails').style.display = 'none';
+    document.getElementById('gdListViewContainer').classList.remove('hidden');
+    document.getElementById('gdListViewContainer').style.display = 'flex';
+}
+
+function deleteArchivedGoal(idx) { 
+    showConfirm("Permanently delete this archived goal?", () => { 
+        data.archivedGoals.splice(idx, 1); 
+        save(); 
+        closeGoalDetails(); // Force back to list view
+        renderGoalDashboard(); 
+    }); 
+}
+
+function exitGoalsPage() {
+    playAudio('close.wav');
+    switchView(previousTabBeforeGoals);
+}
+
+function renderGoalDashboard() {
+    let listContainer = document.getElementById('gdList');
+    listContainer.innerHTML = '';
+    
+    if (data.archivedGoals.length === 0) {
+        listContainer.innerHTML = '<div style="opacity:0.6; padding: 10px; text-align:center;">No completed or failed goals yet.</div>';
+        return;
+    }
+
+    // Render as a clean List
+    [...data.archivedGoals].reverse().forEach((g, reverseIdx) => {
+        let actualIdx = data.archivedGoals.length - 1 - reverseIdx;
+        let prog = g.finalProgress !== undefined ? g.finalProgress : 0;
+        let isCleared = prog >= g.target;
+        
+        let borderColor = isCleared ? 'var(--accent)' : '#ff4444';
+        let bgStyle = isCleared ? 'background: rgba(76, 201, 240, 0.05);' : 'opacity: 0.7; filter: grayscale(0.5);';
+        
+        let item = document.createElement('div');
+        item.className = 'list-item'; // Reverted from lib-card
+        item.style.cssText = `border-left: 4px solid ${borderColor}; padding: 12px 15px; cursor: pointer; align-items: flex-start; ${bgStyle}`;
+        
+        item.onclick = (e) => {
+            if(e.target.tagName === 'BUTTON') return;
+            viewArchivedGoalAnalytics(actualIdx);
+        };
+        
+        item.innerHTML = `
+            <div style="flex: 1;">
+                <div style="font-weight:bold; font-size:15px; margin-bottom: 4px;">
+                    ${g.name} <span style="font-size:12px; margin-left:8px;">${isCleared ? '✅' : '❌'}</span>
+                </div>
+                <div style="font-size:11px; opacity:0.8;">
+                    ${g.type} • <strong>${prog.toFixed(g.metric==='hours'?1:0)} / ${g.target}</strong> ${g.metric}
+                </div>
+            </div>
+            <div>
+                <button onclick="deleteArchivedGoal(${actualIdx})" style="background:transparent; border:none; color:#ff4444; font-size:14px; cursor:pointer;" title="Delete">🗑️</button>
+            </div>
+        `;
+        listContainer.appendChild(item);
+    });
+}
+
+function viewArchivedGoalAnalytics(idx) {
+    let g = data.archivedGoals[idx];
+    
+    document.getElementById('gdListViewContainer').classList.add('hidden');
+    document.getElementById('gdListViewContainer').style.display = 'none';
+    document.getElementById('gdDetails').classList.remove('hidden');
+    document.getElementById('gdDetails').style.display = 'flex';
+    
+    let isCleared = (g.finalProgress || 0) >= g.target;
+    document.getElementById('gdTitle').innerHTML = `${g.name} <span style="font-size:16px; margin-left: 10px;">${isCleared ? '✅ Cleared' : '❌ Failed'}</span>`;
+    
+    // THE DATE MATH FIX
+    let startStr = g.startDate || g.createdAt || "Unknown";
+    let endStr = g.deadline || getLocalDateStr();
+    let queryStart = startStr === "Unknown" ? "2000-01-01" : startStr; // Prevents the filter from crashing
+
+    document.getElementById('gdMeta').innerHTML = `
+        <strong>Type:</strong> ${g.type} | <strong>Metric:</strong> ${g.metric.toUpperCase()} <br>
+        <strong>Timeframe:</strong> ${startStr} to ${endStr}
+    `;
+
+    // Fetch Logs safely
+    let logs = data.entries.filter(e => e.date >= queryStart && e.date <= endStr && (g.type === 'all' || e.type === g.type));
+
+    let mediaSums = {};
+    logs.forEach(e => {
+        if (!e.media) return;
+        let val = g.metric === 'units' ? (e.units||e.eps||e.pages||0) : (e[g.metric] || 0);
+        if (val > 0) mediaSums[e.media] = (mediaSums[e.media] || 0) + val;
+    });
+
+    let currTheme = {...themes, ...data.prefs.customThemes}[data.prefs.theme] || themes.Dark;
+
+    if (gdMediaChartInst) gdMediaChartInst.destroy();
+    let pieLabels = Object.keys(mediaSums);
+    if (pieLabels.length > 0) {
+        
+        let pieColors = pieLabels.map(m => stringToColor(m));
+
+        gdMediaChartInst = new Chart(document.getElementById('gdMediaChart'), {
+            type: 'doughnut',
+            data: { 
+                labels: pieLabels, 
+                datasets: [{ data: Object.values(mediaSums), backgroundColor: pieColors, borderWidth: 1, borderColor: 'rgba(0,0,0,0.2)' }] 
+            },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: {color: '#888', font: {size: 10}} } } }
+        });
+    }
+
+    // Safely generate dates for the Pace chart
+    let chartStartStr = startStr === "Unknown" ? (logs.length > 0 ? logs[0].date : endStr) : startStr;
+    let dates = [];
+    let curr = new Date(chartStartStr + "T00:00:00");
+    let end = new Date(endStr + "T00:00:00");
+    while (curr <= end) { dates.push(getLocalDateStr(curr)); curr.setDate(curr.getDate() + 1); }
+
+    let cumulativeData = []; let targetPaceData = []; let runningTotal = 0;
+    let dailyTargetRequired = g.target / Math.max(1, dates.length);
+
+    dates.forEach((dateStr, i) => {
+        let dayProg = logs.filter(e => e.date === dateStr).reduce((sum, e) => sum + (g.metric==='units' ? (e.units||e.eps||e.pages||0) : (e[g.metric]||0)), 0);
+        runningTotal += dayProg;
+        cumulativeData.push(parseFloat(runningTotal.toFixed(2)));
+        targetPaceData.push(parseFloat(((i + 1) * dailyTargetRequired).toFixed(2)));
+    });
+
+    let accentHex = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#4cc9f0';
+
+    if (gdPaceChartInst) gdPaceChartInst.destroy();
+    gdPaceChartInst = new Chart(document.getElementById('gdPaceChart'), {
+        type: 'line',
+        data: {
+            labels: dates.map(d => d.split('-').slice(1).join('/')),
+            datasets: [
+                { label: 'Actual Progress', data: cumulativeData, borderColor: accentHex, backgroundColor: `rgba(${hexToRgb(accentHex)}, 0.1)`, fill: true, tension: 0.2 },
+                { label: 'Required Target', data: targetPaceData, borderColor: '#ffaa00', borderDash: [5, 5], pointRadius: 0, fill: false, tension: 0 }
+            ]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            scales: { y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: {color: '#888'} }, x: { grid: { display: false }, ticks: {color: '#888', maxTicksLimit: 8} } },
+            plugins: { legend: { labels: { color: '#888' } } }
+        }
+    });
 }
 
 function initOS() { 
